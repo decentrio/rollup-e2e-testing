@@ -26,7 +26,7 @@ type Image struct {
 	client *client.Client
 
 	// NOTE: it might make sense for Image to have an ibc.DockerImage field,
-	// but for now it is probably better to not have internal/dockerutil depend on ibc.
+	// but for now it is probably better to not have dockerutil depend on ibc.
 	repository, tag string
 
 	networkID string

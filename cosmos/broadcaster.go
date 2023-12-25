@@ -1,4 +1,4 @@
-package hub
+package cosmos
 
 import (
 	"bytes"

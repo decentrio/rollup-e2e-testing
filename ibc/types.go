@@ -14,8 +14,6 @@ import (
 
 // ChainConfig defines the chain parameters requires to run an interchaintest testnet for a chain.
 type ChainConfig struct {
-	// Chain type, e.g. cosmos.
-	Type string `yaml:"type"`
 	// Chain name, e.g. cosmoshub.
 	Name string `yaml:"name"`
 	// Chain ID, e.g. cosmoshub-4
@@ -97,10 +95,6 @@ func (c ChainConfig) MergeChainSpecConfig(other ChainConfig) ChainConfig {
 	// which is a value, not a reference,
 	// and return the updated copy.
 
-	if other.Type != "" {
-		c.Type = other.Type
-	}
-
 	// Skip Name, as that is held in ChainSpec.ChainName.
 
 	if other.ChainID != "" {
@@ -178,8 +172,7 @@ func (c ChainConfig) IsFullyConfigured() bool {
 		}
 	}
 
-	return c.Type != "" &&
-		c.Name != "" &&
+	return c.Name != "" &&
 		c.ChainID != "" &&
 		len(c.Images) > 0 &&
 		c.Bin != "" &&

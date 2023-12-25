@@ -1,4 +1,4 @@
-package hub
+package cosmos
 
 import (
 	"bytes"
@@ -62,7 +62,6 @@ func NewCosmosHeighlinerChainConfig(name string,
 	trustingPeriod string,
 	noHostMount bool) ibc.ChainConfig {
 	return ibc.ChainConfig{
-		Type:           "cosmos",
 		Name:           name,
 		Bech32Prefix:   bech32Prefix,
 		Denom:          denom,

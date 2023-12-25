@@ -39,7 +39,7 @@ func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, netw
 	return r
 }
 
-type CosmosRelayerChainConfigValue struct {
+type CosmosRelayerChainConfig struct {
 	AccountPrefix  string  `json:"account-prefix"`
 	ChainID        string  `json:"chain-id"`
 	Debug          bool    `json:"debug"`
@@ -54,37 +54,25 @@ type CosmosRelayerChainConfigValue struct {
 	Timeout        string  `json:"timeout"`
 }
 
-type CosmosRelayerChainConfig struct {
-	Type  string                        `json:"type"`
-	Value CosmosRelayerChainConfigValue `json:"value"`
-}
-
 const (
 	DefaultContainerImage   = "ghcr.io/cosmos/relayer"
 	DefaultContainerVersion = "v2.4.1"
 )
 
 func ChainConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr, gprcAddr string) CosmosRelayerChainConfig {
-	chainType := chainConfig.Type
-	if chainType == "polkadot" || chainType == "parachain" || chainType == "relaychain" {
-		chainType = "substrate"
-	}
 	return CosmosRelayerChainConfig{
-		Type: chainType,
-		Value: CosmosRelayerChainConfigValue{
-			Key:            keyName,
-			ChainID:        chainConfig.ChainID,
-			RPCAddr:        rpcAddr,
-			GRPCAddr:       gprcAddr,
-			AccountPrefix:  chainConfig.Bech32Prefix,
-			KeyringBackend: keyring.BackendTest,
-			GasAdjustment:  chainConfig.GasAdjustment,
-			GasPrices:      chainConfig.GasPrices,
-			Debug:          true,
-			Timeout:        "10s",
-			OutputFormat:   "json",
-			SignMode:       "direct",
-		},
+		Key:            keyName,
+		ChainID:        chainConfig.ChainID,
+		RPCAddr:        rpcAddr,
+		GRPCAddr:       gprcAddr,
+		AccountPrefix:  chainConfig.Bech32Prefix,
+		KeyringBackend: keyring.BackendTest,
+		GasAdjustment:  chainConfig.GasAdjustment,
+		GasPrices:      chainConfig.GasPrices,
+		Debug:          true,
+		Timeout:        "10s",
+		OutputFormat:   "json",
+		SignMode:       "direct",
 	}
 }
 

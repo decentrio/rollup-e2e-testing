@@ -45,8 +45,8 @@ type CosmosChain struct {
 	cfg           ibc.ChainConfig
 	numValidators int
 	numFullNodes  int
-	Validators    HubNodes
-	FullNodes     HubNodes
+	Validators    Nodes
+	FullNodes     Nodes
 
 	log      *zap.Logger
 	keyring  keyring.Keyring
@@ -101,7 +101,7 @@ func NewCosmosChain(testName string, chainConfig ibc.ChainConfig, numValidators 
 }
 
 // Nodes returns all nodes, including validators and fullnodes.
-func (c *CosmosChain) Nodes() HubNodes {
+func (c *CosmosChain) Nodes() Nodes {
 	return append(c.Validators, c.FullNodes...)
 }
 
@@ -172,7 +172,7 @@ func (c *CosmosChain) Initialize(ctx context.Context, testName string, cli *clie
 	return c.initializeHubNodes(ctx, testName, cli, networkID)
 }
 
-func (c *CosmosChain) getFullNode() *HubNode {
+func (c *CosmosChain) getFullNode() *Node {
 	c.findTxMu.Lock()
 	defer c.findTxMu.Unlock()
 	if len(c.FullNodes) > 0 {
@@ -183,7 +183,7 @@ func (c *CosmosChain) getFullNode() *HubNode {
 	return c.Validators[0]
 }
 
-func (c *CosmosChain) GetNode() *HubNode {
+func (c *CosmosChain) GetNode() *Node {
 	return c.Validators[0]
 }
 
@@ -613,10 +613,10 @@ func (c *CosmosChain) NewHubNode(
 	image ibc.DockerImage,
 	validator bool,
 	index int,
-) (*HubNode, error) {
-	// Construct the HubNode first so we can access its name.
-	// The HubNode's VolumeName cannot be set until after we create the volume.
-	tn := NewHubNode(c.log, validator, c, cli, networkID, testName, image, index)
+) (*Node, error) {
+	// Construct the Node first so we can access its name.
+	// The Node's VolumeName cannot be set until after we create the volume.
+	tn := NewNode(c.log, validator, c, cli, networkID, testName, image, index)
 
 	v, err := cli.VolumeCreate(ctx, volumetypes.CreateOptions{
 		Labels: map[string]string{
@@ -657,9 +657,9 @@ func (c *CosmosChain) initializeHubNodes(
 	c.pullImages(ctx, cli)
 	image := chainCfg.Images[0]
 
-	newVals := make(HubNodes, c.numValidators)
+	newVals := make(Nodes, c.numValidators)
 	copy(newVals, c.Validators)
-	newFullNodes := make(HubNodes, c.numFullNodes)
+	newFullNodes := make(Nodes, c.numFullNodes)
 	copy(newFullNodes, c.FullNodes)
 
 	eg, egCtx := errgroup.WithContext(ctx)

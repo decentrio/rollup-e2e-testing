@@ -75,7 +75,7 @@ func DockerSetup(t DockerSetupTestingT) (*client.Client, string) {
 	// e.g. if the test was interrupted.
 	dockerCleanup(t, cli)()
 
-	name := fmt.Sprintf("interchaintest-%s", RandLowerCaseLetterString(8))
+	name := fmt.Sprintf("e2e-%s", RandLowerCaseLetterString(8))
 	network, err := cli.NetworkCreate(context.TODO(), name, types.NetworkCreate{
 		CheckDuplicate: true,
 

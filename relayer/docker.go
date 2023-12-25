@@ -522,7 +522,7 @@ type RelayerCommander interface {
 	DefaultContainerVersion() string
 
 	// The Docker user to use in created container.
-	// For interchaintest, must be of the format: uid:gid.
+	// must be of the format: uid:gid.
 	DockerUser() string
 
 	// ConfigContent generates the content of the config file that will be passed to AddChainConfiguration.

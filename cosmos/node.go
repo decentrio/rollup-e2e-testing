@@ -653,6 +653,58 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
+func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
+	node.lock.Lock()
+	defer node.lock.Unlock()
+
+	var command []string
+
+	seq, err := node.ShowSeq(ctx)
+	if err != nil {
+		return err
+	}
+
+	command = append(command, "gentx_seq",
+		"--pubkey", seq,
+		"--from", keyName,
+		"--keyring-backend", keyring.BackendTest)
+
+	_, _, err = node.ExecBin(ctx, command...)
+	return err
+}
+
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
+	var command []string
+	detail := "{\"Addresses\":[]}"
+	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
+		"--broadcast-mode", "block")
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
+func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
+	var command []string
+
+	seq, err := node.ShowSeq(ctx)
+	if err != nil {
+		return err
+	}
+
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}",
+		"--broadcast-mode", "block")
+
+	_, err = node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
+func (node *Node) ShowSeq(ctx context.Context) (string, error) {
+	var command []string
+	command = append(command, "dymint", "show-sequencer")
+
+	seq, _, err := node.ExecBin(ctx, command...)
+	return string(bytes.TrimSuffix(seq, []byte("\n"))), err
+}
+
 // CollectGentxs runs collect gentxs on the node's home folders
 func (node *Node) CollectGentxs(ctx context.Context) error {
 	command := []string{node.Chain.Config().Bin}
@@ -1230,7 +1282,9 @@ func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	} else {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants"}
 	}
-
+	if chainCfg.Type == "rollapp" {
+		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
+	}
 	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd, nil)
 }
 
@@ -1299,7 +1353,28 @@ func (node *Node) InitValidatorGenTx(
 	if err := node.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 		return err
 	}
-	return node.Gentx(ctx, valKey, genesisSelfDelegation)
+
+	switch chainType.Type {
+	case "hub":
+		if err := node.CreateKey(ctx, "sequencer"); err != nil {
+			return err
+		}
+		sequencer, err := node.AccountKeyBech32(ctx, "sequencer")
+		if err != nil {
+			return err
+		}
+		if err := node.AddGenesisAccount(ctx, sequencer, genesisAmounts); err != nil {
+			return err
+		}
+		return node.Gentx(ctx, valKey, genesisSelfDelegation)
+	case "rollapp":
+		if err := node.GentxSeq(ctx, valKey); err != nil {
+			return err
+		}
+		return node.Gentx(ctx, valKey, genesisSelfDelegation)
+	default:
+		return node.Gentx(ctx, valKey, genesisSelfDelegation)
+	}
 }
 
 func (node *Node) InitFullNodeFiles(ctx context.Context) error {

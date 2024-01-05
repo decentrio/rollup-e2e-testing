@@ -118,7 +118,7 @@ func (c *CosmosChain) AddFullNodes(ctx context.Context, configFileOverrides map[
 
 	prevCount := c.numFullNodes
 	c.numFullNodes += inc
-	if err := c.initializeHubNodes(ctx, c.testName, c.getFullNode().DockerClient, c.getFullNode().NetworkID); err != nil {
+	if err := c.initializeNodes(ctx, c.testName, c.getFullNode().DockerClient, c.getFullNode().NetworkID); err != nil {
 		return err
 	}
 
@@ -169,7 +169,7 @@ func (c *CosmosChain) Config() ibc.ChainConfig {
 
 // Implements Chain interface
 func (c *CosmosChain) Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error {
-	return c.initializeHubNodes(ctx, testName, cli, networkID)
+	return c.initializeNodes(ctx, testName, cli, networkID)
 }
 
 func (c *CosmosChain) getFullNode() *Node {
@@ -604,8 +604,8 @@ func (c *CosmosChain) pullImages(ctx context.Context, cli *client.Client) {
 	}
 }
 
-// NewHubNode constructs a new cosmos chain node with a docker volume.
-func (c *CosmosChain) NewHubNode(
+// NewNode constructs a new cosmos chain node with a docker volume.
+func (c *CosmosChain) NewNode(
 	ctx context.Context,
 	testName string,
 	cli *client.Client,
@@ -647,7 +647,7 @@ func (c *CosmosChain) NewHubNode(
 }
 
 // creates the test node objects required for bootstrapping tests
-func (c *CosmosChain) initializeHubNodes(
+func (c *CosmosChain) initializeNodes(
 	ctx context.Context,
 	testName string,
 	cli *client.Client,
@@ -666,7 +666,7 @@ func (c *CosmosChain) initializeHubNodes(
 	for i := len(c.Validators); i < c.numValidators; i++ {
 		i := i
 		eg.Go(func() error {
-			val, err := c.NewHubNode(egCtx, testName, cli, networkID, image, true, i)
+			val, err := c.NewNode(egCtx, testName, cli, networkID, image, true, i)
 			if err != nil {
 				return err
 			}
@@ -677,7 +677,7 @@ func (c *CosmosChain) initializeHubNodes(
 	for i := len(c.FullNodes); i < c.numFullNodes; i++ {
 		i := i
 		eg.Go(func() error {
-			fn, err := c.NewHubNode(egCtx, testName, cli, networkID, image, false, i)
+			fn, err := c.NewNode(egCtx, testName, cli, networkID, image, false, i)
 			if err != nil {
 				return err
 			}
@@ -722,12 +722,12 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
 
 	genesisAmount := types.Coin{
-		Amount: sdkmath.NewInt(10_000_000).MulRaw(decimalPow),
+		Amount: sdkmath.NewInt(100_000_000_000_000).MulRaw(decimalPow),
 		Denom:  chainCfg.Denom,
 	}
 
 	genesisSelfDelegation := types.Coin{
-		Amount: sdkmath.NewInt(5_000_000).MulRaw(decimalPow),
+		Amount: sdkmath.NewInt(50_000_000_000_000).MulRaw(decimalPow),
 		Denom:  chainCfg.Denom,
 	}
 
@@ -873,20 +873,20 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		_ = os.WriteFile(exportGenesis, genbz, 0600)
 	}
 
-	hubNodes := c.Nodes()
+	nodes := c.Nodes()
 
-	for _, cn := range hubNodes {
-		if err := cn.OverwriteGenesisFile(ctx, genbz); err != nil {
+	for _, node := range nodes {
+		if err := node.OverwriteGenesisFile(ctx, genbz); err != nil {
 			return err
 		}
 	}
 
-	if err := hubNodes.LogGenesisHashes(ctx); err != nil {
+	if err := nodes.LogGenesisHashes(ctx); err != nil {
 		return err
 	}
 
 	eg, egCtx := errgroup.WithContext(ctx)
-	for _, n := range hubNodes {
+	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
 			return n.CreateNodeContainer(egCtx)
@@ -896,10 +896,10 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		return err
 	}
 
-	peers := hubNodes.PeerString(ctx)
+	peers := nodes.PeerString(ctx)
 
 	eg, egCtx = errgroup.WithContext(ctx)
-	for _, n := range hubNodes {
+	for _, n := range nodes {
 		n := n
 		c.log.Info("Starting container", zap.String("container", n.Name()))
 		eg.Go(func() error {
@@ -915,6 +915,14 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 
 	// Wait for 5 blocks before considering the chains "started"
 	return testutil.WaitForBlocks(ctx, 5, c.getFullNode())
+}
+
+func (c *CosmosChain) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
+	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers)
+}
+
+func (c *CosmosChain) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers)
 }
 
 // Height implements ibc.Chain

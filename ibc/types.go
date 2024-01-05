@@ -295,14 +295,6 @@ type Wallet interface {
 	Address() []byte
 }
 
-type RelayerImplementation int64
-
-const (
-	CosmosRly RelayerImplementation = iota
-	Hermes
-	Hyperspace
-)
-
 // ChannelFilter provides the means for either creating an allowlist or a denylist of channels on the src chain
 // which will be used to narrow down the list of channels a user wants to relay on.
 type ChannelFilter struct {

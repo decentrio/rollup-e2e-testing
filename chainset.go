@@ -102,20 +102,22 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string) (fa
 
 // Start concurrently calls Start against each chain in the set.
 func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletAmount) error {
-	eg, egCtx := errgroup.WithContext(ctx)
-
 	for c := range cs.chains {
 		c := c
-		eg.Go(func() error {
-			if err := c.Start(testName, egCtx, additionalGenesisWallets[c]...); err != nil {
+		if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
+		if c.Config().Type == "hub" {
+			if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5"); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}
-
-			return nil
-		})
+			if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5"); err != nil {
+				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+			}
+		}
 	}
 
-	return eg.Wait()
+	return nil
 }
 
 // TrackBlocks initializes database tables and polls for transactions to be saved in the database.

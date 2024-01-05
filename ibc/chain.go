@@ -84,6 +84,8 @@ type Chain interface {
 	// be restored in the relayer node using the mnemonic. After it is built, that address is included in
 	// genesis with some funds.
 	BuildRelayerWallet(ctx context.Context, keyName string) (Wallet, error)
+	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error
+	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

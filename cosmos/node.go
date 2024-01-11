@@ -676,24 +676,20 @@ func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
 func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
 	var command []string
 	detail := "{\"Addresses\":[]}"
+	// TODO: handle keyring-dir
 	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
-		"--broadcast-mode", "block")
+		"--broadcast-mode", "block", "--keyring-dir")
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
 
-func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
+func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq string) error {
 	var command []string
-
-	seq, err := node.ShowSeq(ctx)
-	if err != nil {
-		return err
-	}
-
+	// TODO: handle keyring-dir
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}",
-		"--broadcast-mode", "block")
+		"--broadcast-mode", "block", "--keyring-dir")
 
-	_, err = node.ExecTx(ctx, keyName, command...)
+	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
 

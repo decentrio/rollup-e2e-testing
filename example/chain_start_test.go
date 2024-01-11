@@ -27,16 +27,16 @@ func TestStartChain(t *testing.T) {
 	numRollAppVals := 1
 	cf := cosmos.NewBuiltinChainFactory(zaptest.NewLogger(t), []*cosmos.ChainSpec{
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
-		},
-		{
 			Name:          "rollapp1",
 			ChainConfig:   rollappConfig,
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
 		},
 	})
 

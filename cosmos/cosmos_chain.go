@@ -147,6 +147,7 @@ func (c *CosmosChain) AddFullNodes(ctx context.Context, configFileOverrides map[
 					fn.DockerClient,
 					fn.TestName,
 					fn.VolumeName,
+					fn.Chain.Config().Name,
 					configFile,
 					modifiedToml,
 				); err != nil {
@@ -759,6 +760,7 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 					v.DockerClient,
 					v.TestName,
 					v.VolumeName,
+					v.Chain.Config().Name,
 					configFile,
 					modifiedToml,
 				); err != nil {
@@ -791,6 +793,7 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 					n.DockerClient,
 					n.TestName,
 					n.VolumeName,
+					n.Chain.Config().Name,
 					configFile,
 					modifiedToml,
 				); err != nil {
@@ -968,6 +971,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 					v.DockerClient,
 					v.TestName,
 					v.VolumeName,
+					v.Chain.Config().Name,
 					configFile,
 					modifiedToml,
 				); err != nil {
@@ -1000,6 +1004,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 					n.DockerClient,
 					n.TestName,
 					n.VolumeName,
+					n.Chain.Config().Name,
 					configFile,
 					modifiedToml,
 				); err != nil {

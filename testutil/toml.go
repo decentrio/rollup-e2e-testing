@@ -49,11 +49,12 @@ func ModifyTomlConfigFile(
 	dockerClient *client.Client,
 	testName string,
 	volumeName string,
+	chainName string,
 	filePath string,
 	modifications Toml,
 ) error {
 	fr := dockerutil.NewFileRetriever(logger, dockerClient, testName)
-	config, err := fr.SingleFileContent(ctx, volumeName, filePath)
+	config, err := fr.SingleFileContent(ctx, volumeName, chainName, filePath)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve %s: %w", filePath, err)
 	}

@@ -133,7 +133,7 @@ func (tn *TendermintNode) HostName() string {
 
 func (tn *TendermintNode) GenesisFileContent(ctx context.Context) ([]byte, error) {
 	fr := dockerutil.NewFileRetriever(tn.logger(), tn.DockerClient, tn.TestName)
-	gen, err := fr.SingleFileContent(ctx, tn.VolumeName, "config/genesis.json")
+	gen, err := fr.SingleFileContent(ctx, tn.VolumeName, tn.Name(), "config/genesis.json")
 	if err != nil {
 		return nil, fmt.Errorf("getting genesis.json content: %w", err)
 	}
@@ -212,6 +212,7 @@ func (tn *TendermintNode) SetConfigAndPeers(ctx context.Context, peers string) e
 		tn.DockerClient,
 		tn.TestName,
 		tn.VolumeName,
+		tn.Name(),
 		"config/config.toml",
 		c,
 	)
@@ -313,7 +314,7 @@ func (tn *TendermintNode) NodeID(ctx context.Context) (string, error) {
 	// but because we are transitioning to operating on Docker volumes,
 	// we only have to tmjson.Unmarshal the raw content.
 	fr := dockerutil.NewFileRetriever(tn.logger(), tn.DockerClient, tn.TestName)
-	j, err := fr.SingleFileContent(ctx, tn.VolumeName, "config/node_key.json")
+	j, err := fr.SingleFileContent(ctx, tn.VolumeName, tn.Name(), "config/node_key.json")
 	if err != nil {
 		return "", fmt.Errorf("getting node_key.json content: %w", err)
 	}

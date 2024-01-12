@@ -23,7 +23,7 @@ func TestStartChain(t *testing.T) {
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
-	numRollAppFn := 1
+	numRollAppFn := 0
 	numRollAppVals := 1
 	cf := cosmos.NewBuiltinChainFactory(zaptest.NewLogger(t), []*cosmos.ChainSpec{
 		{
@@ -56,8 +56,8 @@ func TestStartChain(t *testing.T) {
 	).Build(t, client, network)
 	const ibcPath = "dymension-demo"
 	ic := test.NewSetup().
-		AddChain(dymension).
 		AddChain(rollapp1).
+		AddChain(dymension).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,

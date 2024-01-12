@@ -31,7 +31,7 @@ func NewFileRetriever(log *zap.Logger, cli *client.Client, testName string) *Fil
 
 // SingleFileContent returns the content of the file named at relPath,
 // inside the volume specified by volumeName.
-func (r *FileRetriever) SingleFileContent(ctx context.Context, volumeName, relPath string) ([]byte, error) {
+func (r *FileRetriever) SingleFileContent(ctx context.Context, volumeName, chainName, relPath string) ([]byte, error) {
 	const mountPath = "/mnt/dockervolume"
 
 	if err := ensureBusybox(ctx, r.cli); err != nil {
@@ -39,7 +39,6 @@ func (r *FileRetriever) SingleFileContent(ctx context.Context, volumeName, relPa
 	}
 
 	containerName := fmt.Sprintf("e2e-getfile-%d-%s", time.Now().UnixNano(), RandLowerCaseLetterString(5))
-
 	cc, err := r.cli.ContainerCreate(
 		ctx,
 		&container.Config{
@@ -51,7 +50,7 @@ func (r *FileRetriever) SingleFileContent(ctx context.Context, volumeName, relPa
 			Labels: map[string]string{CleanupLabel: r.testName},
 		},
 		&container.HostConfig{
-			Binds:      []string{volumeName + ":" + mountPath},
+			Binds:      []string{"/tmp/" + chainName + ":" + mountPath},
 			AutoRemove: true,
 		},
 		nil, // No networking necessary.

@@ -209,11 +209,11 @@ type PrivValidatorKeyFile struct {
 
 // Bind returns the home folder bind point for running the node
 func (node *Node) Bind() []string {
-	return []string{fmt.Sprintf("%s:%s", node.VolumeName, node.HomeDir())}
+	return []string{fmt.Sprintf("%s:%s", "/tmp", "/var/cosmos-chain")}
 }
 
 func (node *Node) HomeDir() string {
-	return path.Join("/var/cosmos-chain", node.Chain.Config().Name)
+	return path.Join("/var/cosmos-chain", node.Chain.Config().Name+node.VolumeName)
 }
 
 // SetTestConfig modifies the config to reasonable values for use within interchaintest.
@@ -253,6 +253,7 @@ func (node *Node) SetTestConfig(ctx context.Context) error {
 		node.DockerClient,
 		node.TestName,
 		node.VolumeName,
+		node.Chain.Config().Name,
 		"config/config.toml",
 		c,
 	); err != nil {
@@ -284,6 +285,7 @@ func (node *Node) SetTestConfig(ctx context.Context) error {
 		node.DockerClient,
 		node.TestName,
 		node.VolumeName,
+		node.Chain.Config().Name,
 		"config/app.toml",
 		a,
 	)
@@ -304,6 +306,7 @@ func (node *Node) SetPeers(ctx context.Context, peers string) error {
 		node.DockerClient,
 		node.TestName,
 		node.VolumeName,
+		node.Chain.Config().Name,
 		"config/config.toml",
 		c,
 	)
@@ -559,7 +562,7 @@ func (node *Node) CopyFile(ctx context.Context, srcPath, dstPath string) error {
 // relPath describes the location of the file in the docker volume relative to the home directory.
 func (node *Node) ReadFile(ctx context.Context, relPath string) ([]byte, error) {
 	fr := dockerutil.NewFileRetriever(node.logger(), node.DockerClient, node.TestName)
-	gen, err := fr.SingleFileContent(ctx, node.VolumeName, relPath)
+	gen, err := fr.SingleFileContent(ctx, node.VolumeName, node.Chain.Config().Name, relPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file at %s: %w", relPath, err)
 	}

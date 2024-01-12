@@ -144,7 +144,7 @@ func (r *DockerRelayer) WriteFileToHomeDir(ctx context.Context, relativePath str
 // relative to the home directory in the relayer container.
 func (r *DockerRelayer) ReadFileFromHomeDir(ctx context.Context, relativePath string) ([]byte, error) {
 	fr := dockerutil.NewFileRetriever(r.log, r.client, r.testName)
-	bytes, err := fr.SingleFileContent(ctx, r.volumeName, relativePath)
+	bytes, err := fr.SingleFileContent(ctx, r.volumeName, r.Name(), relativePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve %s: %w", relativePath, err)
 	}
@@ -153,7 +153,7 @@ func (r *DockerRelayer) ReadFileFromHomeDir(ctx context.Context, relativePath st
 
 // Modify a toml config file in relayer home directory
 func (r *DockerRelayer) ModifyTomlConfigFile(ctx context.Context, relativePath string, modification testutil.Toml) error {
-	return testutil.ModifyTomlConfigFile(ctx, r.log, r.client, r.testName, r.volumeName, relativePath, modification)
+	return testutil.ModifyTomlConfigFile(ctx, r.log, r.client, r.testName, r.volumeName, r.Name(), relativePath, modification)
 }
 
 // AddWallet adds a stores a wallet for the given chain ID.

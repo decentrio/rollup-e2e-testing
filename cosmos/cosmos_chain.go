@@ -616,19 +616,19 @@ func (c *CosmosChain) NewNode(
 ) (*Node, error) {
 	// Construct the Node first so we can access its name.
 	// The Node's VolumeName cannot be set until after we create the volume.
-	tn := NewNode(c.log, validator, c, cli, networkID, testName, image, index)
+	node := NewNode(c.log, validator, c, cli, networkID, testName, image, index)
 
 	v, err := cli.VolumeCreate(ctx, volumetypes.CreateOptions{
 		Labels: map[string]string{
 			dockerutil.CleanupLabel: testName,
 
-			dockerutil.NodeOwnerLabel: tn.Name(),
+			dockerutil.NodeOwnerLabel: node.Name(),
 		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating volume for chain node: %w", err)
 	}
-	tn.VolumeName = v.Name
+	node.VolumeName = v.Name
 
 	if err := dockerutil.SetVolumeOwner(ctx, dockerutil.VolumeOwnerOptions{
 		Log: c.log,
@@ -643,7 +643,7 @@ func (c *CosmosChain) NewNode(
 		return nil, fmt.Errorf("set volume owner: %w", err)
 	}
 
-	return tn, nil
+	return node, nil
 }
 
 // creates the test node objects required for bootstrapping tests

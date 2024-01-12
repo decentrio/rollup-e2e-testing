@@ -26,9 +26,6 @@ type Setup struct {
 	// Key: relayer and path name; Value: the two chains being linked.
 	links map[relayerPath]Link
 
-	// Set to true after Build is called once.
-	built bool
-
 	// Map of relayer-chain pairs to address and mnemonic, set during Build().
 	// Not yet exposed through any exported API.
 	relayerWallets map[relayerChain]ibc.Wallet
@@ -78,7 +75,7 @@ type relayerPath struct {
 // using the chain ID reported by the chain's config.
 // If the given chain already exists,
 // or if another chain with the same configured chain ID exists, AddChain panics.
-func (ic *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.WalletAmount) *Setup {
+func (s *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.WalletAmount) *Setup {
 	if chain == nil {
 		panic(fmt.Errorf("cannot add nil chain"))
 	}
@@ -86,7 +83,7 @@ func (ic *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.Walle
 	newID := chain.Config().ChainID
 	newName := chain.Config().Name
 
-	for c, id := range ic.chains {
+	for c, id := range s.chains {
 		if c == chain {
 			panic(fmt.Errorf("chain %v was already added", c))
 		}
@@ -98,27 +95,27 @@ func (ic *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.Walle
 		}
 	}
 
-	ic.chains[chain] = newID
+	s.chains[chain] = newID
 
 	if len(additionalGenesisWallets) == 0 {
-		return ic
+		return s
 	}
 
-	if ic.AdditionalGenesisWallets == nil {
-		ic.AdditionalGenesisWallets = make(map[ibc.Chain][]ibc.WalletAmount)
+	if s.AdditionalGenesisWallets == nil {
+		s.AdditionalGenesisWallets = make(map[ibc.Chain][]ibc.WalletAmount)
 	}
-	ic.AdditionalGenesisWallets[chain] = additionalGenesisWallets
+	s.AdditionalGenesisWallets[chain] = additionalGenesisWallets
 
-	return ic
+	return s
 }
 
 // AddRelayer adds the given relayer with the given name to the Setup.
-func (ic *Setup) AddRelayer(relayer ibc.Relayer, name string) *Setup {
+func (s *Setup) AddRelayer(relayer ibc.Relayer, name string) *Setup {
 	if relayer == nil {
 		panic(fmt.Errorf("cannot add nil relayer"))
 	}
 
-	for r, n := range ic.relayers {
+	for r, n := range s.relayers {
 		if r == relayer {
 			panic(fmt.Errorf("relayer %v was already added", r))
 		}
@@ -127,8 +124,8 @@ func (ic *Setup) AddRelayer(relayer ibc.Relayer, name string) *Setup {
 		}
 	}
 
-	ic.relayers[relayer] = name
-	return ic
+	s.relayers[relayer] = name
+	return s
 }
 
 // InterchainLink describes a link between two chains,
@@ -157,16 +154,16 @@ type InterchainLink struct {
 
 // AddLink adds the given link to the Setup.
 // If any validation fails, AddLink panics.
-func (ic *Setup) AddLink(link InterchainLink) *Setup {
-	if _, exists := ic.chains[link.Chain1]; !exists {
+func (s *Setup) AddLink(link InterchainLink) *Setup {
+	if _, exists := s.chains[link.Chain1]; !exists {
 		cfg := link.Chain1.Config()
 		panic(fmt.Errorf("chain with name=%s and id=%s was never added to Setup", cfg.Name, cfg.ChainID))
 	}
-	if _, exists := ic.chains[link.Chain2]; !exists {
+	if _, exists := s.chains[link.Chain2]; !exists {
 		cfg := link.Chain2.Config()
 		panic(fmt.Errorf("chain with name=%s and id=%s was never added to Setup", cfg.Name, cfg.ChainID))
 	}
-	if _, exists := ic.relayers[link.Relayer]; !exists {
+	if _, exists := s.relayers[link.Relayer]; !exists {
 		panic(fmt.Errorf("relayer %v was never added to Setup", link.Relayer))
 	}
 
@@ -179,16 +176,16 @@ func (ic *Setup) AddLink(link InterchainLink) *Setup {
 		Path:    link.Path,
 	}
 
-	if _, exists := ic.links[key]; exists {
+	if _, exists := s.links[key]; exists {
 		panic(fmt.Errorf("relayer %q already has a path named %q", key.Relayer, key.Path))
 	}
 
-	ic.links[key] = Link{
+	s.links[key] = Link{
 		chains:            [2]ibc.Chain{link.Chain1, link.Chain2},
 		createChannelOpts: link.CreateChannelOpts,
 		createClientOpts:  link.CreateClientOpts,
 	}
-	return ic
+	return s
 }
 
 // InterchainBuildOptions describes configuration for (*Setup).Build.
@@ -198,7 +195,7 @@ type InterchainBuildOptions struct {
 	Client    *client.Client
 	NetworkID string
 
-	// If set, ic.Build does not create paths or links in the relayer,
+	// If set, s.Build does not create paths or links in the relayer,
 	// but it does still configure keys and wallets for declared relayer-chain links.
 	// This is useful for tests that need lower-level access to configuring relayers.
 	SkipPathCreation bool
@@ -215,43 +212,38 @@ type InterchainBuildOptions struct {
 // It is the caller's responsibility to directly call StartRelayer on the relayer implementations.
 //
 // Calling Build more than once will cause a panic.
-func (ic *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions) error {
-	if ic.built {
-		panic(fmt.Errorf("Setup.Build called more than once"))
-	}
-	ic.built = true
-
-	chains := make([]ibc.Chain, 0, len(ic.chains))
-	for chain := range ic.chains {
+func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions) error {
+	chains := make([]ibc.Chain, 0, len(s.chains))
+	for chain := range s.chains {
 		chains = append(chains, chain)
 	}
-	ic.cs = newChainSet(ic.log, chains)
+	s.cs = newChainSet(s.log, chains)
 
 	// Initialize the chains (pull docker images, etc.).
-	if err := ic.cs.Initialize(ctx, opts.TestName, opts.Client, opts.NetworkID); err != nil {
+	if err := s.cs.Initialize(ctx, opts.TestName, opts.Client, opts.NetworkID); err != nil {
 		return fmt.Errorf("failed to initialize chains: %w", err)
 	}
 
-	err := ic.generateRelayerWallets(ctx) // Build the relayer wallet mapping.
+	err := s.generateRelayerWallets(ctx) // Build the relayer wallet mapping.
 	if err != nil {
 		return err
 	}
 
-	walletAmounts, err := ic.genesisWalletAmounts(ctx)
+	walletAmounts, err := s.genesisWalletAmounts(ctx)
 	if err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
 	}
 
-	if err := ic.cs.Start(ctx, opts.TestName, walletAmounts); err != nil {
+	if err := s.cs.Start(ctx, opts.TestName, walletAmounts); err != nil {
 		return fmt.Errorf("failed to start chains: %w", err)
 	}
 
-	if err := ic.cs.TrackBlocks(ctx, opts.TestName, opts.BlockDatabaseFile, opts.GitSha); err != nil {
+	if err := s.cs.TrackBlocks(ctx, opts.TestName, opts.BlockDatabaseFile, opts.GitSha); err != nil {
 		return fmt.Errorf("failed to track blocks: %w", err)
 	}
 
-	if err := ic.configureRelayerKeys(ctx, rep); err != nil {
+	if err := s.configureRelayerKeys(ctx, rep); err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
 	}
@@ -263,7 +255,7 @@ func (ic *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporte
 	}
 
 	// For every relayer link, teach the relayer about the link and create the link.
-	for rp, link := range ic.links {
+	for rp, link := range s.links {
 		rp := rp
 		link := link
 		c0 := link.chains[0]
@@ -272,7 +264,7 @@ func (ic *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporte
 		if err := rp.Relayer.GeneratePath(ctx, rep, c0.Config().ChainID, c1.Config().ChainID, rp.Path); err != nil {
 			return fmt.Errorf(
 				"failed to generate path %s on relayer %s between chains %s and %s: %w",
-				rp.Path, rp.Relayer, ic.chains[c0], ic.chains[c1], err,
+				rp.Path, rp.Relayer, s.chains[c0], s.chains[c1], err,
 			)
 		}
 	}
@@ -280,7 +272,7 @@ func (ic *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporte
 	// Now link the paths in parallel
 	// Creates clients, connections, and channels for each link/path.
 	var eg errgroup.Group
-	for rp, link := range ic.links {
+	for rp, link := range s.links {
 		rp := rp
 		link := link
 		c0 := link.chains[0]
@@ -311,7 +303,7 @@ func (ic *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporte
 			if err := rp.Relayer.LinkPath(ctx, rep, rp.Path, link.createChannelOpts, link.createClientOpts); err != nil {
 				return fmt.Errorf(
 					"failed to link path %s on relayer %s between chains %s and %s: %w",
-					rp.Path, rp.Relayer, ic.chains[c0], ic.chains[c1], err,
+					rp.Path, rp.Relayer, s.chains[c0], s.chains[c1], err,
 				)
 			}
 			return nil
@@ -324,29 +316,29 @@ func (ic *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporte
 // WithLog sets the logger on the interchain object.
 // Usually the default nop logger is fine, but sometimes it can be helpful
 // to see more verbose logs, typically by passing zaptest.NewLogger(t).
-func (ic *Setup) WithLog(log *zap.Logger) *Setup {
-	ic.log = log
-	return ic
+func (s *Setup) WithLog(log *zap.Logger) *Setup {
+	s.log = log
+	return s
 }
 
 // Close cleans up any resources created during Build,
 // and returns any relevant errors.
-func (ic *Setup) Close() error {
-	return ic.cs.Close()
+func (s *Setup) Close() error {
+	return s.cs.Close()
 }
 
-func (ic *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.WalletAmount, error) {
+func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.WalletAmount, error) {
 	// Faucet addresses are created separately because they need to be explicitly added to the chains.
-	faucetAddresses, err := ic.cs.CreateCommonAccount(ctx, FaucetAccountKeyName)
+	faucetAddresses, err := s.cs.CreateCommonAccount(ctx, FaucetAccountKeyName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create faucet accounts: %w", err)
 	}
 
 	// Wallet amounts for genesis.
-	walletAmounts := make(map[ibc.Chain][]ibc.WalletAmount, len(ic.cs.chains))
+	walletAmounts := make(map[ibc.Chain][]ibc.WalletAmount, len(s.cs.chains))
 
 	// Add faucet for each chain first.
-	for c := range ic.chains {
+	for c := range s.chains {
 		// The values are nil at this point, so it is safe to directly assign the slice.
 		walletAmounts[c] = []ibc.WalletAmount{
 			{
@@ -356,13 +348,13 @@ func (ic *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.
 			},
 		}
 
-		if ic.AdditionalGenesisWallets != nil {
-			walletAmounts[c] = append(walletAmounts[c], ic.AdditionalGenesisWallets[c]...)
+		if s.AdditionalGenesisWallets != nil {
+			walletAmounts[c] = append(walletAmounts[c], s.AdditionalGenesisWallets[c]...)
 		}
 	}
 
 	// Then add all defined relayer wallets.
-	for rc, wallet := range ic.relayerWallets {
+	for rc, wallet := range s.relayerWallets {
 		c := rc.C
 		walletAmounts[c] = append(walletAmounts[c], ibc.WalletAmount{
 			Address: wallet.FormattedAddress(),
@@ -374,23 +366,23 @@ func (ic *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.
 	return walletAmounts, nil
 }
 
-// generateRelayerWallets populates ic.relayerWallets.
-func (ic *Setup) generateRelayerWallets(ctx context.Context) error {
-	if ic.relayerWallets != nil {
+// generateRelayerWallets populates s.relayerWallets.
+func (s *Setup) generateRelayerWallets(ctx context.Context) error {
+	if s.relayerWallets != nil {
 		panic(fmt.Errorf("cannot call generateRelayerWallets more than once"))
 	}
 
-	relayerChains := ic.relayerChains()
-	ic.relayerWallets = make(map[relayerChain]ibc.Wallet, len(relayerChains))
+	relayerChains := s.relayerChains()
+	s.relayerWallets = make(map[relayerChain]ibc.Wallet, len(relayerChains))
 	for r, chains := range relayerChains {
 		for _, c := range chains {
 			// Just an ephemeral unique name, only for the local use of the keyring.
-			accountName := ic.relayers[r] + "-" + ic.chains[c]
+			accountName := s.relayers[r] + "-" + s.chains[c]
 			newWallet, err := c.BuildRelayerWallet(ctx, accountName)
 			if err != nil {
 				return err
 			}
-			ic.relayerWallets[relayerChain{R: r, C: c}] = newWallet
+			s.relayerWallets[relayerChain{R: r, C: c}] = newWallet
 		}
 	}
 
@@ -399,32 +391,32 @@ func (ic *Setup) generateRelayerWallets(ctx context.Context) error {
 
 // configureRelayerKeys adds the chain configuration for each relayer
 // and adds the preconfigured key to the relayer for each relayer-chain.
-func (ic *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter) error {
+func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter) error {
 	// Possible optimization: each relayer could be configured concurrently.
 	// But we are only testing with a single relayer so far, so we don't need this yet.
 
-	for r, chains := range ic.relayerChains() {
+	for r, chains := range s.relayerChains() {
 		for _, c := range chains {
 			rpcAddr, grpcAddr := c.GetRPCAddress(), c.GetGRPCAddress()
 			if !r.UseDockerNetwork() {
 				rpcAddr, grpcAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress()
 			}
 
-			chainName := ic.chains[c]
+			chainName := s.chains[c]
 			if err := r.AddChainConfiguration(ctx,
 				rep,
 				c.Config(), chainName,
 				rpcAddr, grpcAddr,
 			); err != nil {
-				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", ic.relayers[r], chainName, err)
+				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 
 			if err := r.RestoreKey(ctx,
 				rep,
 				c.Config(), chainName,
-				ic.relayerWallets[relayerChain{R: r, C: c}].Mnemonic(),
+				s.relayerWallets[relayerChain{R: r, C: c}].Mnemonic(),
 			); err != nil {
-				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", ic.relayers[r], chainName, err)
+				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 		}
 	}
@@ -440,12 +432,12 @@ type relayerChain struct {
 
 // relayerChains builds a mapping of relayers to the chains they connect to.
 // The order of the chains is arbitrary.
-func (ic *Setup) relayerChains() map[ibc.Relayer][]ibc.Chain {
+func (s *Setup) relayerChains() map[ibc.Relayer][]ibc.Chain {
 	// First, collect a mapping of relayers to sets of chains,
 	// so we don't have to manually deduplicate entries.
-	uniq := make(map[ibc.Relayer]map[ibc.Chain]struct{}, len(ic.relayers))
+	uniq := make(map[ibc.Relayer]map[ibc.Chain]struct{}, len(s.relayers))
 
-	for rp, link := range ic.links {
+	for rp, link := range s.links {
 		r := rp.Relayer
 		if uniq[r] == nil {
 			uniq[r] = make(map[ibc.Chain]struct{}, 2) // Adding at least 2 chains per relayer.

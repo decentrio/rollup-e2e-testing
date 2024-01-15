@@ -74,7 +74,7 @@ func ModifyTomlConfigFile(
 	}
 
 	fw := dockerutil.NewFileWriter(logger, dockerClient, testName)
-	if err := fw.WriteFile(ctx, volumeName, filePath, buf.Bytes()); err != nil {
+	if err := fw.WriteFile(ctx, volumeName, chainName, filePath, buf.Bytes()); err != nil {
 		return fmt.Errorf("overwriting %s: %w", filePath, err)
 	}
 

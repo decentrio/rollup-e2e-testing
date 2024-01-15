@@ -143,7 +143,7 @@ func (tn *TendermintNode) GenesisFileContent(ctx context.Context) ([]byte, error
 
 func (tn *TendermintNode) OverwriteGenesisFile(ctx context.Context, content []byte) error {
 	fw := dockerutil.NewFileWriter(tn.logger(), tn.DockerClient, tn.TestName)
-	if err := fw.WriteFile(ctx, tn.VolumeName, "config/genesis.json", content); err != nil {
+	if err := fw.WriteFile(ctx, tn.VolumeName, tn.Name(), "config/genesis.json", content); err != nil {
 		return fmt.Errorf("overwriting genesis.json: %w", err)
 	}
 

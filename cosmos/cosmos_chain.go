@@ -237,6 +237,15 @@ func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
 }
 
 // Implements Chain interface
+func (c *CosmosChain) CreateHubKey(ctx context.Context, keyName string) error {
+	return c.getFullNode().CreateHubKey(ctx, keyName)
+}
+
+func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string) (string, error) {
+	return c.getFullNode().AccountHubKeyBech32(ctx, keyName)
+}
+
+// Implements Chain interface
 func (c *CosmosChain) RecoverKey(ctx context.Context, keyName, mnemonic string) error {
 	return c.getFullNode().RecoverKey(ctx, keyName, mnemonic)
 }
@@ -637,6 +646,7 @@ func (c *CosmosChain) NewNode(
 		Client: cli,
 
 		VolumeName: v.Name,
+		ChainName:  node.Chain.Config().Name,
 		ImageRef:   image.Ref(),
 		TestName:   testName,
 		UidGid:     image.UidGid,
@@ -715,6 +725,8 @@ type ValidatorWithIntPower struct {
 	Power        int64
 	PubKeyBase64 string
 }
+
+var keyDir string
 
 // Bootstraps the chain and starts it from genesis
 func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletAmount) error {
@@ -919,10 +931,27 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 	if err := testutil.WaitForBlocks(ctx, 5, c.getFullNode()); err != nil {
 		return err
 	}
-	if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5"); err != nil {
+
+	if err := c.CreateHubKey(ctx, "sequencer"); err != nil {
+		return err
+	}
+	sequencer, err := c.AccountHubKeyBech32(ctx, "sequencer")
+	if err != nil {
+		return err
+	}
+	amount := sdkmath.NewInt(10_000_000_000_000)
+	fund := ibc.WalletAmount{
+		Address: sequencer,
+		Denom:   c.Config().Denom,
+		Amount:  amount,
+	}
+	if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+		return err
+	}
+	if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", keyDir); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
-	if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq); err != nil {
+	if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq, keyDir); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
 	return nil
@@ -955,6 +984,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 	// Initialize config and sign gentx for each validator.
 	for _, v := range c.Validators {
 		v := v
+		keyDir = v.HomeDir()
 		v.Validator = true
 		eg.Go(func() error {
 			if err := v.InitFullNodeFiles(ctx); err != nil {
@@ -1048,7 +1078,6 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 			}
 		}
 	}
-
 	for _, wallet := range additionalGenesisWallets {
 
 		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []types.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
@@ -1138,12 +1167,12 @@ func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additio
 	return testutil.WaitForBlocks(ctx, 5, c.getFullNode())
 }
 
-func (c *CosmosChain) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq string) error {
-	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq)
+func (c *CosmosChain) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
+	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq, keyDir)
 }
 
-func (c *CosmosChain) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers)
+func (c *CosmosChain) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
 }
 
 func (c *CosmosChain) ShowSeq(ctx context.Context) (string, error) {

@@ -40,10 +40,13 @@ func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, netw
 }
 
 type CosmosRelayerChainConfig struct {
+	Type  string `json:"type"`
+	Value Value  `json:"value"`
+}
+type Value struct {
 	AccountPrefix  string  `json:"account-prefix"`
 	ChainID        string  `json:"chain-id"`
 	Debug          bool    `json:"debug"`
-	GRPCAddr       string  `json:"grpc-addr"`
 	GasAdjustment  float64 `json:"gas-adjustment"`
 	GasPrices      string  `json:"gas-prices"`
 	Key            string  `json:"key"`
@@ -56,23 +59,25 @@ type CosmosRelayerChainConfig struct {
 
 const (
 	DefaultContainerImage   = "ghcr.io/cosmos/relayer"
-	DefaultContainerVersion = "v2.4.1"
+	DefaultContainerVersion = "v2.3.1"
 )
 
-func ChainConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr, gprcAddr string) CosmosRelayerChainConfig {
+func ChainConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
 	return CosmosRelayerChainConfig{
-		Key:            keyName,
-		ChainID:        chainConfig.ChainID,
-		RPCAddr:        rpcAddr,
-		GRPCAddr:       gprcAddr,
-		AccountPrefix:  chainConfig.Bech32Prefix,
-		KeyringBackend: keyring.BackendTest,
-		GasAdjustment:  chainConfig.GasAdjustment,
-		GasPrices:      chainConfig.GasPrices,
-		Debug:          true,
-		Timeout:        "10s",
-		OutputFormat:   "json",
-		SignMode:       "direct",
+		Type: "cosmos",
+		Value: Value{
+			Key:            keyName,
+			ChainID:        chainConfig.ChainID,
+			RPCAddr:        rpcAddr,
+			AccountPrefix:  chainConfig.Bech32Prefix,
+			KeyringBackend: keyring.BackendTest,
+			GasAdjustment:  chainConfig.GasAdjustment,
+			GasPrices:      chainConfig.GasPrices,
+			Debug:          true,
+			Timeout:        "10s",
+			OutputFormat:   "json",
+			SignMode:       "direct",
+		},
 	}
 }
 
@@ -226,7 +231,7 @@ func (commander) UpdateClients(pathName, homeDir string) []string {
 }
 
 func (commander) ConfigContent(ctx context.Context, cfg ibc.ChainConfig, keyName, rpcAddr, grpcAddr string) ([]byte, error) {
-	cosmosRelayerChainConfig := ChainConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr, grpcAddr)
+	cosmosRelayerChainConfig := ChainConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr)
 	jsonBytes, err := json.Marshal(cosmosRelayerChainConfig)
 	if err != nil {
 		return nil, err

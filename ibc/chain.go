@@ -14,9 +14,13 @@ type Chain interface {
 	// Initialize initializes node structs so that things like initializing keys can be done before starting the chain
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
-	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for chain to start from genesis.
+	// StartHub sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
 	StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletAmount) error
+
+	// CreateRollapp sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
 	CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletAmount) (string, error)
+
+	// StartRollapp start everything (validators, gentx, fullnodes, peering, additional accounts).
 	StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletAmount) error
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
@@ -49,6 +53,9 @@ type Chain interface {
 	// CreateKey creates a test key in the "user" node (either the first fullnode or the first validator if no fullnodes).
 	CreateKey(ctx context.Context, keyName string) error
 
+	CreateHubKey(ctx context.Context, keyName string) error
+
+	AccountHubKeyBech32(ctx context.Context, keyName string) (string, error)
 	// RecoverKey recovers an existing user from a given mnemonic.
 	RecoverKey(ctx context.Context, name, mnemonic string) error
 

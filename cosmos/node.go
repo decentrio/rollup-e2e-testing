@@ -544,7 +544,7 @@ func (node *Node) InitHomeFolder(ctx context.Context) error {
 // docker volume relative to the home directory
 func (node *Node) WriteFile(ctx context.Context, content []byte, relPath string) error {
 	fw := dockerutil.NewFileWriter(node.logger(), node.DockerClient, node.TestName)
-	return fw.WriteFile(ctx, node.VolumeName, relPath, content)
+	return fw.WriteFile(ctx, node.VolumeName, node.Chain.Config().Name, relPath, content)
 }
 
 // CopyFile adds a file from the host filesystem to the docker filesystem
@@ -578,6 +578,20 @@ func (node *Node) CreateKey(ctx context.Context, name string) error {
 		"keys", "add", name,
 		"--coin-type", node.Chain.Config().CoinType,
 		"--keyring-backend", keyring.BackendTest,
+	)
+	return err
+}
+
+// CreateHubKey creates a key in the keyring backend test for the given node
+func (node *Node) CreateHubKey(ctx context.Context, name string) error {
+	node.lock.Lock()
+	defer node.lock.Unlock()
+
+	_, _, err := node.ExecBin(ctx,
+		"keys", "add", name,
+		"--coin-type", node.Chain.Config().CoinType,
+		"--keyring-backend", keyring.BackendTest,
+		"--keyring-dir", keyDir+"/sequencer_keys",
 	)
 	return err
 }
@@ -676,21 +690,23 @@ func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
 	var command []string
 	detail := "{\"Addresses\":[]}"
+	keyPath := keyDir + "/sequencer_keys"
 	// TODO: handle keyring-dir
 	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
-		"--broadcast-mode", "block", "--keyring-dir")
+		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
 
-func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq string) error {
+func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
 	var command []string
+	keyPath := keyDir + "/sequencer_keys"
 	// TODO: handle keyring-dir
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}",
-		"--broadcast-mode", "block", "--keyring-dir")
+		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
@@ -755,6 +771,7 @@ func (node *Node) SendFunds(ctx context.Context, keyName string, amount ibc.Wall
 	_, err := node.ExecTx(ctx,
 		keyName, "bank", "send", keyName,
 		amount.Address, fmt.Sprintf("%s%s", amount.Amount.String(), amount.Denom),
+		"--broadcast-mode", "block",
 	)
 	return err
 }
@@ -1110,7 +1127,7 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 		return "", err
 	}
 	fw := dockerutil.NewFileWriter(node.logger(), node.DockerClient, node.TestName)
-	if err := fw.WriteFile(ctx, node.VolumeName, file, propJson); err != nil {
+	if err := fw.WriteFile(ctx, node.VolumeName, node.Chain.Config().Name, file, propJson); err != nil {
 		return "", fmt.Errorf("writing contract file to docker volume: %w", err)
 	}
 
@@ -1342,6 +1359,7 @@ func (node *Node) InitValidatorGenTx(
 	genesisAmounts []types.Coin,
 	genesisSelfDelegation types.Coin,
 ) error {
+
 	if err := node.CreateKey(ctx, valKey); err != nil {
 		return err
 	}
@@ -1353,27 +1371,12 @@ func (node *Node) InitValidatorGenTx(
 		return err
 	}
 
-	switch chainType.Type {
-	case "hub":
-		if err := node.CreateKey(ctx, "sequencer"); err != nil {
-			return err
-		}
-		sequencer, err := node.AccountKeyBech32(ctx, "sequencer")
-		if err != nil {
-			return err
-		}
-		if err := node.AddGenesisAccount(ctx, sequencer, genesisAmounts); err != nil {
-			return err
-		}
-		return node.Gentx(ctx, valKey, genesisSelfDelegation)
-	case "rollapp":
+	if node.Chain.Config().Type == "rollapp" {
 		if err := node.GentxSeq(ctx, valKey); err != nil {
 			return err
 		}
-		return node.Gentx(ctx, valKey, genesisSelfDelegation)
-	default:
-		return node.Gentx(ctx, valKey, genesisSelfDelegation)
 	}
+	return node.Gentx(ctx, valKey, genesisSelfDelegation)
 }
 
 func (node *Node) InitFullNodeFiles(ctx context.Context) error {
@@ -1422,9 +1425,35 @@ func (node *Node) KeyBech32(ctx context.Context, name string, bech string) (stri
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
+// HubKeyBech32 retrieves the named key's address in bech32 format from the node.
+// bech is the bech32 prefix (acc|val|cons). If empty, defaults to the account key (same as "acc").
+func (node *Node) HubKeyBech32(ctx context.Context, name string, bech string) (string, error) {
+	command := []string{node.Chain.Config().Bin, "keys", "show", "--address", name,
+		"--home", node.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"--keyring-dir", keyDir + "/sequencer_keys",
+	}
+
+	if bech != "" {
+		command = append(command, "--bech", bech)
+	}
+
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to show key %q (stderr=%q): %w", name, stderr, err)
+	}
+
+	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
+}
+
 // AccountKeyBech32 retrieves the named key's address in bech32 account format.
 func (node *Node) AccountKeyBech32(ctx context.Context, name string) (string, error) {
 	return node.KeyBech32(ctx, name, "")
+}
+
+// AccountHubKeyBech32 retrieves the named key's address in bech32 account format.
+func (node *Node) AccountHubKeyBech32(ctx context.Context, name string) (string, error) {
+	return node.HubKeyBech32(ctx, name, "")
 }
 
 // PeerString returns the string for connecting the nodes passed in

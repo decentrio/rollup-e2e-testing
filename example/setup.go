@@ -37,29 +37,6 @@ var (
 		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
 	}
-
-	rollappConfig = ibc.ChainConfig{
-		Type:    "rollapp",
-		Name:    "rollapp-temp",
-		ChainID: "demo-dymension-rollapp",
-		Images: []ibc.DockerImage{
-			{
-				Repository: "rollapp",
-				Version:    "debug",
-				UidGid:     "1025:1025",
-			},
-		},
-		Bin:                 "rollappd",
-		Bech32Prefix:        "rol",
-		Denom:               "urax",
-		CoinType:            "118",
-		GasPrices:           "0.0urax",
-		GasAdjustment:       1.1,
-		TrustingPeriod:      "112h",
-		NoHostMount:         false,
-		ModifyGenesis:       nil,
-		ConfigFileOverrides: nil,
-	}
 )
 
 // GetDockerImageInfo returns the appropriate repo and branch version string for integration with the CI pipeline.
@@ -70,8 +47,8 @@ func GetDockerImageInfo() (repo, version string) {
 	repo = DymensionICTestRepo
 	if !found {
 		// make local-image
-		repo = "dymension"
-		branchVersion = "debug"
+		repo = "ghcr.io/decentrio/dymension"
+		branchVersion = "e2e"
 	}
 
 	// github converts / to - for pushed docker images

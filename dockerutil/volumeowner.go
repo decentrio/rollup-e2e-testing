@@ -18,6 +18,7 @@ type VolumeOwnerOptions struct {
 	Client *client.Client
 
 	VolumeName string
+	ChainName  string
 	ImageRef   string
 	TestName   string
 	UidGid     string
@@ -58,7 +59,7 @@ func SetVolumeOwner(ctx context.Context, opts VolumeOwnerOptions) error {
 			Labels: map[string]string{CleanupLabel: opts.TestName},
 		},
 		&container.HostConfig{
-			Binds:      []string{opts.VolumeName + ":" + mountPath},
+			Binds:      []string{"/tmp/" + opts.ChainName + opts.VolumeName + ":" + mountPath},
 			AutoRemove: true,
 		},
 		nil, // No networking necessary.

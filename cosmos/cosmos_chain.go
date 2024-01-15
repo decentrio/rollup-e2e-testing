@@ -27,7 +27,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-	"github.com/decentrio/rollup-e2e-testing/tendermint"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	dockertypes "github.com/docker/docker/api/types"
 	volumetypes "github.com/docker/docker/api/types/volume"
@@ -343,14 +342,14 @@ func (c *CosmosChain) SendIBCTransfer(
 	events := txResp.Events
 
 	var (
-		seq, _           = tendermint.AttributeValue(events, evType, "packet_sequence")
-		srcPort, _       = tendermint.AttributeValue(events, evType, "packet_src_port")
-		srcChan, _       = tendermint.AttributeValue(events, evType, "packet_src_channel")
-		dstPort, _       = tendermint.AttributeValue(events, evType, "packet_dst_port")
-		dstChan, _       = tendermint.AttributeValue(events, evType, "packet_dst_channel")
-		timeoutHeight, _ = tendermint.AttributeValue(events, evType, "packet_timeout_height")
-		timeoutTs, _     = tendermint.AttributeValue(events, evType, "packet_timeout_timestamp")
-		data, _          = tendermint.AttributeValue(events, evType, "packet_data")
+		seq, _           = AttributeValue(events, evType, "packet_sequence")
+		srcPort, _       = AttributeValue(events, evType, "packet_src_port")
+		srcChan, _       = AttributeValue(events, evType, "packet_src_channel")
+		dstPort, _       = AttributeValue(events, evType, "packet_dst_port")
+		dstChan, _       = AttributeValue(events, evType, "packet_dst_channel")
+		timeoutHeight, _ = AttributeValue(events, evType, "packet_timeout_height")
+		timeoutTs, _     = AttributeValue(events, evType, "packet_timeout_timestamp")
+		data, _          = AttributeValue(events, evType, "packet_data")
 	)
 	tx.Packet.SourcePort = srcPort
 	tx.Packet.SourceChannel = srcChan
@@ -479,11 +478,11 @@ func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
 	tx.GasSpent = txResp.GasWanted
 	events := txResp.Events
 
-	tx.DepositAmount, _ = tendermint.AttributeValue(events, "proposal_deposit", "amount")
+	tx.DepositAmount, _ = AttributeValue(events, "proposal_deposit", "amount")
 
 	evtSubmitProp := "submit_proposal"
-	tx.ProposalID, _ = tendermint.AttributeValue(events, evtSubmitProp, "proposal_id")
-	tx.ProposalType, _ = tendermint.AttributeValue(events, evtSubmitProp, "proposal_type")
+	tx.ProposalID, _ = AttributeValue(events, evtSubmitProp, "proposal_id")
+	tx.ProposalType, _ = AttributeValue(events, evtSubmitProp, "proposal_type")
 
 	return tx, nil
 }
@@ -728,7 +727,7 @@ type ValidatorWithIntPower struct {
 
 var keyDir string
 
-// Bootstraps the chain and starts it from genesis
+// StartHub bootstraps the hubs and starts it from genesis
 func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletAmount) error {
 	chainCfg := c.Config()
 
@@ -957,6 +956,7 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 	return nil
 }
 
+// CreateRollapp bootstraps the hubs
 func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletAmount) (string, error) {
 	chainCfg := c.Config()
 
@@ -1129,6 +1129,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 	return seq, nil
 }
 
+// StartRollapp start the Rollapps from genesis
 func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletAmount) error {
 	nodes := c.Nodes()
 
@@ -1167,14 +1168,17 @@ func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additio
 	return testutil.WaitForBlocks(ctx, 5, c.getFullNode())
 }
 
+// RegisterSequencerToHub register sequencer for rollapp on settlement.
 func (c *CosmosChain) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
 	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq, keyDir)
 }
 
+// RegisterRollAppToHub register rollapp on settlement.
 func (c *CosmosChain) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
 }
 
+// ShowSeq will show sequencer addr
 func (c *CosmosChain) ShowSeq(ctx context.Context) (string, error) {
 	return c.GetNode().ShowSeq(ctx)
 }

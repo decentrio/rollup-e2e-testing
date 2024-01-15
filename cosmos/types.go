@@ -160,15 +160,6 @@ type BankMetaData struct {
 	} `json:"metadata"`
 }
 
-type QueryDenomAuthorityMetadataResponse struct {
-	AuthorityMetadata DenomAuthorityMetadata `protobuf:"bytes,1,opt,name=authority_metadata,json=authorityMetadata,proto3" json:"authority_metadata" yaml:"authority_metadata"`
-}
-
-type DenomAuthorityMetadata struct {
-	// Can be empty for no admin, or a valid address
-	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty" yaml:"admin"`
-}
-
 type QueryModuleAccountResponse struct {
 	Account struct {
 		BaseAccount struct {

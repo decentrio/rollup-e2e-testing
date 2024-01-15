@@ -207,7 +207,7 @@ func NewNopReporter() *Reporter {
 	return NewReporter(newNopWriteCloser())
 }
 
-// nopWriteCloser is a no-op io.WriteCloser used to satisfy the interchaintest TestReporter type.
+// nopWriteCloser is a no-op io.WriteCloser used to satisfy the test TestReporter type.
 // Because the relayer is used in-process, all logs are simply streamed to the test log.
 type nopWriteCloser struct {
 	io.Writer

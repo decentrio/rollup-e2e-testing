@@ -49,7 +49,6 @@ func Migrate(db *sql.DB, gitSha string) error {
 		return fmt.Errorf("pragma journal_mode: %w", err)
 	}
 
-	// TODO(nix 05-27-2022): Appropriate indexes?
 	_, err = db.Exec(`PRAGMA foreign_keys = ON`)
 	if err != nil {
 		return fmt.Errorf("pragma foreign_keys: %w", err)

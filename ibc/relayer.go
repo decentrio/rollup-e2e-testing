@@ -88,7 +88,7 @@ type Relayer interface {
 	//
 	// If false, the relayer will connect to the localhost-exposed ports instead of the docker hosts.
 	//
-	// Relayer implementations provided by the interchaintest module will report true,
+	// Relayer implementations provided by the e2e-test module will report true,
 	// but custom implementations may report false.
 	UseDockerNetwork() bool
 
@@ -119,7 +119,6 @@ func GetTransferChannel(ctx context.Context, r Relayer, rep RelayerExecReporter,
 
 	var srcClientID string
 	for _, client := range srcClients {
-		// TODO continue for expired clients
 		if client.ClientState.ChainID == dstChainID {
 			if srcClientID != "" {
 				return nil, fmt.Errorf("found multiple clients on %s tracking %s", srcChainID, dstChainID)

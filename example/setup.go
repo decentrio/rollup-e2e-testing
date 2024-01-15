@@ -40,8 +40,8 @@ var (
 )
 
 // GetDockerImageInfo returns the appropriate repo and branch version string for integration with the CI pipeline.
-// The remote runner sets the BRANCH_CI env var. If present, interchaintest will use the docker image pushed up to the repo.
-// If testing locally, user should run `make docker-build-debug` and interchaintest will use the local image.
+// The remote runner sets the BRANCH_CI env var. If present, tests will use the docker image pushed up to the repo.
+// If testing locally, user should run `make docker-build-debug` and tests will use the local image.
 func GetDockerImageInfo() (repo, version string) {
 	branchVersion, found := os.LookupEnv("BRANCH_CI")
 	repo = DymensionICTestRepo

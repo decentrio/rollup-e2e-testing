@@ -54,7 +54,7 @@ type Link struct {
 	createChannelOpts ibc.CreateChannelOptions
 }
 
-// NewInterchain returns a new Setup.
+// NewSetup returns a new Setup.
 //
 // Typical usage involves multiple calls to AddChain, one or more calls to AddRelayer,
 // one or more calls to AddLink, and then finally a single call to Build.
@@ -488,7 +488,6 @@ func GetAndFundTestUsers(
 	}
 	require.NoError(t, eg.Wait())
 
-	// TODO(nix 05-17-2022): Map with generics once using go 1.18
 	chainHeights := make([]testutil.ChainHeighter, len(chains))
 	for i := range chains {
 		chainHeights[i] = chains[i]
@@ -533,7 +532,7 @@ const (
 //
 // The value is false by default, but can be initialized to true by setting the
 // environment variable IBCTEST_SKIP_FAILURE_CLEANUP to a non-empty value.
-// Alternatively, importers of the interchaintest package may call KeepDockerVolumesOnFailure(true).
+// Alternatively, importers of the e2e package may call KeepDockerVolumesOnFailure(true).
 func KeepDockerVolumesOnFailure(b bool) {
 	dockerutil.KeepVolumesOnFailure = b
 }

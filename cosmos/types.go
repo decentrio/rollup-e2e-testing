@@ -114,10 +114,6 @@ type ParamChange struct {
 	Value    any    `json:"value"`
 }
 
-type DumpContractStateResponse struct {
-	Models []ContractStateModels `json:"models"`
-}
-
 type ContractStateModels struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`

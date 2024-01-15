@@ -164,7 +164,6 @@ func (cs chainSet) TrackBlocks(ctx context.Context, testName, dbPath, gitSha str
 		return fmt.Errorf("create test case in sqlite database: %w", err)
 	}
 
-	// TODO (nix - 6/1/22) Need logger instead of fmt.Fprint
 	cs.trackerEg = new(errgroup.Group)
 	cs.collectors = make([]*blockdb.Collector, len(cs.chains))
 	i := 0

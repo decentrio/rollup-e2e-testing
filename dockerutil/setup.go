@@ -28,20 +28,11 @@ type DockerSetupTestingT interface {
 	Logf(format string, args ...any)
 }
 
-// CleanupLabel is a docker label key targeted by DockerSetup when it cleans up docker resources.
-//
-// "interchaintest" is perhaps a better name. However, for backwards compatability we preserve the original name of "ibc-test"
-// with the hyphen. Otherwise, we run the risk of causing "container already exists" errors because DockerSetup
-// is unable to clean old resources from docker engine.
 const CleanupLabel = "ibc-test"
 
-// CleanupLabel is the "old" format.
-// Note that any new labels should follow the reverse DNS format suggested at
-// https://docs.docker.com/config/labels-custom-metadata/#key-format-recommendations.
-
 const (
-	// LabelPrefix is the reverse DNS format "namespace" for interchaintest Docker labels.
-	LabelPrefix = "ventures.strangelove.interchaintest."
+	// LabelPrefix is the reverse DNS format "namespace" for e2e-test Docker labels.
+	LabelPrefix = "decentrio.e2e-rollapp-testing."
 
 	// NodeOwnerLabel indicates the logical node owning a particular object (probably a volume).
 	NodeOwnerLabel = LabelPrefix + "node-owner"
@@ -54,7 +45,7 @@ const (
 // environment variable IBCTEST_SKIP_FAILURE_CLEANUP to a non-empty value.
 // Alternatively, importers of the dockerutil package may set the variable to true.
 // Because dockerutil is an internal package, the public API for setting this value
-// is interchaintest.KeepDockerVolumesOnFailure(bool).
+// is test.KeepDockerVolumesOnFailure(bool).
 var KeepVolumesOnFailure = os.Getenv("IBCTEST_SKIP_FAILURE_CLEANUP") != ""
 
 // DockerSetup returns a new Docker Client and the ID of a configured network, associated with t.

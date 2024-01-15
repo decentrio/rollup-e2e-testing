@@ -507,11 +507,6 @@ func (c *CosmosChain) QueryContract(ctx context.Context, contractAddress string,
 	return c.getFullNode().QueryContract(ctx, contractAddress, query, response)
 }
 
-// DumpContractState dumps the state of a contract at a block height.
-func (c *CosmosChain) DumpContractState(ctx context.Context, contractAddress string, height int64) (*DumpContractStateResponse, error) {
-	return c.getFullNode().DumpContractState(ctx, contractAddress, height)
-}
-
 // StoreClientContract takes a file path to a client smart contract and stores it on-chain. Returns the contracts code id.
 func (c *CosmosChain) StoreClientContract(ctx context.Context, keyName string, fileName string, extraExecTxArgs ...string) (string, error) {
 	return c.getFullNode().StoreClientContract(ctx, keyName, fileName, extraExecTxArgs...)

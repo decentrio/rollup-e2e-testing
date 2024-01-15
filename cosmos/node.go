@@ -216,7 +216,7 @@ func (node *Node) HomeDir() string {
 	return path.Join("/var/cosmos-chain", node.Chain.Config().Name+node.VolumeName)
 }
 
-// SetTestConfig modifies the config to reasonable values for use within interchaintest.
+// SetTestConfig modifies the config to reasonable values for use within e2e-test.
 func (node *Node) SetTestConfig(ctx context.Context) error {
 	c := make(testutil.Toml)
 
@@ -694,7 +694,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	var command []string
 	detail := "{\"Addresses\":[]}"
 	keyPath := keyDir + "/sequencer_keys"
-	// TODO: handle keyring-dir
 	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 	_, err := node.ExecTx(ctx, keyName, command...)
@@ -704,7 +703,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	// TODO: handle keyring-dir
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}",
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 
@@ -1225,23 +1223,6 @@ func (node *Node) QueryBankMetadata(ctx context.Context, denom string) (*BankMet
 	return &meta, nil
 }
 
-// DumpContractState dumps the state of a contract at a block height.
-func (node *Node) DumpContractState(ctx context.Context, contractAddress string, height int64) (*DumpContractStateResponse, error) {
-	stdout, _, err := node.ExecQuery(ctx,
-		"wasm", "contract-state", "all", contractAddress,
-		"--height", fmt.Sprint(height),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	res := new(DumpContractStateResponse)
-	if err := json.Unmarshal([]byte(stdout), res); err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
 func (node *Node) ExportState(ctx context.Context, height int64) (string, error) {
 	node.lock.Lock()
 	defer node.lock.Unlock()
@@ -1327,7 +1308,6 @@ func (node *Node) StartContainer(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		// TODO: reenable this check, having trouble with it for some reason
 		if stat != nil && stat.SyncInfo.CatchingUp {
 			return fmt.Errorf("still catching up: height(%d) catching-up(%t)",
 				stat.SyncInfo.LatestBlockHeight, stat.SyncInfo.CatchingUp)
@@ -1462,8 +1442,6 @@ func (nodes Nodes) PeerString(ctx context.Context) string {
 	for i, n := range nodes {
 		id, err := n.NodeID(ctx)
 		if err != nil {
-			// TODO: would this be better to panic?
-			// When would NodeId return an error?
 			break
 		}
 		hostName := n.HostName()
@@ -1513,56 +1491,4 @@ func (node *Node) logger() *zap.Logger {
 		zap.String("chain_id", node.Chain.Config().ChainID),
 		zap.String("test", node.TestName),
 	)
-}
-
-// RegisterICA will attempt to register an interchain account on the counterparty chain.
-func (node *Node) RegisterICA(ctx context.Context, keyName, connectionID string) (string, error) {
-	return node.ExecTx(ctx, keyName,
-		"intertx", "register",
-		"--connection-id", connectionID,
-	)
-}
-
-// QueryICA will query for an interchain account controlled by the specified address on the counterparty chain.
-func (node *Node) QueryICA(ctx context.Context, connectionID, address string) (string, error) {
-	stdout, _, err := node.ExecQuery(ctx,
-		"intertx", "interchainaccounts", connectionID, address,
-	)
-	if err != nil {
-		return "", err
-	}
-
-	// at this point stdout should look like this:
-	// interchain_account_address: cosmos1p76n3mnanllea4d3av0v0e42tjj03cae06xq8fwn9at587rqp23qvxsv0j
-	// we split the string at the : and then just grab the address before returning.
-	parts := strings.SplitN(string(stdout), ":", 2)
-	if len(parts) < 2 {
-		return "", fmt.Errorf("malformed stdout from command: %s", stdout)
-	}
-	return strings.TrimSpace(parts[1]), nil
-}
-
-// SendICABankTransfer builds a bank transfer message for a specified address and sends it to the specified
-// interchain account.
-func (node *Node) SendICABankTransfer(ctx context.Context, connectionID, fromAddr string, amount ibc.WalletAmount) error {
-	msg, err := json.Marshal(map[string]any{
-		"@type":        "/cosmos.bank.v1beta1.MsgSend",
-		"from_address": fromAddr,
-		"to_address":   amount.Address,
-		"amount": []map[string]any{
-			{
-				"denom":  amount.Denom,
-				"amount": amount.Amount.String(),
-			},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = node.ExecTx(ctx, fromAddr,
-		"intertx", "submit", string(msg),
-		"--connection-id", connectionID,
-	)
-	return err
 }

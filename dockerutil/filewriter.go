@@ -36,7 +36,7 @@ func (w *FileWriter) WriteFile(ctx context.Context, volumeName, chainName, relPa
 		return err
 	}
 
-	containerName := fmt.Sprintf("interchaintest-writefile-%d-%s", time.Now().UnixNano(), RandLowerCaseLetterString(5))
+	containerName := fmt.Sprintf("test-writefile-%d-%s", time.Now().UnixNano(), RandLowerCaseLetterString(5))
 
 	cc, err := w.cli.ContainerCreate(
 		ctx,
@@ -149,7 +149,7 @@ func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, chainName
 		return err
 	}
 
-	containerName := fmt.Sprintf("interchaintest-writefile-%d-%s", time.Now().UnixNano(), RandLowerCaseLetterString(5))
+	containerName := fmt.Sprintf("test-writefile-%d-%s", time.Now().UnixNano(), RandLowerCaseLetterString(5))
 
 	cc, err := w.cli.ContainerCreate(
 		ctx,

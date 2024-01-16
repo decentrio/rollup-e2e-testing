@@ -4,7 +4,12 @@ import (
 	"os"
 	"strings"
 
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+
+	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
+	ethermint "github.com/evmos/ethermint/types"
 )
 
 var (
@@ -31,6 +36,7 @@ var (
 		Denom:               "udym",
 		CoinType:            "118",
 		GasPrices:           "0.0udym",
+		EncodingConfig:      evmConfig(),
 		GasAdjustment:       1.1,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
@@ -56,11 +62,11 @@ func GetDockerImageInfo() (repo, version string) {
 	return repo, branchVersion
 }
 
-// func evmConfig() *testutil.TestEncodingConfig {
-// 	cfg := cosmos.DefaultEncoding()
+func evmConfig() *simappparams.EncodingConfig {
+	cfg := cosmos.DefaultEncoding()
 
-// 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
-// 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
+	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
+	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 
-// 	return &cfg
-// }
+	return &cfg
+}

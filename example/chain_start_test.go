@@ -147,11 +147,6 @@ func TestIBCTransfer(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	dymensionHeight, err := dymension.Height(ctx)
-	require.NoError(t, err)
-
-	fmt.Println(dymensionHeight)
-
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transfer, ibc.TransferOptions{})
 	require.NoError(t, err)
 
@@ -187,6 +182,7 @@ func TestIBCTransfer(t *testing.T) {
 	fmt.Println("----------------")
 	fmt.Println(rollappOrigBal)
 	fmt.Println(rollappUpdateBal)
+	fmt.Println("----------------")
 
 	transfer = ibc.WalletAmount{
 		Address: dymensionUserAddr,

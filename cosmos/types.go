@@ -10,7 +10,6 @@ const (
 	ProposalVoteNoWithVeto = "noWithVeto"
 	ProposalVoteAbstain    = "abstain"
 
-	// IBC-Go <= v7 / SDK <= v0.47
 	ProposalStatusUnspecified   = "PROPOSAL_STATUS_UNSPECIFIED"
 	ProposalStatusPassed        = "PROPOSAL_STATUS_PASSED"
 	ProposalStatusFailed        = "PROPOSAL_STATUS_FAILED"
@@ -26,10 +25,6 @@ type TxProposalv1 struct {
 	Deposit  string            `json:"deposit"`
 	Title    string            `json:"title"`
 	Summary  string            `json:"summary"`
-
-	// SDK v50 only
-	Proposer  string `json:"proposer,omitempty"`
-	Expedited bool   `json:"expedited,omitempty"`
 }
 
 // TxProposal contains chain proposal transaction details.
@@ -80,16 +75,6 @@ type ProposalResponse struct {
 	VotingEndTime    string                   `json:"voting_end_time"`
 }
 
-type ProposalMessage struct {
-	Type  string `json:"type"`
-	Value struct {
-		Sender           string `json:"sender"`
-		ValidatorAddress string `json:"validator_address"`
-		Power            string `json:"power"`
-		Unsafe           bool   `json:"unsafe"`
-	} `json:"value"`
-}
-
 type ProposalContent struct {
 	Type        string `json:"@type"`
 	Title       string `json:"title"`
@@ -97,10 +82,10 @@ type ProposalContent struct {
 }
 
 type ProposalFinalTallyResult struct {
-	Yes        string `json:"yes_count"`
-	Abstain    string `json:"abstain_count"`
-	No         string `json:"no_count"`
-	NoWithVeto string `json:"no_with_veto_count"`
+	Yes        string `json:"yes"`
+	Abstain    string `json:"abstain"`
+	No         string `json:"no"`
+	NoWithVeto string `json:"no_with_veto"`
 }
 
 type ProposalDeposit struct {
@@ -117,53 +102,4 @@ type ParamChange struct {
 type ContractStateModels struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
-}
-
-type BuildDependency struct {
-	Parent  string `json:"parent"`
-	Version string `json:"version"`
-
-	IsReplacement      bool   `json:"is_replacement"`
-	Replacement        string `json:"replacement"`
-	ReplacementVersion string `json:"replacement_version"`
-}
-
-type BinaryBuildInformation struct {
-	Name             string            `json:"name"`
-	ServerName       string            `json:"server_name"`
-	Version          string            `json:"version"`
-	Commit           string            `json:"commit"`
-	BuildTags        string            `json:"build_tags"`
-	Go               string            `json:"go"`
-	BuildDeps        []BuildDependency `json:"build_deps"`
-	CosmosSdkVersion string            `json:"cosmos_sdk_version"`
-}
-
-type BankMetaData struct {
-	Metadata struct {
-		Description string `json:"description"`
-		DenomUnits  []struct {
-			Denom    string   `json:"denom"`
-			Exponent int      `json:"exponent"`
-			Aliases  []string `json:"aliases"`
-		} `json:"denom_units"`
-		Base    string `json:"base"`
-		Display string `json:"display"`
-		Name    string `json:"name"`
-		Symbol  string `json:"symbol"`
-		URI     string `json:"uri"`
-		URIHash string `json:"uri_hash"`
-	} `json:"metadata"`
-}
-
-type QueryModuleAccountResponse struct {
-	Account struct {
-		BaseAccount struct {
-			AccountNumber string `json:"account_number"`
-			Address       string `json:"address"`
-			PubKey        string `json:"pub_key"`
-			Sequence      string `json:"sequence"`
-		} `json:"base_account"`
-		Name string `json:"name"`
-	} `json:"account"`
 }

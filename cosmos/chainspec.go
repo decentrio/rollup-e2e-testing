@@ -27,9 +27,10 @@ type ChainSpec struct {
 	// Must be set.
 	Version string
 
-	// NoHostMount is a pointers in ChainSpec
+	// GasAdjustment and NoHostMount are pointers in ChainSpec
 	// so zero-overrides can be detected from omitted overrides.
-	NoHostMount *bool
+	GasAdjustment *float64
+	NoHostMount   *bool
 
 	// Embedded ChainConfig to allow for simple JSON definition of a ChainSpec.
 	ibc.ChainConfig
@@ -51,14 +52,6 @@ func (s *ChainSpec) Config(log *zap.Logger) (*ibc.ChainConfig, error) {
 		// Version must be set at top-level if not set in inlined config.
 		if len(s.ChainConfig.Images) == 0 || s.ChainConfig.Images[0].Version == "" {
 			return nil, errors.New("ChainSpec.Version must not be empty")
-		}
-	}
-
-	if len(s.ChainConfig.Images) > 0 {
-		for i, image := range s.ChainConfig.Images {
-			if err := image.Validate(); err != nil {
-				return nil, fmt.Errorf("ChainConfig.Images[%d] is invalid: %s", i, err)
-			}
 		}
 	}
 
@@ -134,6 +127,9 @@ func (s *ChainSpec) applyConfigOverrides(cfg ibc.ChainConfig) (*ibc.ChainConfig,
 		cfg.ChainID = prefix + s.suffix()
 	}
 
+	if s.GasAdjustment != nil {
+		cfg.GasAdjustment = *s.GasAdjustment
+	}
 	if s.NoHostMount != nil {
 		cfg.NoHostMount = *s.NoHostMount
 	}

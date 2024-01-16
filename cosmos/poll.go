@@ -6,16 +6,9 @@ import (
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
-
-// ConvertProposalStatus converts a proposal status int to a string from IBC-Go v8 / SDK v50 chains.
-func ConvertStatus(status int) string {
-	return govtypes.ProposalStatus_name[int32(status)]
-}
 
 // PollForProposalStatus attempts to find a proposal with matching ID and status.
 func PollForProposalStatus(ctx context.Context, chain *CosmosChain, startHeight, maxHeight uint64, proposalID string, status string) (ProposalResponse, error) {
@@ -78,7 +71,7 @@ func PollForBalance(ctx context.Context, chain *CosmosChain, deltaBlocks uint64,
 		if err != nil {
 			return nil, err
 		}
-		if !balance.Amount.Equal(bal) {
+		if !bal.Equal(balance.Amount) {
 			return nil, fmt.Errorf("balance (%s) does not match expected: (%s)", bal.String(), balance.Amount.String())
 		}
 		return nil, nil

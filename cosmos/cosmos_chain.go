@@ -3,7 +3,6 @@ package cosmos
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -20,10 +19,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
-	cosmosproto "github.com/cosmos/gogoproto/proto"
-	chanTypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	chanTypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -36,6 +33,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var _ ibc.Chain = (*CosmosChain)(nil)
 
 // CosmosChain is a local docker testnet for a Cosmos SDK chain.
 // Implements the ibc.Chain interface.
@@ -50,32 +49,6 @@ type CosmosChain struct {
 	log      *zap.Logger
 	keyring  keyring.Keyring
 	findTxMu sync.Mutex
-}
-
-func NewCosmosHeighlinerChainConfig(name string,
-	binary string,
-	bech32Prefix string,
-	denom string,
-	gasPrices string,
-	gasAdjustment float64,
-	trustingPeriod string,
-	noHostMount bool) ibc.ChainConfig {
-	return ibc.ChainConfig{
-		Name:           name,
-		Bech32Prefix:   bech32Prefix,
-		Denom:          denom,
-		GasPrices:      gasPrices,
-		GasAdjustment:  gasAdjustment,
-		TrustingPeriod: trustingPeriod,
-		NoHostMount:    noHostMount,
-		Images: []ibc.DockerImage{
-			{
-				Repository: fmt.Sprintf("ghcr.io/strangelove-ventures/heighliner/%s", name),
-				UidGid:     dockerutil.GetHeighlinerUserString(),
-			},
-		},
-		Bin: binary,
-	}
 }
 
 func NewCosmosChain(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *CosmosChain {
@@ -326,7 +299,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}
-	txResp, err := c.GetTransaction(txHash)
+	txResp, err := c.getTransaction(txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
@@ -373,16 +346,6 @@ func (c *CosmosChain) SendIBCTransfer(
 	return tx, nil
 }
 
-// GetGovernanceAddress performs a query to get the address of the chain's x/gov module
-func (c *CosmosChain) GetGovernanceAddress(ctx context.Context) (string, error) {
-	return c.GetModuleAddress(ctx, govtypes.ModuleName)
-}
-
-// GetModuleAddress performs a query to get the address of the specified chain module
-func (c *CosmosChain) GetModuleAddress(ctx context.Context, moduleName string) (string, error) {
-	return c.getFullNode().GetModuleAddress(ctx, moduleName)
-}
-
 // QueryProposal returns the state and details of a governance proposal.
 func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
 	return c.getFullNode().QueryProposal(ctx, proposalID)
@@ -395,47 +358,6 @@ func (c *CosmosChain) UpgradeProposal(ctx context.Context, keyName string, prop 
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
 	return c.txProposal(txHash)
-}
-
-// SubmitProposal submits a gov v1 proposal to the chain.
-func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop TxProposalv1) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().SubmitProposal(ctx, keyName, prop)
-	if err != nil {
-		return tx, fmt.Errorf("failed to submit gov v1 proposal: %w", err)
-	}
-	return c.txProposal(txHash)
-}
-
-// Build a gov v1 proposal type.
-//
-// The proposer field should only be set for IBC-Go v8 / SDK v50 chains.
-func (c *CosmosChain) BuildProposal(messages []cosmosproto.Message, title, summary, metadata, depositStr, proposer string, expedited bool) (TxProposalv1, error) {
-	var propType TxProposalv1
-	rawMsgs := make([]json.RawMessage, len(messages))
-
-	for i, msg := range messages {
-		msg, err := c.Config().EncodingConfig.Codec.MarshalInterfaceJSON(msg)
-		if err != nil {
-			return propType, err
-		}
-		rawMsgs[i] = msg
-	}
-
-	propType = TxProposalv1{
-		Messages: rawMsgs,
-		Metadata: metadata,
-		Deposit:  depositStr,
-		Title:    title,
-		Summary:  summary,
-	}
-
-	// SDK v50 only
-	if proposer != "" {
-		propType.Proposer = proposer
-		propType.Expedited = expedited
-	}
-
-	return propType, nil
 }
 
 // TextProposal submits a text governance proposal to the chain.
@@ -462,13 +384,8 @@ func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*Pa
 	return c.getFullNode().QueryParam(ctx, subspace, key)
 }
 
-// QueryBankMetadata returns the metadata of a given token denomination.
-func (c *CosmosChain) QueryBankMetadata(ctx context.Context, denom string) (*BankMetaData, error) {
-	return c.getFullNode().QueryBankMetadata(ctx, denom)
-}
-
 func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
-	txResp, err := c.GetTransaction(txHash)
+	txResp, err := c.getTransaction(txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
@@ -485,36 +402,6 @@ func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
 	tx.ProposalType, _ = AttributeValue(events, evtSubmitProp, "proposal_type")
 
 	return tx, nil
-}
-
-// StoreContract takes a file path to smart contract and stores it on-chain. Returns the contracts code id.
-func (c *CosmosChain) StoreContract(ctx context.Context, keyName string, fileName string, extraExecTxArgs ...string) (string, error) {
-	return c.getFullNode().StoreContract(ctx, keyName, fileName, extraExecTxArgs...)
-}
-
-// InstantiateContract takes a code id for a smart contract and initialization message and returns the instantiated contract address.
-func (c *CosmosChain) InstantiateContract(ctx context.Context, keyName string, codeID string, initMessage string, needsNoAdminFlag bool, extraExecTxArgs ...string) (string, error) {
-	return c.getFullNode().InstantiateContract(ctx, keyName, codeID, initMessage, needsNoAdminFlag, extraExecTxArgs...)
-}
-
-// ExecuteContract executes a contract transaction with a message using it's address.
-func (c *CosmosChain) ExecuteContract(ctx context.Context, keyName string, contractAddress string, message string, extraExecTxArgs ...string) (res *types.TxResponse, err error) {
-	return c.getFullNode().ExecuteContract(ctx, keyName, contractAddress, message, extraExecTxArgs...)
-}
-
-// QueryContract performs a smart query, taking in a query struct and returning a error with the response struct populated.
-func (c *CosmosChain) QueryContract(ctx context.Context, contractAddress string, query any, response any) error {
-	return c.getFullNode().QueryContract(ctx, contractAddress, query, response)
-}
-
-// StoreClientContract takes a file path to a client smart contract and stores it on-chain. Returns the contracts code id.
-func (c *CosmosChain) StoreClientContract(ctx context.Context, keyName string, fileName string, extraExecTxArgs ...string) (string, error) {
-	return c.getFullNode().StoreClientContract(ctx, keyName, fileName, extraExecTxArgs...)
-}
-
-// QueryClientContractCode performs a query with the contract codeHash as the input and code as the output
-func (c *CosmosChain) QueryClientContractCode(ctx context.Context, codeHash string, response any) error {
-	return c.getFullNode().QueryClientContractCode(ctx, codeHash, response)
 }
 
 // ExportState exports the chain state at specific height.
@@ -564,15 +451,15 @@ func (c *CosmosChain) AllBalances(ctx context.Context, address string) (types.Co
 	return res.GetBalances(), nil
 }
 
-func (c *CosmosChain) GetTransaction(txhash string) (*types.TxResponse, error) {
+func (c *CosmosChain) getTransaction(txhash string) (*types.TxResponse, error) {
 	fn := c.getFullNode()
-	return fn.GetTransaction(fn.CliContext(), txhash)
+	return fn.getTransaction(fn.CliContext(), txhash)
 }
 
 func (c *CosmosChain) GetGasFeesInNativeDenom(gasPaid int64) int64 {
 	gasPrice, _ := strconv.ParseFloat(strings.Replace(c.cfg.GasPrices, c.cfg.Denom, "", 1), 64)
 	fees := float64(gasPaid) * gasPrice
-	return int64(math.Ceil(fees))
+	return int64(fees)
 }
 
 func (c *CosmosChain) UpgradeVersion(ctx context.Context, cli *client.Client, containerRepo, version string) {
@@ -845,7 +732,6 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 	}
 
 	for _, wallet := range additionalGenesisWallets {
-
 		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []types.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
 			return err
 		}
@@ -1159,6 +1045,7 @@ func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additio
 	if err := eg.Wait(); err != nil {
 		return err
 	}
+
 	// Wait for 5 blocks before considering the chains "started"
 	return testutil.WaitForBlocks(ctx, 5, c.getFullNode())
 }
@@ -1186,7 +1073,7 @@ func (c *CosmosChain) Height(ctx context.Context) (uint64, error) {
 // Acknowledgements implements ibc.Chain, returning all acknowledgments in block at height
 func (c *CosmosChain) Acknowledgements(ctx context.Context, height uint64) ([]ibc.PacketAcknowledgement, error) {
 	var acks []*chanTypes.MsgAcknowledgement
-	err := RangeBlockMessages(ctx, c.cfg.EncodingConfig.InterfaceRegistry, c.getFullNode().Client, height, func(msg types.Msg) bool {
+	err := rangeBlockMessages(ctx, c.cfg.EncodingConfig.InterfaceRegistry, c.getFullNode().Client, height, func(msg types.Msg) bool {
 		found, ok := msg.(*chanTypes.MsgAcknowledgement)
 		if ok {
 			acks = append(acks, found)
@@ -1219,7 +1106,7 @@ func (c *CosmosChain) Acknowledgements(ctx context.Context, height uint64) ([]ib
 // Timeouts implements ibc.Chain, returning all timeouts in block at height
 func (c *CosmosChain) Timeouts(ctx context.Context, height uint64) ([]ibc.PacketTimeout, error) {
 	var timeouts []*chanTypes.MsgTimeout
-	err := RangeBlockMessages(ctx, c.cfg.EncodingConfig.InterfaceRegistry, c.getFullNode().Client, height, func(msg types.Msg) bool {
+	err := rangeBlockMessages(ctx, c.cfg.EncodingConfig.InterfaceRegistry, c.getFullNode().Client, height, func(msg types.Msg) bool {
 		found, ok := msg.(*chanTypes.MsgTimeout)
 		if ok {
 			timeouts = append(timeouts, found)

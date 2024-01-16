@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -175,7 +175,7 @@ func (b *Broadcaster) defaultTxFactory(clientCtx client.Context, account client.
 		WithGasAdjustment(chainConfig.GasAdjustment).
 		WithGas(flags.DefaultGasLimit).
 		WithGasPrices(chainConfig.GasPrices).
-		WithMemo("rollup-e2e").
+		WithMemo("interchaintest").
 		WithTxConfig(clientCtx.TxConfig).
 		WithAccountRetriever(clientCtx.AccountRetriever).
 		WithKeybase(clientCtx.Keyring).
@@ -224,22 +224,16 @@ func BroadcastTx(ctx context.Context, broadcaster *Broadcaster, broadcastingUser
 		return sdk.TxResponse{}, err
 	}
 
-	return getFullyPopulatedResponse(cc, respWithTxHash.TxHash)
-}
-
-// getFullyPopulatedResponse returns a fully populated sdk.TxResponse.
-// the QueryTx function is periodically called until a tx with the given hash
-// has been included in a block.
-func getFullyPopulatedResponse(cc client.Context, txHash string) (sdk.TxResponse, error) {
-	var resp sdk.TxResponse
-	err := testutil.WaitForCondition(time.Second*60, time.Second*5, func() (bool, error) {
-		fullyPopulatedTxResp, err := authtx.QueryTx(cc, txHash)
+	resp, err := authTx.QueryTx(cc, respWithTxHash.TxHash)
+	if err != nil {
+		// if we fail to query the tx, it means an error occurred with the original message broadcast.
+		// we should return this instead.
+		originalResp, err := broadcaster.UnmarshalTxResponseBytes(ctx, txBytes)
 		if err != nil {
-			return false, nil
+			return sdk.TxResponse{}, err
 		}
+		return originalResp, nil
+	}
 
-		resp = *fullyPopulatedTxResp
-		return true, nil
-	})
-	return resp, err
+	return *resp, nil
 }

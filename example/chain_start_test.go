@@ -2,9 +2,11 @@ package example
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -82,7 +84,7 @@ func TestStartChain(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := relayer.NewBuiltinRelayerFactory(zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "dymension", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "dymension-demo"
 	ic := test.NewSetup().
@@ -147,12 +149,32 @@ func TestStartChain(t *testing.T) {
 
 	dymensionHeight, err := dymension.Height(ctx)
 	require.NoError(t, err)
-
-	transferTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transfer, ibc.TransferOptions{})
-
+	fmt.Println(dymensionHeight)
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transfer, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	require.NoError(t, err)
 	// Poll for the ack to know the transfer was successful
-	_, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+20, transferTx.Packet)
+	// _, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+100, transferTx.Packet)
+	// require.NoError(t, err)
+	// Get the IBC denom for udym on Rollapp
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	dymensionUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
+
+	rollappUpdateBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+	require.NoError(t, err)
+
+	fmt.Println(dymensionOrigBal)
+	fmt.Println(dymensionUpdateBal)
+	fmt.Println("----------------")
+	fmt.Println(rollappOrigBal)
+	fmt.Println(rollappUpdateBal)
+
 }

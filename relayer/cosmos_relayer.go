@@ -55,6 +55,7 @@ type Value struct {
 	RPCAddr        string  `json:"rpc-addr"`
 	SignMode       string  `json:"sign-mode"`
 	Timeout        string  `json:"timeout"`
+	ClientType     string  `json:"client-type"`
 }
 
 const (
@@ -62,7 +63,7 @@ const (
 	DefaultContainerVersion = "v2.3.1"
 )
 
-func ChainConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
+func HubConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
 	return CosmosRelayerChainConfig{
 		Type: "cosmos",
 		Value: Value{
@@ -77,6 +78,27 @@ func ChainConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName,
 			Timeout:        "10s",
 			OutputFormat:   "json",
 			SignMode:       "direct",
+			ClientType:     "07-tendermint",
+		},
+	}
+}
+
+func RollAppConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
+	return CosmosRelayerChainConfig{
+		Type: "cosmos",
+		Value: Value{
+			Key:            keyName,
+			ChainID:        chainConfig.ChainID,
+			RPCAddr:        rpcAddr,
+			AccountPrefix:  chainConfig.Bech32Prefix,
+			KeyringBackend: keyring.BackendTest,
+			GasAdjustment:  chainConfig.GasAdjustment,
+			GasPrices:      chainConfig.GasPrices,
+			Debug:          true,
+			Timeout:        "10s",
+			OutputFormat:   "json",
+			SignMode:       "direct",
+			ClientType:     "01-dymint",
 		},
 	}
 }
@@ -231,7 +253,14 @@ func (commander) UpdateClients(pathName, homeDir string) []string {
 }
 
 func (commander) ConfigContent(ctx context.Context, cfg ibc.ChainConfig, keyName, rpcAddr, grpcAddr string) ([]byte, error) {
-	cosmosRelayerChainConfig := ChainConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr)
+	var cosmosRelayerChainConfig CosmosRelayerChainConfig
+
+	if cfg.Type == "hub" {
+		cosmosRelayerChainConfig = HubConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr)
+	} else {
+		cosmosRelayerChainConfig = RollAppConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr)
+	}
+
 	jsonBytes, err := json.Marshal(cosmosRelayerChainConfig)
 	if err != nil {
 		return nil, err

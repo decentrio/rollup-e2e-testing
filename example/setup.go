@@ -55,3 +55,12 @@ func GetDockerImageInfo() (repo, version string) {
 	branchVersion = strings.ReplaceAll(branchVersion, "/", "-")
 	return repo, branchVersion
 }
+
+// func evmConfig() *testutil.TestEncodingConfig {
+// 	cfg := cosmos.DefaultEncoding()
+
+// 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
+// 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
+
+// 	return &cfg
+// }

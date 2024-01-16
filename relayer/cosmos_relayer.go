@@ -22,15 +22,18 @@ type CosmosRelayer struct {
 	*DockerRelayer
 }
 
-func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, networkID string, options ...RelayerOpt) *CosmosRelayer {
-	c := &commander{log: log}
-
+func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, networkID string, options ...RelayerOption) *CosmosRelayer {
+	c := commander{log: log}
+	for _, opt := range options {
+		switch o := opt.(type) {
+		case RelayerOptionExtraStartFlags:
+			c.extraStartFlags = o.Flags
+		}
+	}
 	dr, err := NewDockerRelayer(context.TODO(), log, testName, cli, networkID, c, options...)
 	if err != nil {
 		panic(err) // TODO: return
 	}
-
-	c.extraStartFlags = dr.GetExtraStartupFlags()
 
 	r := &CosmosRelayer{
 		DockerRelayer: dr,

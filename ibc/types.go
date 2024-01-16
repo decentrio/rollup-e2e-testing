@@ -1,15 +1,13 @@
 package ibc
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"cosmossdk.io/math"
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module/testutil"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 )
 
 // ChainConfig defines the chain parameters requires to run an testnet for a chain.
@@ -49,7 +47,7 @@ type ChainConfig struct {
 	// Override config parameters for files at filepath.
 	ConfigFileOverrides map[string]any
 	// Non-nil will override the encoding config, used for cosmos chains only.
-	EncodingConfig *testutil.TestEncodingConfig
+	EncodingConfig *simappparams.EncodingConfig
 	// Required when the chain requires the chain-id field to be populated for certain commands
 	UsingChainIDFlagCLI bool `yaml:"using-chain-id-flag-cli"`
 	// CoinDecimals for the chains base micro/nano/atto token configuration.
@@ -172,12 +170,6 @@ func (c ChainConfig) MergeChainSpecConfig(other ChainConfig) ChainConfig {
 // It is possible for some fields, such as GasAdjustment and NoHostMount,
 // to be their respective zero values and for IsFullyConfigured to still report true.
 func (c ChainConfig) IsFullyConfigured() bool {
-	for _, image := range c.Images {
-		if !image.IsFullyConfigured() {
-			return false
-		}
-	}
-
 	return c.Type != "" &&
 		c.Name != "" &&
 		c.ChainID != "" &&
@@ -193,41 +185,6 @@ type DockerImage struct {
 	Repository string `yaml:"repository"`
 	Version    string `yaml:"version"`
 	UidGid     string `yaml:"uid-gid"`
-}
-
-func NewDockerImage(repository, version, uidGid string) DockerImage {
-	return DockerImage{
-		Repository: repository,
-		Version:    version,
-		UidGid:     uidGid,
-	}
-}
-
-// IsFullyConfigured reports whether all of i's required fields are present.
-// Version is not required, as it can be superseded by a ChainSpec version.
-func (i DockerImage) IsFullyConfigured() bool {
-	return i.Validate() == nil
-}
-
-// Validate returns an error describing which of i's required fields are missing
-// and returns nil if all required fields are present. Version is not required,
-// as it can be superseded by a ChainSpec version.
-func (i DockerImage) Validate() error {
-	var missing []string
-
-	if i.Repository == "" {
-		missing = append(missing, "Repository")
-	}
-	if i.UidGid == "" {
-		missing = append(missing, "UidGid")
-	}
-
-	if len(missing) > 0 {
-		fields := strings.Join(missing, ", ")
-		return fmt.Errorf("DockerImage is missing fields: %s", fields)
-	}
-
-	return nil
 }
 
 // Ref returns the reference to use when e.g. creating a container.
@@ -294,6 +251,13 @@ type Wallet interface {
 	Mnemonic() string
 	Address() []byte
 }
+
+type RelayerImplementation int64
+
+const (
+	CosmosRly RelayerImplementation = iota
+	Hermes
+)
 
 // ChannelFilter provides the means for either creating an allowlist or a denylist of channels on the src chain
 // which will be used to narrow down the list of channels a user wants to relay on.

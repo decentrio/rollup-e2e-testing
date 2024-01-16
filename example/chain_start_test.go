@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -28,7 +28,7 @@ func TestIBCTransfer(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestStartChain:26657"
+	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestIBCTransfer:26657"
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -83,7 +83,7 @@ func TestIBCTransfer(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
-	r := relayer.NewBuiltinRelayerFactory(zaptest.NewLogger(t),
+	r := relayer.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "dymension-demo"
@@ -138,63 +138,21 @@ func TestIBCTransfer(t *testing.T) {
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
-	// transfer := ibc.WalletAmount{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	transfer := ibc.WalletAmount{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	// dymensionHeight, err := dymension.Height(ctx)
-	// require.NoError(t, err)
+	dymensionHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
 
-	// fmt.Println(dymensionHeight)
+	fmt.Println(dymensionHeight)
 
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transfer, ibc.TransferOptions{})
-	// require.NoError(t, err)
-
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
-
-	// t.Cleanup(
-	// 	func() {
-	// 		err := r.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
-	// 	},
-	// )
-
-	// err = testutil.WaitForBlocks(ctx, 20, dymension)
-	// require.NoError(t, err)
-	// // Poll for the ack to know the transfer was successful
-	// // _, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+100, transferTx.Packet)
-	// // require.NoError(t, err)
-	// // Get the IBC denom for udym on Rollapp
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	// dymensionUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
-
-	// rollappUpdateBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
-	// require.NoError(t, err)
-
-	// fmt.Println(dymensionOrigBal)
-	// fmt.Println(dymensionUpdateBal)
-	// fmt.Println("----------------")
-	// fmt.Println(rollappOrigBal)
-	// fmt.Println(rollappUpdateBal)
-
-	transfer := ibc.WalletAmount{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transfer, ibc.TransferOptions{})
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transfer, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -211,6 +169,36 @@ func TestIBCTransfer(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 20, dymension)
 	require.NoError(t, err)
+	// Poll for the ack to know the transfer was successful
+	// _, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+100, transferTx.Packet)
+	// require.NoError(t, err)
+	// Get the IBC denom for udym on Rollapp
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	dymensionUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
+
+	rollappUpdateBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+	require.NoError(t, err)
+
+	fmt.Println(dymensionOrigBal)
+	fmt.Println(dymensionUpdateBal)
+	fmt.Println("----------------")
+	fmt.Println(rollappOrigBal)
+	fmt.Println(rollappUpdateBal)
+
+	transfer = ibc.WalletAmount{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transfer, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	require.NoError(t, err)
 
 	// Poll for the ack to know the transfer was successful
 	// _, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+100, transferTx.Packet)
@@ -219,10 +207,10 @@ func TestIBCTransfer(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	dymensionUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	dymensionUpdateBal, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 
-	rollappUpdateBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
+	rollappUpdateBal, err = rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println(rollappOrigBal)
 	fmt.Println(rollappUpdateBal)

@@ -175,7 +175,7 @@ func (b *Broadcaster) defaultTxFactory(clientCtx client.Context, account client.
 		WithGasAdjustment(chainConfig.GasAdjustment).
 		WithGas(flags.DefaultGasLimit).
 		WithGasPrices(chainConfig.GasPrices).
-		WithMemo("interchaintest").
+		WithMemo("e2e-rollup").
 		WithTxConfig(clientCtx.TxConfig).
 		WithAccountRetriever(clientCtx.AccountRetriever).
 		WithKeybase(clientCtx.Keyring).

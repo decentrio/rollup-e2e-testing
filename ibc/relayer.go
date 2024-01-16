@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	chantypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ptypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	chantypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ptypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // Relayer represents an instance of a relayer that can be support IBC.
@@ -64,12 +64,6 @@ type Relayer interface {
 	// StopRelayer stops a relayer that started work through StartRelayer.
 	StopRelayer(ctx context.Context, rep RelayerExecReporter) error
 
-	// PauseRelayer halts a relayer that started work through StartRelayer.
-	PauseRelayer(ctx context.Context) error
-
-	// ResumeRelayer resumes a relayer that was paused through PauseRelayer.
-	ResumeRelayer(ctx context.Context) error
-
 	// Flush flushes any outstanding packets and then returns.
 	Flush(ctx context.Context, rep RelayerExecReporter, pathName string, channelID string) error
 
@@ -99,10 +93,6 @@ type Relayer interface {
 	//
 	// "env" are environment variables in the format "MY_ENV_VAR=value"
 	Exec(ctx context.Context, rep RelayerExecReporter, cmd []string, env []string) RelayerExecResult
-
-	// Set the wasm client contract hash in the chain's config if the counterparty chain in a path used 08-wasm
-	// to instantiate the client.
-	SetClientContractHash(ctx context.Context, rep RelayerExecReporter, cfg ChainConfig, hash string) error
 }
 
 // GetTransferChannel will return the transfer channel assuming only one client,

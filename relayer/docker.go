@@ -9,23 +9,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/decentrio/rollup-e2e-testing/dockerutil"
+	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/docker/docker/api/types"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"go.uber.org/zap"
-
-	"github.com/decentrio/rollup-e2e-testing/dockerutil"
-	"github.com/decentrio/rollup-e2e-testing/ibc"
-	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
 const (
 	defaultRlyHomeDirectory = "/home/relayer"
 )
-
-// RelayerOpt is a functional option for configuring a relayer.
-type RelayerOpt func(relayer *DockerRelayer)
 
 // DockerRelayer provides a common base for relayer implementations
 // that run on Docker.
@@ -51,14 +47,12 @@ type DockerRelayer struct {
 	wallets map[string]ibc.Wallet
 
 	homeDir string
-
-	extraStartupFlags []string
 }
 
 var _ ibc.Relayer = (*DockerRelayer)(nil)
 
 // NewDockerRelayer returns a new DockerRelayer.
-func NewDockerRelayer(ctx context.Context, log *zap.Logger, testName string, cli *client.Client, networkID string, c RelayerCommander, options ...RelayerOpt) (*DockerRelayer, error) {
+func NewDockerRelayer(ctx context.Context, log *zap.Logger, testName string, cli *client.Client, networkID string, c RelayerCommander, options ...RelayerOption) (*DockerRelayer, error) {
 	r := DockerRelayer{
 		log: log,
 
@@ -78,10 +72,17 @@ func NewDockerRelayer(ctx context.Context, log *zap.Logger, testName string, cli
 	r.homeDir = defaultRlyHomeDirectory
 
 	for _, opt := range options {
-		opt(&r)
+		switch o := opt.(type) {
+		case RelayerOptionDockerImage:
+			r.customImage = &o.DockerImage
+		case RelayerOptionImagePull:
+			r.pullImage = o.Pull
+		case RelayerOptionHomeDir:
+			r.homeDir = o.HomeDir
+		}
 	}
 
-	containerImage := r.ContainerImage()
+	containerImage := r.containerImage()
 	if err := r.pullContainerImageIfNecessary(containerImage); err != nil {
 		return nil, fmt.Errorf("pulling container image %s: %w", containerImage.Ref(), err)
 	}
@@ -189,10 +190,6 @@ func (r *DockerRelayer) AddKey(ctx context.Context, rep ibc.RelayerExecReporter,
 	return wallet, nil
 }
 
-func (r *DockerRelayer) GetExtraStartupFlags() []string {
-	return r.extraStartupFlags
-}
-
 func (r *DockerRelayer) GetWallet(chainID string) (ibc.Wallet, bool) {
 	wallet, ok := r.wallets[chainID]
 	return wallet, ok
@@ -276,7 +273,7 @@ func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporte
 }
 
 func (r *DockerRelayer) Exec(ctx context.Context, rep ibc.RelayerExecReporter, cmd []string, env []string) ibc.RelayerExecResult {
-	job := dockerutil.NewImage(r.log, r.client, r.networkID, r.testName, r.ContainerImage().Repository, r.ContainerImage().Version)
+	job := dockerutil.NewImage(r.log, r.client, r.networkID, r.testName, r.containerImage().Repository, r.containerImage().Version)
 	opts := dockerutil.ContainerOptions{
 		Env:   env,
 		Binds: r.Bind(),
@@ -336,7 +333,7 @@ func (r *DockerRelayer) StartRelayer(ctx context.Context, rep ibc.RelayerExecRep
 		return fmt.Errorf("tried to start relayer again without stopping first")
 	}
 
-	containerImage := r.ContainerImage()
+	containerImage := r.containerImage()
 	joinedPaths := strings.Join(pathNames, ".")
 	containerName := fmt.Sprintf("%s-%s-%s", r.c.Name(), joinedPaths, dockerutil.RandLowerCaseLetterString(5))
 
@@ -346,7 +343,7 @@ func (r *DockerRelayer) StartRelayer(ctx context.Context, rep ibc.RelayerExecRep
 
 	if err := r.containerLifecycle.CreateContainer(
 		ctx, r.testName, r.networkID, containerImage, nil,
-		r.Bind(), r.HostName(joinedPaths), cmd, nil,
+		r.Bind(), r.HostName(joinedPaths), cmd,
 	); err != nil {
 		return err
 	}
@@ -427,21 +424,7 @@ func (r *DockerRelayer) StopRelayer(ctx context.Context, rep ibc.RelayerExecRepo
 	return nil
 }
 
-func (r *DockerRelayer) PauseRelayer(ctx context.Context) error {
-	if r.containerLifecycle == nil {
-		return fmt.Errorf("container not running")
-	}
-	return r.client.ContainerPause(ctx, r.containerLifecycle.ContainerID())
-}
-
-func (r *DockerRelayer) ResumeRelayer(ctx context.Context) error {
-	if r.containerLifecycle == nil {
-		return fmt.Errorf("container not running")
-	}
-	return r.client.ContainerUnpause(ctx, r.containerLifecycle.ContainerID())
-}
-
-func (r *DockerRelayer) ContainerImage() ibc.DockerImage {
+func (r *DockerRelayer) containerImage() ibc.DockerImage {
 	if r.customImage != nil {
 		return *r.customImage
 	}
@@ -548,43 +531,4 @@ type RelayerCommander interface {
 	StartRelayer(homeDir string, pathNames ...string) []string
 	UpdateClients(pathName, homeDir string) []string
 	CreateWallet(keyName, address, mnemonic string) ibc.Wallet
-}
-
-// DockerImage overrides the default relayer docker image.
-func DockerImage(image *ibc.DockerImage) RelayerOpt {
-	return func(r *DockerRelayer) {
-		r.customImage = image
-	}
-}
-
-// CustomDockerImage overrides the default relayer docker image.
-// uidGid is the uid:gid format owner that should be used within the container.
-// If uidGid is empty, root user will be assumed.
-func CustomDockerImage(repository string, version string, uidGid string) RelayerOpt {
-	return DockerImage(&ibc.DockerImage{
-		Repository: repository,
-		Version:    version,
-		UidGid:     uidGid,
-	})
-}
-
-// HomeDir overrides the default relayer home directory.
-func HomeDir(homeDir string) RelayerOpt {
-	return func(r *DockerRelayer) {
-		r.homeDir = homeDir
-	}
-}
-
-// ImagePull overrides whether the relayer image should be pulled on startup.
-func ImagePull(pull bool) RelayerOpt {
-	return func(r *DockerRelayer) {
-		r.pullImage = pull
-	}
-}
-
-// StartupFlags overrides the default relayer startup flags.
-func StartupFlags(flags ...string) RelayerOpt {
-	return func(r *DockerRelayer) {
-		r.extraStartupFlags = flags
-	}
 }

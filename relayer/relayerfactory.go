@@ -27,39 +27,39 @@ type RelayerFactory interface {
 // builtinRelayerFactory is the built-in relayer factory that understands
 // how to start the cosmos relayer in a docker container.
 type builtinRelayerFactory struct {
+	impl    ibc.RelayerImplementation
 	log     *zap.Logger
-	options []RelayerOpt
-	version string
+	options RelayerOptions
 }
 
-func NewBuiltinRelayerFactory(logger *zap.Logger, options ...RelayerOpt) RelayerFactory {
-	return &builtinRelayerFactory{log: logger, options: options}
+func NewBuiltinRelayerFactory(impl ibc.RelayerImplementation, logger *zap.Logger, options ...RelayerOption) RelayerFactory {
+	return builtinRelayerFactory{impl: impl, log: logger, options: options}
 }
 
 // Build returns a relayer chosen depending on f.impl.
-func (f *builtinRelayerFactory) Build(
+func (f builtinRelayerFactory) Build(
 	t TestName,
 	cli *client.Client,
 	networkID string,
 ) ibc.Relayer {
-	r := NewCosmosRelayer(
+	return NewCosmosRelayer(
 		f.log,
 		t.Name(),
 		cli,
 		networkID,
 		f.options...,
 	)
-	f.setRelayerVersion(r.ContainerImage())
-	return r
 }
 
-func (f *builtinRelayerFactory) setRelayerVersion(di ibc.DockerImage) {
-	f.version = di.Version
-}
-
-func (f *builtinRelayerFactory) Name() string {
-	if f.version == "" {
-		return "rly@" + f.version
+func (f builtinRelayerFactory) Name() string {
+	// This is using the string "rly" instead of rly.ContainerImage
+	// so that the slashes in the image repository don't add ambiguity
+	// to subtest paths, when the factory name is used in calls to t.Run.
+	for _, opt := range f.options {
+		switch o := opt.(type) {
+		case RelayerOptionDockerImage:
+			return "rly@" + o.DockerImage.Version
+		}
 	}
 	return "rly@" + DefaultContainerVersion
 }

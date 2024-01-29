@@ -20,10 +20,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	chanTypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	dockertypes "github.com/docker/docker/api/types"
 	volumetypes "github.com/docker/docker/api/types/volume"
@@ -1188,4 +1190,75 @@ func (c *CosmosChain) VoteOnProposalAllValidators(ctx context.Context, proposalI
 		}
 	}
 	return eg.Wait()
+}
+
+// IBCTransfer compose an IBC transfer and send from chainA -> chainB
+func (c *CosmosChain) IBCTransfer(ctx context.Context, chainA, chainB ibc.Chain, transferAmount sdkmath.Int, chainAUserAddr,
+	chainBUserAddr string, rly ibc.Relayer, ibcPath string, channel *ibc.ChannelOutput,
+	eRep *testreporter.RelayerExecReporter, options ibc.TransferOptions) error {
+	transfer := ibc.WalletAmount{
+		Address: chainBUserAddr,
+		Denom:   chainA.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Get original account balances
+	chainAOrigBal, err := chainA.GetBalance(ctx, chainAUserAddr, chainA.Config().Denom)
+	if err != nil {
+		return err
+	}
+
+	// Get the IBC denom
+	chainATokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, chainA.Config().Denom)
+	chainAIBCDenom := transfertypes.ParseDenomTrace(chainATokenDenom).IBCDenom()
+
+	chainATX, err := chainA.SendIBCTransfer(ctx, channel.ChannelID, chainAUserAddr, transfer, options)
+	if err != nil {
+		return err
+	}
+
+	err = chainATX.Validate()
+	if err != nil {
+		return fmt.Errorf("chain-a ibc transfer tx is invalid: %w ", err)
+	}
+
+	err = rly.StartRelayer(ctx, eRep, ibcPath)
+	if err != nil {
+		return err
+	}
+
+	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
+	if err != nil {
+		return err
+	}
+
+	chainAUpdateBal, err := chainA.GetBalance(ctx, chainAUserAddr, chainA.Config().Denom)
+	if err != nil {
+		return err
+	}
+
+	chainBUpdateBal, err := chainB.GetBalance(ctx, chainBUserAddr, chainAIBCDenom)
+	if err != nil {
+		return err
+	}
+
+	if !chainAOrigBal.Equal(chainAUpdateBal.Add(transferAmount)) {
+		return fmt.Errorf("Balance not change")
+	}
+
+	if !chainBUpdateBal.Equal(transferAmount) {
+		return fmt.Errorf("Balance not change")
+	}
+
+	err = rly.StopRelayer(ctx, eRep)
+	if err != nil {
+		return err
+	}
+
+	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

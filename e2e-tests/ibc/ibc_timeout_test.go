@@ -8,7 +8,9 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/example"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -16,8 +18,8 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// TestStart is a basic test to assert that spinning up a dymension network with 1 validator works properly.
-func TestIBCTransfer(t *testing.T) {
+// This test case verifies the system's behavior when an IBC packet sent from the rollapp to the hub times out.
+func TestIBCTransferTimeout(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -27,7 +29,7 @@ func TestIBCTransfer(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestIBCTransfer:26657"
+	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestIBCTransferTimeout:26657"
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -41,7 +43,7 @@ func TestIBCTransfer(t *testing.T) {
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:    "rollapp",
-				Name:    "rollapp-temp",
+				Name:    "rollapp-test",
 				ChainID: "demo-dymension-rollapp",
 				Images: []ibc.DockerImage{
 					{
@@ -66,12 +68,11 @@ func TestIBCTransfer(t *testing.T) {
 		},
 		{
 			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			ChainConfig:   example.GetDymensionConfig(),
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
 	})
-
 	// Get chains from the chain factory
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
@@ -85,7 +86,7 @@ func TestIBCTransfer(t *testing.T) {
 	r := relayer.NewBuiltinRelayerFactory(zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
-	const ibcPath = "dymension-demo"
+	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddChain(rollapp1).
 		AddChain(dymension).
@@ -126,76 +127,32 @@ func TestIBCTransfer(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, dymensionOrigBal)
-
-	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, rollappOrigBal)
+	// Assert the accounts were funded
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
-	// transfer := ibc.WalletAmount{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	// dymensionHeight, err := dymension.Height(ctx)
-	// require.NoError(t, err)
-
-	// fmt.Println(dymensionHeight)
-
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transfer, ibc.TransferOptions{})
-	// require.NoError(t, err)
-
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
-
-	// t.Cleanup(
-	// 	func() {
-	// 		err := r.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
-	// 	},
-	// )
-
-	// err = testutil.WaitForBlocks(ctx, 20, dymension)
-	// require.NoError(t, err)
-	// // Poll for the ack to know the transfer was successful
-	// // _, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+100, transferTx.Packet)
-	// // require.NoError(t, err)
-	// // Get the IBC denom for udym on Rollapp
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	// dymensionUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
-
-	// rollappUpdateBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
-	// require.NoError(t, err)
-
-	// fmt.Println(dymensionOrigBal)
-	// fmt.Println(dymensionUpdateBal)
-	// fmt.Println("----------------")
-	// fmt.Println(rollappOrigBal)
-	// fmt.Println(rollappUpdateBal)
-
-	transfer := ibc.WalletData{
+	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
+	// Set a short timeout for IBC transfer
+	options := ibc.TransferOptions{
+		Timeout: &ibc.IBCTimeout{
+			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
+		},
+	}
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transfer, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transfer.Amount))
+	// Assert balance was updated on the rollapp
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -209,16 +166,14 @@ func TestIBCTransfer(t *testing.T) {
 		},
 	)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	// Poll for the ack to know the transfer was successful
-	// _, err = testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+100, transferTx.Packet)
-	// require.NoError(t, err)
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transfer.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transfer.Amount)
+	// Assert funds were returned to the sender after the timeout has occured
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 }

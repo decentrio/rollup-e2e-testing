@@ -102,7 +102,7 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string) (fa
 }
 
 // Start concurrently calls Start against each chain in the set.
-func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletAmount) error {
+func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
 	for c := range cs.chains {
 		c := c
 		if c.Config().Type == "rollapp" {

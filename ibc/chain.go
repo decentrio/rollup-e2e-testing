@@ -15,13 +15,13 @@ type Chain interface {
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
 	// StartHub sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
-	StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletAmount) error
+	StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
 
 	// CreateRollapp sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
-	CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletAmount) (string, error)
+	CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
 
 	// StartRollapp start everything (validators, gentx, fullnodes, peering, additional accounts).
-	StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletAmount) error
+	StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
 	// is up to the chain implementation.
@@ -63,10 +63,10 @@ type Chain interface {
 	GetAddress(ctx context.Context, keyName string) ([]byte, error)
 
 	// SendFunds sends funds to a wallet from a user account.
-	SendFunds(ctx context.Context, keyName string, amount WalletAmount) error
+	SendFunds(ctx context.Context, keyName string, amount WalletData) error
 
 	// SendIBCTransfer sends an IBC transfer returning a transaction or an error if the transfer failed.
-	SendIBCTransfer(ctx context.Context, channelID, keyName string, amount WalletAmount, options TransferOptions) (Tx, error)
+	SendIBCTransfer(ctx context.Context, channelID, keyName string, amount WalletData, options TransferOptions) (Tx, error)
 
 	// Height returns the current block height or an error if unable to get current height.
 	Height(ctx context.Context) (uint64, error)

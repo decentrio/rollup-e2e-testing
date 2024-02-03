@@ -39,6 +39,10 @@ var (
 	}
 )
 
+func GetDymensionConfig() (config ibc.ChainConfig) {
+	return dymensionConfig
+}
+
 // GetDockerImageInfo returns the appropriate repo and branch version string for integration with the CI pipeline.
 // The remote runner sets the BRANCH_CI env var. If present, tests will use the docker image pushed up to the repo.
 // If testing locally, user should run `make docker-build-debug` and tests will use the local image.

@@ -744,12 +744,12 @@ func (node *Node) SendIBCTransfer(
 	ctx context.Context,
 	channelID string,
 	keyName string,
-	amount ibc.WalletAmount,
+	toWallet ibc.WalletData,
 	options ibc.TransferOptions,
 ) (string, error) {
 	command := []string{
 		"ibc-transfer", "transfer", "transfer", channelID,
-		amount.Address, fmt.Sprintf("%s%s", amount.Amount.String(), amount.Denom),
+		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
 		"--gas", "auto",
 	}
 	if options.Timeout != nil {
@@ -765,10 +765,10 @@ func (node *Node) SendIBCTransfer(
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) SendFunds(ctx context.Context, keyName string, amount ibc.WalletAmount) error {
+func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.WalletData) error {
 	_, err := node.ExecTx(ctx,
 		keyName, "bank", "send", keyName,
-		amount.Address, fmt.Sprintf("%s%s", amount.Amount.String(), amount.Denom),
+		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
 		"--broadcast-mode", "block",
 	)
 	return err

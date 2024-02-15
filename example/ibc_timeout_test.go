@@ -8,7 +8,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/example"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	"github.com/decentrio/rollup-e2e-testing/relayer"
@@ -68,7 +67,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 		},
 		{
 			Name:          "dymension-hub",
-			ChainConfig:   example.GetDymensionConfig(),
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},

@@ -196,7 +196,7 @@ func (i DockerImage) Ref() string {
 	return i.Repository + ":" + i.Version
 }
 
-type WalletAmount struct {
+type WalletData struct {
 	Address string
 	Denom   string
 	Amount  math.Int

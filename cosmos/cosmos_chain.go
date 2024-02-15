@@ -285,7 +285,7 @@ func (c *CosmosChain) BuildRelayerWallet(ctx context.Context, keyName string) (i
 }
 
 // Implements Chain interface
-func (c *CosmosChain) SendFunds(ctx context.Context, keyName string, amount ibc.WalletAmount) error {
+func (c *CosmosChain) SendFunds(ctx context.Context, keyName string, amount ibc.WalletData) error {
 	return c.getFullNode().SendFunds(ctx, keyName, amount)
 }
 
@@ -294,10 +294,10 @@ func (c *CosmosChain) SendIBCTransfer(
 	ctx context.Context,
 	channelID string,
 	keyName string,
-	amount ibc.WalletAmount,
+	toWallet ibc.WalletData,
 	options ibc.TransferOptions,
 ) (tx ibc.Tx, _ error) {
-	txHash, err := c.getFullNode().SendIBCTransfer(ctx, channelID, keyName, amount, options)
+	txHash, err := c.getFullNode().SendIBCTransfer(ctx, channelID, keyName, toWallet, options)
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}
@@ -612,7 +612,7 @@ type ValidatorWithIntPower struct {
 var keyDir string
 
 // StartHub bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletAmount) error {
+func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -822,7 +822,7 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 		return err
 	}
 	amount := sdkmath.NewInt(10_000_000_000_000)
-	fund := ibc.WalletAmount{
+	fund := ibc.WalletData{
 		Address: sequencer,
 		Denom:   c.Config().Denom,
 		Amount:  amount,
@@ -840,7 +840,7 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 }
 
 // CreateRollapp bootstraps the hubs
-func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletAmount) (string, error) {
+func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) (string, error) {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -1013,7 +1013,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 }
 
 // StartRollapp start the Rollapps from genesis
-func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletAmount) error {
+func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	nodes := c.Nodes()
 
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
@@ -1196,7 +1196,7 @@ func (c *CosmosChain) VoteOnProposalAllValidators(ctx context.Context, proposalI
 func (c *CosmosChain) IBCTransfer(ctx context.Context, chainA, chainB ibc.Chain, transferAmount sdkmath.Int, chainAUserAddr,
 	chainBUserAddr string, rly ibc.Relayer, ibcPath string, channel *ibc.ChannelOutput,
 	eRep *testreporter.RelayerExecReporter, options ibc.TransferOptions) error {
-	transfer := ibc.WalletAmount{
+	transfer := ibc.WalletData{
 		Address: chainBUserAddr,
 		Denom:   chainA.Config().Denom,
 		Amount:  transferAmount,

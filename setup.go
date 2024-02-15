@@ -35,7 +35,7 @@ type Setup struct {
 	relayerWallets map[relayerChain]ibc.Wallet
 
 	// Map of chain to additional genesis wallets to include at chain start.
-	AdditionalGenesisWallets map[ibc.Chain][]ibc.WalletAmount
+	AdditionalGenesisWallets map[ibc.Chain][]ibc.WalletData
 
 	// Set during Build and cleaned up in the Close method.
 	cs *chainSet
@@ -79,7 +79,7 @@ type relayerPath struct {
 // using the chain ID reported by the chain's config.
 // If the given chain already exists,
 // or if another chain with the same configured chain ID exists, AddChain panics.
-func (s *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.WalletAmount) *Setup {
+func (s *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.WalletData) *Setup {
 	if chain == nil {
 		panic(fmt.Errorf("cannot add nil chain"))
 	}
@@ -106,7 +106,7 @@ func (s *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.Wallet
 	}
 
 	if s.AdditionalGenesisWallets == nil {
-		s.AdditionalGenesisWallets = make(map[ibc.Chain][]ibc.WalletAmount)
+		s.AdditionalGenesisWallets = make(map[ibc.Chain][]ibc.WalletData)
 	}
 	s.AdditionalGenesisWallets[chain] = additionalGenesisWallets
 
@@ -331,7 +331,7 @@ func (s *Setup) Close() error {
 	return s.cs.Close()
 }
 
-func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.WalletAmount, error) {
+func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.WalletData, error) {
 	// Faucet addresses are created separately because they need to be explicitly added to the chains.
 	faucetAddresses, err := s.cs.CreateCommonAccount(ctx, FaucetAccountKeyName)
 	if err != nil {
@@ -339,12 +339,12 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 	}
 
 	// Wallet amounts for genesis.
-	walletAmounts := make(map[ibc.Chain][]ibc.WalletAmount, len(s.cs.chains))
+	walletAmounts := make(map[ibc.Chain][]ibc.WalletData, len(s.cs.chains))
 
 	// Add faucet for each chain first.
 	for c := range s.chains {
 		// The values are nil at this point, so it is safe to directly assign the slice.
-		walletAmounts[c] = []ibc.WalletAmount{
+		walletAmounts[c] = []ibc.WalletData{
 			{
 				Address: faucetAddresses[c],
 				Denom:   c.Config().Denom,
@@ -360,7 +360,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 	// Then add all defined relayer wallets.
 	for rc, wallet := range s.relayerWallets {
 		c := rc.C
-		walletAmounts[c] = append(walletAmounts[c], ibc.WalletAmount{
+		walletAmounts[c] = append(walletAmounts[c], ibc.WalletData{
 			Address: wallet.FormattedAddress(),
 			Denom:   c.Config().Denom,
 			Amount:  math.NewInt(1_000_000_000_000), // Every wallet gets 1t units of denom.
@@ -511,7 +511,7 @@ func GetAndFundTestUserWithMnemonic(
 		return nil, fmt.Errorf("failed to get source user wallet: %w", err)
 	}
 
-	err = chain.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletAmount{
+	err = chain.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
 		Address: user.FormattedAddress(),
 		Amount:  amount,
 		Denom:   chainCfg.Denom,

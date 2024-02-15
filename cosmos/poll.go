@@ -61,7 +61,7 @@ func PollForMessage[T any](ctx context.Context, chain *CosmosChain, registry cod
 }
 
 // PollForBalance polls until the balance matches
-func PollForBalance(ctx context.Context, chain *CosmosChain, deltaBlocks uint64, balance ibc.WalletAmount) error {
+func PollForBalance(ctx context.Context, chain *CosmosChain, deltaBlocks uint64, balance ibc.WalletData) error {
 	h, err := chain.Height(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get height: %w", err)

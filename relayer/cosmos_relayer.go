@@ -72,10 +72,11 @@ const (
 )
 
 func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
-	defaultClientType := tmClientType
+	// by default clientType should be tmClientType
+	clientType := tmClientType
 
 	if chainConfig.Type == "rollapp" {
-		defaultClientType = dmClientType
+		clientType = dmClientType
 	}
 
 	return CosmosRelayerChainConfig{
@@ -92,7 +93,7 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 			Timeout:        "10s",
 			OutputFormat:   "json",
 			SignMode:       "direct",
-			ClientType:     defaultClientType,
+			ClientType:     clientType,
 		},
 	}
 }

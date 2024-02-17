@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/docker/docker/client"
 	"go.uber.org/zap"
 )
@@ -19,18 +20,18 @@ const (
 // CosmosRelayer is the ibc.Relayer implementation for github.com/cosmos/relayer.
 type CosmosRelayer struct {
 	// Embedded DockerRelayer so commands just work.
-	*DockerRelayer
+	*relayer.DockerRelayer
 }
 
-func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, networkID string, options ...RelayerOption) *CosmosRelayer {
+func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, networkID string, options ...relayer.RelayerOption) *CosmosRelayer {
 	c := commander{log: log}
 	for _, opt := range options {
 		switch o := opt.(type) {
-		case RelayerOptionExtraStartFlags:
+		case relayer.RelayerOptionExtraStartFlags:
 			c.extraStartFlags = o.Flags
 		}
 	}
-	dr, err := NewDockerRelayer(context.TODO(), log, testName, cli, networkID, c, options...)
+	dr, err := relayer.NewDockerRelayer(context.TODO(), log, testName, cli, networkID, c, options...)
 	if err != nil {
 		panic(err) // TODO: return
 	}

@@ -1,7 +1,11 @@
-package relayer
+package rollupe2etesting
 
 import (
+	"fmt"
+
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/relayer"
+	rly "github.com/decentrio/rollup-e2e-testing/relayer/rly"
 	"github.com/docker/docker/client"
 	"go.uber.org/zap"
 )
@@ -29,10 +33,10 @@ type RelayerFactory interface {
 type builtinRelayerFactory struct {
 	impl    ibc.RelayerImplementation
 	log     *zap.Logger
-	options RelayerOptions
+	options relayer.RelayerOptions
 }
 
-func NewBuiltinRelayerFactory(impl ibc.RelayerImplementation, logger *zap.Logger, options ...RelayerOption) RelayerFactory {
+func NewBuiltinRelayerFactory(impl ibc.RelayerImplementation, logger *zap.Logger, options ...relayer.RelayerOption) RelayerFactory {
 	return builtinRelayerFactory{impl: impl, log: logger, options: options}
 }
 
@@ -42,24 +46,34 @@ func (f builtinRelayerFactory) Build(
 	cli *client.Client,
 	networkID string,
 ) ibc.Relayer {
-	return NewCosmosRelayer(
-		f.log,
-		t.Name(),
-		cli,
-		networkID,
-		f.options...,
-	)
+	switch f.impl {
+	case ibc.CosmosRly:
+		return rly.NewCosmosRelayer(
+			f.log,
+			t.Name(),
+			cli,
+			networkID,
+			f.options...,
+		)
+	default:
+		panic(fmt.Errorf("RelayerImplementation %v unknown", f.impl))
+	}
 }
 
 func (f builtinRelayerFactory) Name() string {
-	// This is using the string "rly" instead of rly.ContainerImage
-	// so that the slashes in the image repository don't add ambiguity
-	// to subtest paths, when the factory name is used in calls to t.Run.
-	for _, opt := range f.options {
-		switch o := opt.(type) {
-		case RelayerOptionDockerImage:
-			return "rly@" + o.DockerImage.Version
+	switch f.impl {
+	case ibc.CosmosRly:
+		// This is using the string "rly" instead of rly.ContainerImage
+		// so that the slashes in the image repository don't add ambiguity
+		// to subtest paths, when the factory name is used in calls to t.Run.
+		for _, opt := range f.options {
+			switch o := opt.(type) {
+			case relayer.RelayerOptionDockerImage:
+				return "rly@" + o.DockerImage.Version
+			}
 		}
+		return "rly@" + rly.DefaultContainerVersion
+	default:
+		panic(fmt.Errorf("RelayerImplementation %v unknown", f.impl))
 	}
-	return "rly@" + DefaultContainerVersion
 }

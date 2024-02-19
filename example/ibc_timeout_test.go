@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	rollupe2etesting "github.com/decentrio/rollup-e2e-testing"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -81,7 +82,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := relayer.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	r := rollupe2etesting.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"

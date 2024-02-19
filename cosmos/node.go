@@ -612,7 +612,7 @@ func (node *Node) CreateHubKey(ctx context.Context, name string) error {
 		"keys", "add", name,
 		"--coin-type", node.Chain.Config().CoinType,
 		"--keyring-backend", keyring.BackendTest,
-		"--keyring-dir", keyDir+"/sequencer_keys",
+		"--keyring-dir", KeyDir+"/sequencer_keys",
 	)
 	return err
 }
@@ -1159,7 +1159,7 @@ func (node *Node) HubKeyBech32(ctx context.Context, name string, bech string) (s
 	command := []string{node.Chain.Config().Bin, "keys", "show", "--address", name,
 		"--home", node.HomeDir(),
 		"--keyring-backend", keyring.BackendTest,
-		"--keyring-dir", keyDir + "/sequencer_keys",
+		"--keyring-dir", KeyDir + "/sequencer_keys",
 	}
 
 	if bech != "" {

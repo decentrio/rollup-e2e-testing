@@ -613,10 +613,10 @@ type ValidatorWithIntPower struct {
 	PubKeyBase64 string
 }
 
-var keyDir string
+var KeyDir string
 
 // Start bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -834,10 +834,10 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 	if err := c.SendFunds(ctx, "faucet", fund); err != nil {
 		return err
 	}
-	if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", keyDir); err != nil {
+	if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", KeyDir); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
-	if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq, keyDir); err != nil {
+	if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq, KeyDir); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
 	return nil
@@ -871,7 +871,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 	// Initialize config and sign gentx for each validator.
 	for _, v := range c.Validators {
 		v := v
-		keyDir = v.HomeDir()
+		KeyDir = v.HomeDir()
 		v.Validator = true
 		eg.Go(func() error {
 			if err := v.InitFullNodeFiles(ctx); err != nil {

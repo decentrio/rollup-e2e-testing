@@ -9,6 +9,7 @@ import (
 	rollupe2etesting "github.com/decentrio/rollup-e2e-testing"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/dyms"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	"github.com/decentrio/rollup-e2e-testing/relayer"
@@ -38,7 +39,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
-	cf := cosmos.NewBuiltinChainFactory(zaptest.NewLogger(t), []*cosmos.ChainSpec{
+	cf := rollupe2etesting.NewBuiltinChainFactory(zaptest.NewLogger(t), []*rollupe2etesting.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
@@ -77,7 +78,8 @@ func TestIBCTransferTimeout(t *testing.T) {
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
-	rollapp1 := chains[0].(*cosmos.CosmosChain)
+	rollapp1 := chains[0].(*dyms.DymsChain)
+	// rollapp1 := chains[0].(*cosmos.CosmosChain)
 	dymension := chains[1].(*cosmos.CosmosChain)
 
 	// Relayer Factory

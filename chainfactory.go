@@ -1,4 +1,4 @@
-package cosmos
+package rollupe2etesting
 
 import (
 	_ "embed"
@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/dyms"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -122,11 +124,11 @@ func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValida
 		nf = *numFullNodes
 	}
 
-	// if cfg.Type == "rollapp" {
-	// 	return dyms.NewDymsChain(testName, cfg, nv, nf, log), nil
-	// }
+	if cfg.Type == "rollapp" {
+		return dyms.NewDymsChain(testName, cfg, nv, nf, log), nil
+	}
 
-	return NewCosmosChain(testName, cfg, nv, nf, log), nil
+	return cosmos.NewCosmosChain(testName, cfg, nv, nf, log), nil
 }
 
 func (f *BuiltinChainFactory) Name() string {

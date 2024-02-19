@@ -616,7 +616,7 @@ type ValidatorWithIntPower struct {
 var keyDir string
 
 // Start bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -731,7 +731,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, ad
 		}
 
 		if !c.cfg.SkipGenTx {
-			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
+			if err := validatorN.copyGentx(ctx, validator0); err != nil {
 				return err
 			}
 		}
@@ -960,7 +960,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 		}
 
 		if !c.cfg.SkipGenTx {
-			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
+			if err := validatorN.copyGentx(ctx, validator0); err != nil {
 				return "", err
 			}
 		}

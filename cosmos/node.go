@@ -175,6 +175,10 @@ func (node *Node) OverwriteGenesisFile(ctx context.Context, content []byte) erro
 }
 
 func (node *Node) CopyGentx(ctx context.Context, destVal *Node) error {
+	return node.copyGentx(ctx, destVal)
+}
+
+func (node *Node) copyGentx(ctx context.Context, destVal *Node) error {
 	nid, err := node.NodeID(ctx)
 	if err != nil {
 		return fmt.Errorf("getting node ID: %w", err)

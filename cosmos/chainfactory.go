@@ -121,6 +121,11 @@ func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValida
 	if numFullNodes != nil {
 		nf = *numFullNodes
 	}
+
+	// if cfg.Type == "rollapp" {
+	// 	return dyms.NewDymsChain(testName, cfg, nv, nf, log), nil
+	// }
+
 	return NewCosmosChain(testName, cfg, nv, nf, log), nil
 }
 

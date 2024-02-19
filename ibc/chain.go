@@ -14,14 +14,9 @@ type Chain interface {
 	// Initialize initializes node structs so that things like initializing keys can be done before starting the chain
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
-	// StartHub sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
-	StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
+	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
+	Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
 
-	// CreateRollapp sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
-	CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
-
-	// StartRollapp start everything (validators, gentx, fullnodes, peering, additional accounts).
-	StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
 	// is up to the chain implementation.
@@ -92,6 +87,11 @@ type Chain interface {
 	// be restored in the relayer node using the mnemonic. After it is built, that address is included in
 	// genesis with some funds.
 	BuildRelayerWallet(ctx context.Context, keyName string) (Wallet, error)
+}
+
+type RollAppChain interface {
+	// Configuration sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
+	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

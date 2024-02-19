@@ -66,6 +66,21 @@ func (cs *chainSet) Initialize(ctx context.Context, testName string, cli *client
 	return eg.Wait()
 }
 
+func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
+	for c := range cs.chains {
+		c := c
+		if rollApp, ok := c.(ibc.RollAppChain); ok {
+			seq, err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
+			cs.seq = seq
+			if err != nil {
+				return fmt.Errorf("failed to configuration chain %s: %w", c.Config().Name, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 // CreateCommonAccount creates a key with the given name on each chain in the set,
 // and returns the bech32 representation of each account created.
 // The typical use of CreateCommonAccount is to create a faucet account on each chain.
@@ -105,18 +120,9 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string) (fa
 func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
 	for c := range cs.chains {
 		c := c
-		if c.Config().Type == "rollapp" {
-			seq, err := c.CreateRollapp(testName, ctx, additionalGenesisWallets[c]...)
-			cs.seq = seq
-			if err != nil {
-				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
-			}
-		}
-	}
-	for c := range cs.chains {
-		c := c
-		if c.Config().Type == "hub" {
-			if err := c.StartHub(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
+		// we should start hub first
+		if _, ok := c.(ibc.RollAppChain); !ok {
+			if err := c.Start(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}
 		}
@@ -124,8 +130,8 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 
 	for c := range cs.chains {
 		c := c
-		if c.Config().Type == "rollapp" {
-			if err := c.StartRollapp(testName, ctx, additionalGenesisWallets[c]...); err != nil {
+		if _, ok := c.(ibc.RollAppChain); ok {
+			if err := c.Start(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}
 		}

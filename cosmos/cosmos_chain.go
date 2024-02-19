@@ -74,6 +74,10 @@ func NewCosmosChain(testName string, chainConfig ibc.ChainConfig, numValidators 
 	}
 }
 
+func (c *CosmosChain) Logger() *zap.Logger {
+	return c.log
+}
+
 // Nodes returns all nodes, including validators and fullnodes.
 func (c *CosmosChain) Nodes() Nodes {
 	return append(c.Validators, c.FullNodes...)
@@ -611,8 +615,8 @@ type ValidatorWithIntPower struct {
 
 var keyDir string
 
-// StartHub bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+// Start bootstraps the hubs and starts it from genesis
+func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -727,7 +731,7 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 		}
 
 		if !c.cfg.SkipGenTx {
-			if err := validatorN.copyGentx(ctx, validator0); err != nil {
+			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
 				return err
 			}
 		}
@@ -956,7 +960,7 @@ func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additi
 		}
 
 		if !c.cfg.SkipGenTx {
-			if err := validatorN.copyGentx(ctx, validator0); err != nil {
+			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
 				return "", err
 			}
 		}

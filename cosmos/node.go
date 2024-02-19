@@ -174,7 +174,7 @@ func (node *Node) OverwriteGenesisFile(ctx context.Context, content []byte) erro
 	return nil
 }
 
-func (node *Node) copyGentx(ctx context.Context, destVal *Node) error {
+func (node *Node) CopyGentx(ctx context.Context, destVal *Node) error {
 	nid, err := node.NodeID(ctx)
 	if err != nil {
 		return fmt.Errorf("getting node ID: %w", err)
@@ -1235,4 +1235,8 @@ func (node *Node) logger() *zap.Logger {
 		zap.String("chain_id", node.Chain.Config().ChainID),
 		zap.String("test", node.TestName),
 	)
+}
+
+func (node *Node) Logger() *zap.Logger {
+	return node.logger()
 }

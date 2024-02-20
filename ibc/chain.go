@@ -17,12 +17,6 @@ type Chain interface {
 	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
 	Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
 
-	// StartRollapp start everything (validators, gentx, fullnodes, peering, additional accounts).
-	StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
-
-	// CreateRollapp sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
-	// CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
-
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
 	// is up to the chain implementation.

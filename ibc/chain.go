@@ -48,8 +48,6 @@ type Chain interface {
 	// CreateKey creates a test key in the "user" node (either the first fullnode or the first validator if no fullnodes).
 	CreateKey(ctx context.Context, keyName string) error
 
-	CreateHubKey(ctx context.Context, keyName string) error
-
 	AccountHubKeyBech32(ctx context.Context, keyName string) (string, error)
 	// RecoverKey recovers an existing user from a given mnemonic.
 	RecoverKey(ctx context.Context, name, mnemonic string) error
@@ -89,9 +87,18 @@ type Chain interface {
 	BuildRelayerWallet(ctx context.Context, keyName string) (Wallet, error)
 }
 
+type RollHub interface {
+	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error
+	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error
+	SetRollApp(rollApp RollApp)
+	CreateHubKey(ctx context.Context, keyName string) error
+}
+
 type RollApp interface {
 	// Configuration sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
 	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
+	GetKeyDir() string
+	GetChainID() string
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

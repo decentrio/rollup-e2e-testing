@@ -22,6 +22,7 @@ const (
 
 type DymsRollApp struct {
 	*cosmos.CosmosChain
+	keyDir string
 }
 
 var _ ibc.Chain = (*DymsRollApp)(nil)
@@ -103,7 +104,7 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	// Initialize config and sign gentx for each validator.
 	for _, v := range c.Validators {
 		v := v
-		cosmos.KeyDir = v.HomeDir()
+		c.keyDir = v.HomeDir()
 		v.Validator = true
 		eg.Go(func() error {
 			if err := v.InitFullNodeFiles(ctx); err != nil {
@@ -246,4 +247,12 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 		return "", fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
 	}
 	return seq, nil
+}
+
+func (c *DymsRollApp) GetKeyDir() string {
+	return c.keyDir
+}
+
+func (c *DymsRollApp) GetChainID() string {
+	return c.Config().ChainID
 }

@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	rollupe2etesting "github.com/decentrio/rollup-e2e-testing"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/dyms"
@@ -39,7 +38,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
-	cf := rollupe2etesting.NewBuiltinChainFactory(zaptest.NewLogger(t), []*rollupe2etesting.ChainSpec{
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
@@ -84,7 +83,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := rollupe2etesting.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"

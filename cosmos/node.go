@@ -600,7 +600,7 @@ func (node *Node) CreateKey(ctx context.Context, name string) error {
 }
 
 // CreateHubKey creates a key in the keyring backend test for the given node
-func (node *Node) CreateHubKey(ctx context.Context, name string) error {
+func (node *Node) CreateHubKey(ctx context.Context, name, dir string) error {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
@@ -608,7 +608,7 @@ func (node *Node) CreateHubKey(ctx context.Context, name string) error {
 		"keys", "add", name,
 		"--coin-type", node.Chain.Config().CoinType,
 		"--keyring-backend", keyring.BackendTest,
-		"--keyring-dir", keyDir+"/sequencer_keys",
+		"--keyring-dir", dir+"/sequencer_keys",
 	)
 	return err
 }
@@ -707,19 +707,19 @@ func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, dir string) error {
 	var command []string
 	detail := "{\"Addresses\":[]}"
-	keyPath := keyDir + "/sequencer_keys"
+	keyPath := dir + "/sequencer_keys"
 	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
 
-func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
+func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, dir string) error {
 	var command []string
-	keyPath := keyDir + "/sequencer_keys"
+	keyPath := dir + "/sequencer_keys"
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}",
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 
@@ -1151,11 +1151,11 @@ func (node *Node) KeyBech32(ctx context.Context, name string, bech string) (stri
 
 // HubKeyBech32 retrieves the named key's address in bech32 format from the node.
 // bech is the bech32 prefix (acc|val|cons). If empty, defaults to the account key (same as "acc").
-func (node *Node) HubKeyBech32(ctx context.Context, name string, bech string) (string, error) {
+func (node *Node) HubKeyBech32(ctx context.Context, name string, bech string, dir string) (string, error) {
 	command := []string{node.Chain.Config().Bin, "keys", "show", "--address", name,
 		"--home", node.HomeDir(),
 		"--keyring-backend", keyring.BackendTest,
-		"--keyring-dir", keyDir + "/sequencer_keys",
+		"--keyring-dir", dir + "/sequencer_keys",
 	}
 
 	if bech != "" {
@@ -1176,8 +1176,8 @@ func (node *Node) AccountKeyBech32(ctx context.Context, name string) (string, er
 }
 
 // AccountHubKeyBech32 retrieves the named key's address in bech32 account format.
-func (node *Node) AccountHubKeyBech32(ctx context.Context, name string) (string, error) {
-	return node.HubKeyBech32(ctx, name, "")
+func (node *Node) AccountHubKeyBech32(ctx context.Context, name, dir string) (string, error) {
+	return node.HubKeyBech32(ctx, name, "", dir)
 }
 
 // PeerString returns the string for connecting the nodes passed in

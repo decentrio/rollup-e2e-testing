@@ -15,7 +15,7 @@ type Chain interface {
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
 	// StartHub sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
-	StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
+	StartHub(testName string, ctx context.Context, seq string, hasRollApp bool,additionalGenesisWallets ...WalletData) error
 
 	// CreateRollapp sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
 	CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)

@@ -212,11 +212,11 @@ func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
 
 // Implements Chain interface
 func (c *CosmosChain) CreateHubKey(ctx context.Context, keyName string) error {
-	return c.getFullNode().CreateHubKey(ctx, keyName)
+	return c.getFullNode().CreateHubKey(ctx, keyName, keyDir)
 }
 
 func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string) (string, error) {
-	return c.getFullNode().AccountHubKeyBech32(ctx, keyName)
+	return c.getFullNode().AccountHubKeyBech32(ctx, keyName, keyDir)
 }
 
 // Implements Chain interface
@@ -353,9 +353,9 @@ func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*Pr
 	return c.getFullNode().QueryProposal(ctx, proposalID)
 }
 
-// UpgradeProposal submits a software-upgrade governance proposal to the chain.
-func (c *CosmosChain) UpgradeProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().UpgradeProposal(ctx, keyName, prop)
+// UpgradeLegacyProposal submits a software-upgrade governance proposal to the chain.
+func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
+	txHash, err := c.getFullNode().UpgradeLegacyProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -612,7 +612,7 @@ type ValidatorWithIntPower struct {
 var keyDir string
 
 // StartHub bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, hasRollApp bool, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -814,27 +814,29 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 		return err
 	}
 
-	if err := c.CreateHubKey(ctx, "sequencer"); err != nil {
-		return err
-	}
-	sequencer, err := c.AccountHubKeyBech32(ctx, "sequencer")
-	if err != nil {
-		return err
-	}
-	amount := sdkmath.NewInt(10_000_000_000_000)
-	fund := ibc.WalletData{
-		Address: sequencer,
-		Denom:   c.Config().Denom,
-		Amount:  amount,
-	}
-	if err := c.SendFunds(ctx, "faucet", fund); err != nil {
-		return err
-	}
-	if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", keyDir); err != nil {
-		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
-	}
-	if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq, keyDir); err != nil {
-		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+	if hasRollApp {
+		if err := c.CreateHubKey(ctx, "sequencer"); err != nil {
+			return err
+		}
+		sequencer, err := c.AccountHubKeyBech32(ctx, "sequencer")
+		if err != nil {
+			return err
+		}
+		amount := sdkmath.NewInt(10_000_000_000_000)
+		fund := ibc.WalletData{
+			Address: sequencer,
+			Denom:   c.Config().Denom,
+			Amount:  amount,
+		}
+		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+			return err
+		}
+		if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", keyDir); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
+		if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq, keyDir); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
 	}
 	return nil
 }

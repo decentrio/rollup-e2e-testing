@@ -89,7 +89,7 @@ type Chain interface {
 	BuildRelayerWallet(ctx context.Context, keyName string) (Wallet, error)
 }
 
-type RollAppChain interface {
+type RollApp interface {
 	// Configuration sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
 	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
 }

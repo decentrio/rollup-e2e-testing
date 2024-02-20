@@ -20,24 +20,24 @@ const (
 	valKey = "validator"
 )
 
-type DymsChain struct {
+type DymsRollApp struct {
 	*cosmos.CosmosChain
 }
 
-var _ ibc.Chain = (*DymsChain)(nil)
-var _ ibc.RollAppChain = (*DymsChain)(nil)
+var _ ibc.Chain = (*DymsRollApp)(nil)
+var _ ibc.RollApp = (*DymsRollApp)(nil)
 
-func NewDymsChain(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymsChain {
+func NewDymsRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymsRollApp {
 	cosmosChain := cosmos.NewCosmosChain(testName, chainConfig, numValidators, numFullNodes, log)
 
-	c := &DymsChain{
+	c := &DymsRollApp{
 		CosmosChain: cosmosChain,
 	}
 
 	return c
 }
 
-func (c *DymsChain) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *DymsRollApp) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
 	nodes := c.Nodes()
 
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
@@ -76,7 +76,7 @@ func (c *DymsChain) Start(testName string, ctx context.Context, seq string, addi
 	return testutil.WaitForBlocks(ctx, 5, c.GetNode())
 }
 
-func (c *DymsChain) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) (string, error) {
+func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) (string, error) {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))

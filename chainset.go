@@ -69,7 +69,7 @@ func (cs *chainSet) Initialize(ctx context.Context, testName string, cli *client
 func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
 	for c := range cs.chains {
 		c := c
-		if rollApp, ok := c.(ibc.RollAppChain); ok {
+		if rollApp, ok := c.(ibc.RollApp); ok {
 			seq, err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
 			cs.seq = seq
 			if err != nil {

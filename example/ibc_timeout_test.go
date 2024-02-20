@@ -8,7 +8,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/dyms"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dyms"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	"github.com/decentrio/rollup-e2e-testing/relayer"
@@ -77,7 +77,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
-	rollapp1 := chains[0].(*dyms.DymsChain)
+	rollapp1 := chains[0].(*dyms.DymsRollApp)
 	// rollapp1 := chains[0].(*cosmos.CosmosChain)
 	dymension := chains[1].(*cosmos.CosmosChain)
 

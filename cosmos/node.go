@@ -940,6 +940,7 @@ func (node *Node) UpgradeLegacyProposal(ctx context.Context, keyName string, pro
 		"--title", prop.Title,
 		"--description", prop.Description,
 		"--deposit", prop.Deposit,
+		"--gas=auto",
 	}
 
 	if prop.Info != "" {

@@ -6,7 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dymshub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dyms"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
@@ -80,7 +80,10 @@ func TestIBCTransfer(t *testing.T) {
 
 	rollapp1 := chains[0].(*dyms.DymsRollApp)
 	// rollapp1 := chains[0].(*cosmos.CosmosChain)
-	dymension := chains[1].(*cosmos.CosmosChain)
+	// dymension := chains[1].(*cosmos.CosmosChain)
+	dymension := chains[1].(*dymshub.DymsHub)
+
+	dymension.SetRollApp(rollapp1)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)

@@ -931,10 +931,10 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-// UpgradeProposal submits a software-upgrade governance proposal to the chain.
-func (node *Node) UpgradeProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (string, error) {
+// UpgradeLegacyProposal submits a software-upgrade governance proposal to the chain.
+func (node *Node) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (string, error) {
 	command := []string{
-		"gov", "submit-proposal",
+		"gov", "submit-legacy-proposal",
 		"software-upgrade", prop.Name,
 		"--upgrade-height", strconv.FormatUint(prop.Height, 10),
 		"--title", prop.Title,
@@ -981,7 +981,7 @@ func (node *Node) ParamChangeProposal(ctx context.Context, keyName string, prop 
 	proposalPath := filepath.Join(node.HomeDir(), proposalFilename)
 
 	command := []string{
-		"gov", "submit-proposal",
+		"gov", "submit-legacy-proposal",
 		"param-change",
 		proposalPath,
 	}

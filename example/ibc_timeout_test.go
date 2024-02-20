@@ -82,6 +82,8 @@ func TestIBCTransferTimeout(t *testing.T) {
 	// dymension := chains[1].(*cosmos.CosmosChain)
 	dymension := chains[1].(*dymshub.DymsHub)
 
+	dymension.SetRollApp(rollapp1)
+
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),

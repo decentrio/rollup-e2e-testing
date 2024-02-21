@@ -75,6 +75,25 @@ type relayerPath struct {
 	Path    string
 }
 
+func (s *Setup) AddRollUp(hub ibc.Chain, rollApp ibc.Chain) *Setup {
+	h, ok := hub.(ibc.RollHub)
+	if !ok {
+		panic("Error RollHub chain")
+	}
+
+	a, ok := rollApp.(ibc.RollApp)
+	if !ok {
+		panic("Error RollApp chain")
+	}
+
+	h.SetRollApp(a)
+
+	s.AddChain(hub)
+	s.AddChain(rollApp)
+
+	return s
+}
+
 // AddChain adds the given chain to the Setup,
 // using the chain ID reported by the chain's config.
 // If the given chain already exists,

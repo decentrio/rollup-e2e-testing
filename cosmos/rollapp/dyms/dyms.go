@@ -252,7 +252,3 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 func (c *DymsRollApp) GetKeyDir() string {
 	return c.keyDir
 }
-
-func (c *DymsRollApp) GetChainID() string {
-	return c.Config().ChainID
-}

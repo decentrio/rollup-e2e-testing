@@ -209,6 +209,10 @@ func (c *CosmosChain) HomeDir() string {
 	return c.getFullNode().HomeDir()
 }
 
+func (c *CosmosChain) GetChainID() string {
+	return c.cfg.ChainID
+}
+
 // Implements Chain interface
 func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
 	return c.getFullNode().CreateKey(ctx, keyName)

@@ -125,9 +125,9 @@ func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValida
 		nf = *numFullNodes
 	}
 
-	if cfg.Type == "dyms-rollapp" {
+	if cfg.Type == "rollapp" {
 		return dyms.NewDymsRollApp(testName, cfg, nv, nf, log), nil
-	} else if cfg.Type == "dyms-hub" {
+	} else if cfg.Type == "hub" {
 		return dymshub.NewDymsHub(testName, cfg, nv, nf, log), nil
 	}
 

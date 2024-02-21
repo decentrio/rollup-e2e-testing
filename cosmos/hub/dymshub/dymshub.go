@@ -34,7 +34,7 @@ func NewDymsHub(testName string, chainConfig ibc.ChainConfig, numValidators int,
 }
 
 func (c *DymsHub) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
-	rollAppChainID := c.GetRollApp().GetChainID()
+	rollAppChainID := c.GetRollApp().(ibc.Chain).GetChainID()
 	keyDir := c.GetRollApp().GetKeyDir()
 	// Start chain
 	err := c.CosmosChain.Start(testName, ctx, seq, additionalGenesisWallets...)
@@ -82,10 +82,10 @@ func (c *DymsHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
 }
 
-func (c *DymsHub) GetRollApp() ibc.RollApp {
-	return c.rollApp
-}
-
 func (c *DymsHub) SetRollApp(rollApp ibc.RollApp) {
 	c.rollApp = rollApp
+}
+
+func (c *DymsHub) GetRollApp() ibc.RollApp {
+	return c.rollApp
 }

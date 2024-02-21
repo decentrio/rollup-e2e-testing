@@ -42,7 +42,7 @@ func TestIBCTransfer(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "dyms-rollapp",
+				Type:    "rollapp",
 				Name:    "rollapp-temp",
 				ChainID: "demo-dymension-rollapp",
 				Images: []ibc.DockerImage{
@@ -81,8 +81,6 @@ func TestIBCTransfer(t *testing.T) {
 	rollapp1 := chains[0].(*dyms.DymsRollApp)
 	dymension := chains[1].(*dymshub.DymsHub)
 
-	dymension.SetRollApp(rollapp1)
-
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
@@ -91,8 +89,7 @@ func TestIBCTransfer(t *testing.T) {
 	).Build(t, client, network)
 
 	ic := test.NewSetup().
-		AddChain(rollapp1).
-		AddChain(dymension).
+		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,

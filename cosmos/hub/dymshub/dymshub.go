@@ -35,7 +35,7 @@ func NewDymsHub(testName string, chainConfig ibc.ChainConfig, numValidators int,
 
 func (c *DymsHub) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
 	rollAppChainID := c.GetRollApp().(ibc.Chain).GetChainID()
-	keyDir := c.GetRollApp().GetKeyDir()
+	keyDir := c.GetRollApp().GetSequencerKeyDir()
 	// Start chain
 	err := c.CosmosChain.Start(testName, ctx, seq, additionalGenesisWallets...)
 	if err != nil {

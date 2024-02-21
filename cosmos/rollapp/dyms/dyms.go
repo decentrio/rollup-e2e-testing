@@ -249,6 +249,6 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	return seq, nil
 }
 
-func (c *DymsRollApp) GetKeyDir() string {
+func (c *DymsRollApp) GetSequencerKeyDir() string {
 	return c.keyDir
 }

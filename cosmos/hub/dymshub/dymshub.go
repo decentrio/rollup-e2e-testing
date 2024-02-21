@@ -34,15 +34,17 @@ func NewDymsHub(testName string, chainConfig ibc.ChainConfig, numValidators int,
 }
 
 func (c *DymsHub) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+	rollAppChainID := c.GetRollApp().GetChainID()
+	keyDir := c.GetRollApp().GetKeyDir()
 	// Start chain
 	err := c.CosmosChain.Start(testName, ctx, seq, additionalGenesisWallets...)
 	if err != nil {
 		return err
 	}
-	if err := c.CreateHubKey(ctx, sequencerName); err != nil {
+	if err := c.CreateHubKey(ctx, sequencerName, keyDir); err != nil {
 		return err
 	}
-	sequencer, err := c.AccountHubKeyBech32(ctx, sequencerName)
+	sequencer, err := c.AccountHubKeyBech32(ctx, sequencerName, keyDir)
 	if err != nil {
 		return err
 	}
@@ -56,8 +58,6 @@ func (c *DymsHub) Start(testName string, ctx context.Context, seq string, additi
 		return err
 	}
 
-	rollAppChainID := c.rollApp.GetChainID()
-	keyDir := c.rollApp.GetKeyDir()
 	if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
@@ -68,8 +68,8 @@ func (c *DymsHub) Start(testName string, ctx context.Context, seq string, additi
 }
 
 // Implements Chain interface
-func (c *DymsHub) CreateHubKey(ctx context.Context, keyName string) error {
-	return c.GetNode().CreateHubKey(ctx, keyName)
+func (c *DymsHub) CreateHubKey(ctx context.Context, keyName string, keyDir string) error {
+	return c.GetNode().CreateHubKey(ctx, keyName, keyDir)
 }
 
 // RegisterSequencerToHub register sequencer for rollapp on settlement.
@@ -80,6 +80,10 @@ func (c *DymsHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 // RegisterRollAppToHub register rollapp on settlement.
 func (c *DymsHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
+}
+
+func (c *DymsHub) GetRollApp() ibc.RollApp {
+	return c.rollApp
 }
 
 func (c *DymsHub) SetRollApp(rollApp ibc.RollApp) {

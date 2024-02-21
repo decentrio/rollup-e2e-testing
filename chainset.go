@@ -120,7 +120,7 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string) (fa
 func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
 	for c := range cs.chains {
 		c := c
-		if c.Config().Type == "hub" {
+		if _, ok := c.(ibc.RollHub); ok {
 			if err := c.Start(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}
@@ -129,7 +129,7 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 
 	for c := range cs.chains {
 		c := c
-		if c.Config().Type == "rollapp" {
+		if _, ok := c.(ibc.RollHub); !ok {
 			if err := c.Start(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}

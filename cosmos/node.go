@@ -604,7 +604,7 @@ func (node *Node) CreateKey(ctx context.Context, name string) error {
 }
 
 // CreateHubKey creates a key in the keyring backend test for the given node
-func (node *Node) CreateHubKey(ctx context.Context, name string) error {
+func (node *Node) CreateHubKey(ctx context.Context, name string, keyDir string) error {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
@@ -612,7 +612,7 @@ func (node *Node) CreateHubKey(ctx context.Context, name string) error {
 		"keys", "add", name,
 		"--coin-type", node.Chain.Config().CoinType,
 		"--keyring-backend", keyring.BackendTest,
-		"--keyring-dir", KeyDir+"/sequencer_keys",
+		"--keyring-dir", keyDir+"/sequencer_keys",
 	)
 	return err
 }
@@ -1155,11 +1155,11 @@ func (node *Node) KeyBech32(ctx context.Context, name string, bech string) (stri
 
 // HubKeyBech32 retrieves the named key's address in bech32 format from the node.
 // bech is the bech32 prefix (acc|val|cons). If empty, defaults to the account key (same as "acc").
-func (node *Node) HubKeyBech32(ctx context.Context, name string, bech string) (string, error) {
+func (node *Node) HubKeyBech32(ctx context.Context, name string, keyDir string, bech string) (string, error) {
 	command := []string{node.Chain.Config().Bin, "keys", "show", "--address", name,
 		"--home", node.HomeDir(),
 		"--keyring-backend", keyring.BackendTest,
-		"--keyring-dir", KeyDir + "/sequencer_keys",
+		"--keyring-dir", keyDir + "/sequencer_keys",
 	}
 
 	if bech != "" {
@@ -1180,8 +1180,8 @@ func (node *Node) AccountKeyBech32(ctx context.Context, name string) (string, er
 }
 
 // AccountHubKeyBech32 retrieves the named key's address in bech32 account format.
-func (node *Node) AccountHubKeyBech32(ctx context.Context, name string) (string, error) {
-	return node.HubKeyBech32(ctx, name, "")
+func (node *Node) AccountHubKeyBech32(ctx context.Context, name string, keyDir string) (string, error) {
+	return node.HubKeyBech32(ctx, name, keyDir, "")
 }
 
 // PeerString returns the string for connecting the nodes passed in

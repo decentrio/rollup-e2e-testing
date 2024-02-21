@@ -214,8 +214,8 @@ func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
 	return c.getFullNode().CreateKey(ctx, keyName)
 }
 
-func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string) (string, error) {
-	return c.getFullNode().AccountHubKeyBech32(ctx, keyName)
+func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string, keyDir string) (string, error) {
+	return c.getFullNode().AccountHubKeyBech32(ctx, keyName, keyDir)
 }
 
 // Implements Chain interface
@@ -607,8 +607,6 @@ type ValidatorWithIntPower struct {
 	Power        int64
 	PubKeyBase64 string
 }
-
-var KeyDir string
 
 // Start bootstraps the hubs and starts it from genesis
 func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {

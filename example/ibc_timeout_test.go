@@ -78,8 +78,6 @@ func TestIBCTransferTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dyms.DymsRollApp)
-	// rollapp1 := chains[0].(*cosmos.CosmosChain)
-	// dymension := chains[1].(*cosmos.CosmosChain)
 	dymension := chains[1].(*dymshub.DymsHub)
 
 	dymension.SetRollApp(rollapp1)

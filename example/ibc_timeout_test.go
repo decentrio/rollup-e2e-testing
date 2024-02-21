@@ -42,7 +42,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp",
+				Type:    "dyms-rollapp",
 				Name:    "rollapp-test",
 				ChainID: "demo-dymension-rollapp",
 				Images: []ibc.DockerImage{

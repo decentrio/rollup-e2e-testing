@@ -27,7 +27,7 @@ var (
 	}
 
 	dymensionConfig = ibc.ChainConfig{
-		Type:                "hub",
+		Type:                "dyms-hub",
 		Name:                "dymension",
 		ChainID:             "dymension_100-1",
 		Images:              []ibc.DockerImage{dymensionImage},

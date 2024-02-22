@@ -41,6 +41,12 @@ func (c *DymsHub) Start(testName string, ctx context.Context, seq string, additi
 	if err != nil {
 		return err
 	}
+
+	// if not have rollApp, we just return the function
+	if c.rollApp == nil {
+		return nil
+	}
+
 	if err := c.CreateHubKey(ctx, sequencerName, keyDir); err != nil {
 		return err
 	}

@@ -22,7 +22,8 @@ const (
 
 type DymsRollApp struct {
 	*cosmos.CosmosChain
-	keyDir string
+	sequencerKeyDir string
+	sequencerKey    string
 }
 
 var _ ibc.Chain = (*DymsRollApp)(nil)
@@ -38,7 +39,7 @@ func NewDymsRollApp(testName string, chainConfig ibc.ChainConfig, numValidators 
 	return c
 }
 
-func (c *DymsRollApp) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *DymsRollApp) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	nodes := c.Nodes()
 
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
@@ -77,7 +78,7 @@ func (c *DymsRollApp) Start(testName string, ctx context.Context, seq string, ad
 	return testutil.WaitForBlocks(ctx, 5, c.GetNode())
 }
 
-func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) (string, error) {
+func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -104,7 +105,7 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	// Initialize config and sign gentx for each validator.
 	for _, v := range c.Validators {
 		v := v
-		c.keyDir = v.HomeDir()
+		c.sequencerKeyDir = v.HomeDir()
 		v.Chain = c
 		v.Validator = true
 		eg.Go(func() error {
@@ -169,13 +170,13 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 
 	// wait for this to finish
 	if err := eg.Wait(); err != nil {
-		return "", err
+		return err
 	}
 
 	if c.Config().PreGenesis != nil {
 		err := c.Config().PreGenesis(chainCfg)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
 
@@ -187,35 +188,35 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 
 		bech32, err := validatorN.AccountKeyBech32(ctx, valKey)
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
-			return "", err
+			return err
 		}
 
 		if !c.Config().SkipGenTx {
 			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
-				return "", err
+				return err
 			}
 		}
 	}
 	for _, wallet := range additionalGenesisWallets {
 
 		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-			return "", err
+			return err
 		}
 	}
 
 	if !c.Config().SkipGenTx {
 		if err := validator0.CollectGentxs(ctx); err != nil {
-			return "", err
+			return err
 		}
 	}
 
 	genbz, err := validator0.GenesisFileContent(ctx)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
@@ -223,7 +224,7 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	if c.Config().ModifyGenesis != nil {
 		genbz, err = c.Config().ModifyGenesis(chainCfg, genbz)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
 
@@ -241,16 +242,28 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 
 	for _, node := range nodes {
 		if err := node.OverwriteGenesisFile(ctx, genbz); err != nil {
-			return "", err
+			return err
 		}
 	}
-	seq, err := c.ShowSeq(ctx)
+	c.sequencerKey, err = c.ShowSequencer(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
+		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
 	}
-	return seq, nil
+	return nil
+}
+
+func (c *DymsRollApp) ShowSequencer(ctx context.Context) (string, error) {
+	var command []string
+	command = append(command, "dymint", "show-sequencer")
+
+	seq, _, err := c.GetNode().ExecBin(ctx, command...)
+	return string(bytes.TrimSuffix(seq, []byte("\n"))), err
+}
+
+func (c *DymsRollApp) GetSequencer() string {
+	return c.sequencerKey
 }
 
 func (c *DymsRollApp) GetSequencerKeyDir() string {
-	return c.keyDir
+	return c.sequencerKeyDir
 }

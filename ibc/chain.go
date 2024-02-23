@@ -15,7 +15,7 @@ type Chain interface {
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
 	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
-	Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
+	Start(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
@@ -102,8 +102,10 @@ type Hub interface {
 
 type RollApp interface {
 	// Configuration sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
-	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
+	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 	GetSequencerKeyDir() string
+	ShowSequencer(ctx context.Context) (string, error)
+	GetSequencer() string
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

@@ -613,7 +613,7 @@ type ValidatorWithIntPower struct {
 }
 
 // Start bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -812,11 +812,6 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, seq string, ad
 	}
 	// Wait for 5 blocks before considering the chains "started"
 	return testutil.WaitForBlocks(ctx, 5, c.getFullNode())
-}
-
-// ShowSeq will show sequencer addr
-func (c *CosmosChain) ShowSeq(ctx context.Context) (string, error) {
-	return c.GetNode().ShowSeq(ctx)
 }
 
 // Height implements ibc.Chain

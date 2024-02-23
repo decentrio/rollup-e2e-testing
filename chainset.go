@@ -29,7 +29,6 @@ type chainSet struct {
 	trackerEg  *errgroup.Group
 	db         *sql.DB
 	collectors []*blockdb.Collector
-	seq        string
 }
 
 func newChainSet(log *zap.Logger, chains []ibc.Chain) *chainSet {
@@ -71,8 +70,7 @@ func (cs *chainSet) Configuration(ctx context.Context, testName string, addition
 	for c := range cs.chains {
 		c := c
 		if rollApp, ok := c.(ibc.RollApp); ok {
-			seq, err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
-			cs.seq = seq
+			err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
 			if err != nil {
 				return fmt.Errorf("failed to configuration chain %s: %w", c.Config().Name, err)
 			}
@@ -123,7 +121,7 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 	for c := range cs.chains {
 		c := c
 		if _, ok := c.(ibc.Hub); ok {
-			if err := c.Start(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
+			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}
 		}
@@ -133,7 +131,7 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 	for c := range cs.chains {
 		c := c
 		if _, ok := c.(ibc.Hub); !ok {
-			if err := c.Start(testName, ctx, cs.seq, additionalGenesisWallets[c]...); err != nil {
+			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}
 		}

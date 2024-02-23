@@ -603,8 +603,8 @@ func (node *Node) CreateKey(ctx context.Context, name string) error {
 	return err
 }
 
-// CreateHubKey creates a key in the keyring backend test for the given node
-func (node *Node) CreateHubKey(ctx context.Context, name string, keyDir string) error {
+// CreateKeyWithKeyDir creates a key in the keyring backend test for the given node
+func (node *Node) CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
@@ -697,7 +697,7 @@ func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
 
 	var command []string
 
-	seq, err := node.ShowSeq(ctx)
+	seq, err := node.Chain.(ibc.RollApp).ShowSequencer(ctx)
 	if err != nil {
 		return err
 	}
@@ -729,14 +729,6 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
-}
-
-func (node *Node) ShowSeq(ctx context.Context) (string, error) {
-	var command []string
-	command = append(command, "dymint", "show-sequencer")
-
-	seq, _, err := node.ExecBin(ctx, command...)
-	return string(bytes.TrimSuffix(seq, []byte("\n"))), err
 }
 
 // CollectGentxs runs collect gentxs on the node's home folders

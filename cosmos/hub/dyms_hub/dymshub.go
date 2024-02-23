@@ -49,7 +49,7 @@ func (c *DymsHub) Start(testName string, ctx context.Context, additionalGenesisW
 	keyDir := c.GetRollApp().GetSequencerKeyDir()
 	seq := c.GetRollApp().GetSequencer()
 
-	if err := c.CreateHubKey(ctx, sequencerName, keyDir); err != nil {
+	if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 		return err
 	}
 	sequencer, err := c.AccountHubKeyBech32(ctx, sequencerName, keyDir)
@@ -73,11 +73,6 @@ func (c *DymsHub) Start(testName string, ctx context.Context, additionalGenesisW
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
 	return nil
-}
-
-// Implements Chain interface
-func (c *DymsHub) CreateHubKey(ctx context.Context, keyName string, keyDir string) error {
-	return c.GetNode().CreateHubKey(ctx, keyName, keyDir)
 }
 
 // RegisterSequencerToHub register sequencer for rollapp on settlement.

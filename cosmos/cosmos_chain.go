@@ -218,6 +218,12 @@ func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
 	return c.getFullNode().CreateKey(ctx, keyName)
 }
 
+// Implements Chain interface
+func (c *CosmosChain) CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error {
+	return c.getFullNode().CreateKeyWithKeyDir(ctx, name, keyDir)
+}
+
+// Implements Chain interface
 func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string, keyDir string) (string, error) {
 	return c.getFullNode().AccountHubKeyBech32(ctx, keyName, keyDir)
 }

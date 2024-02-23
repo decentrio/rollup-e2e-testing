@@ -66,6 +66,7 @@ func (cs *chainSet) Initialize(ctx context.Context, testName string, cli *client
 	return eg.Wait()
 }
 
+// Configuration concurrently calls Configuration against each rollapp chain in the set.
 func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
 	for c := range cs.chains {
 		c := c

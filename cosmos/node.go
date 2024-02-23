@@ -1037,7 +1037,7 @@ func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	} else {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants"}
 	}
-	if chainCfg.Type == "rollapp" {
+	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
 	}
 	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd)

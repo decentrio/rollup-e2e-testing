@@ -1,4 +1,4 @@
-package dyms_hub
+package dym_hub
 
 import (
 	"context"
@@ -10,30 +10,30 @@ import (
 	"go.uber.org/zap"
 )
 
-type DymsHub struct {
+type DymHub struct {
 	*cosmos.CosmosChain
 	rollApp ibc.RollApp
 }
 
-var _ ibc.Chain = (*DymsHub)(nil)
-var _ ibc.Hub = (*DymsHub)(nil)
+var _ ibc.Chain = (*DymHub)(nil)
+var _ ibc.Hub = (*DymHub)(nil)
 
 const (
 	sequencerName = "sequencer"
 	maxSequencers = "5"
 )
 
-func NewDymsHub(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymsHub {
+func NewDymHub(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymHub {
 	cosmosChain := cosmos.NewCosmosChain(testName, chainConfig, numValidators, numFullNodes, log)
 
-	c := &DymsHub{
+	c := &DymHub{
 		CosmosChain: cosmosChain,
 	}
 
 	return c
 }
 
-func (c *DymsHub) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	// Start chain
 	err := c.CosmosChain.Start(testName, ctx, additionalGenesisWallets...)
 	if err != nil {
@@ -76,19 +76,19 @@ func (c *DymsHub) Start(testName string, ctx context.Context, additionalGenesisW
 }
 
 // RegisterSequencerToHub register sequencer for rollapp on settlement.
-func (c *DymsHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
+func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
 	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq, keyDir)
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymsHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
 }
 
-func (c *DymsHub) SetRollApp(rollApp ibc.RollApp) {
+func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
 	c.rollApp = rollApp
 }
 
-func (c *DymsHub) GetRollApp() ibc.RollApp {
+func (c *DymHub) GetRollApp() ibc.RollApp {
 	return c.rollApp
 }

@@ -1,4 +1,4 @@
-package dyms_rollapp
+package dym_rollapp
 
 import (
 	"bytes"
@@ -20,26 +20,26 @@ const (
 	valKey = "validator"
 )
 
-type DymsRollApp struct {
+type DymRollApp struct {
 	*cosmos.CosmosChain
 	sequencerKeyDir string
 	sequencerKey    string
 }
 
-var _ ibc.Chain = (*DymsRollApp)(nil)
-var _ ibc.RollApp = (*DymsRollApp)(nil)
+var _ ibc.Chain = (*DymRollApp)(nil)
+var _ ibc.RollApp = (*DymRollApp)(nil)
 
-func NewDymsRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymsRollApp {
+func NewDymRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymRollApp {
 	cosmosChain := cosmos.NewCosmosChain(testName, chainConfig, numValidators, numFullNodes, log)
 
-	c := &DymsRollApp{
+	c := &DymRollApp{
 		CosmosChain: cosmosChain,
 	}
 
 	return c
 }
 
-func (c *DymsRollApp) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	nodes := c.Nodes()
 
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
@@ -78,7 +78,7 @@ func (c *DymsRollApp) Start(testName string, ctx context.Context, additionalGene
 	return testutil.WaitForBlocks(ctx, 5, c.GetNode())
 }
 
-func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *DymRollApp) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -252,7 +252,7 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	return nil
 }
 
-func (c *DymsRollApp) ShowSequencer(ctx context.Context) (string, error) {
+func (c *DymRollApp) ShowSequencer(ctx context.Context) (string, error) {
 	var command []string
 	command = append(command, "dymint", "show-sequencer")
 
@@ -260,10 +260,10 @@ func (c *DymsRollApp) ShowSequencer(ctx context.Context) (string, error) {
 	return string(bytes.TrimSuffix(seq, []byte("\n"))), err
 }
 
-func (c *DymsRollApp) GetSequencer() string {
+func (c *DymRollApp) GetSequencer() string {
 	return c.sequencerKey
 }
 
-func (c *DymsRollApp) GetSequencerKeyDir() string {
+func (c *DymRollApp) GetSequencerKeyDir() string {
 	return c.sequencerKeyDir
 }

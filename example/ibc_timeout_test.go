@@ -7,8 +7,8 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
-	dymshub "github.com/decentrio/rollup-e2e-testing/cosmos/hub/dyms_hub"
-	dymsrollapp "github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dyms_rollapp"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	"github.com/decentrio/rollup-e2e-testing/relayer"
@@ -77,8 +77,8 @@ func TestIBCTransferTimeout(t *testing.T) {
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
-	rollapp1 := chains[0].(*dymsrollapp.DymsRollApp)
-	dymension := chains[1].(*dymshub.DymsHub)
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)

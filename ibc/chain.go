@@ -14,7 +14,7 @@ type Chain interface {
 	// Initialize initializes node structs so that things like initializing keys can be done before starting the chain
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
-	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
+	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Chain to start from genesis.
 	Start(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 
 	// Exec runs an arbitrary command using Chain's docker environment.
@@ -54,8 +54,8 @@ type Chain interface {
 	// CreateKey creates a key with a specific keyDir
 	CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error
 
-	// AccountHubKeyBech32 create account for rollapp
-	AccountHubKeyBech32(ctx context.Context, keyName string, keyDir string) (string, error)
+	// AccountKeyBech32WithKeyDir create account for rollapp
+	AccountKeyBech32WithKeyDir(ctx context.Context, keyName string, keyDir string) (string, error)
 
 	// RecoverKey recovers an existing user from a given mnemonic.
 	RecoverKey(ctx context.Context, name, mnemonic string) error

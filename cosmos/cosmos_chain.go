@@ -224,8 +224,8 @@ func (c *CosmosChain) CreateKeyWithKeyDir(ctx context.Context, name string, keyD
 }
 
 // Implements Chain interface
-func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string, keyDir string) (string, error) {
-	return c.getFullNode().AccountHubKeyBech32(ctx, keyName, keyDir)
+func (c *CosmosChain) AccountKeyBech32WithKeyDir(ctx context.Context, keyName string, keyDir string) (string, error) {
+	return c.getFullNode().AccountKeyBech32WithKeyDir(ctx, keyName, keyDir)
 }
 
 // Implements Chain interface

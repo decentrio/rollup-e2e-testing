@@ -52,7 +52,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 		return err
 	}
-	sequencer, err := c.AccountHubKeyBech32(ctx, sequencerName, keyDir)
+	sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
 	if err != nil {
 		return err
 	}

@@ -1147,9 +1147,9 @@ func (node *Node) KeyBech32(ctx context.Context, name string, bech string) (stri
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
-// HubKeyBech32 retrieves the named key's address in bech32 format from the node.
+// KeyBech32WithKeyDir retrieves the named key's address in bech32 format from the node.
 // bech is the bech32 prefix (acc|val|cons). If empty, defaults to the account key (same as "acc").
-func (node *Node) HubKeyBech32(ctx context.Context, name string, keyDir string, bech string) (string, error) {
+func (node *Node) KeyBech32WithKeyDir(ctx context.Context, name string, keyDir string, bech string) (string, error) {
 	command := []string{node.Chain.Config().Bin, "keys", "show", "--address", name,
 		"--home", node.HomeDir(),
 		"--keyring-backend", keyring.BackendTest,
@@ -1174,8 +1174,8 @@ func (node *Node) AccountKeyBech32(ctx context.Context, name string) (string, er
 }
 
 // AccountHubKeyBech32 retrieves the named key's address in bech32 account format.
-func (node *Node) AccountHubKeyBech32(ctx context.Context, name string, keyDir string) (string, error) {
-	return node.HubKeyBech32(ctx, name, keyDir, "")
+func (node *Node) AccountKeyBech32WithKeyDir(ctx context.Context, name string, keyDir string) (string, error) {
+	return node.KeyBech32WithKeyDir(ctx, name, keyDir, "")
 }
 
 // PeerString returns the string for connecting the nodes passed in

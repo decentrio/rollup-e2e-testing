@@ -76,9 +76,9 @@ type relayerPath struct {
 }
 
 func (s *Setup) AddRollUp(hub ibc.Chain, rollApp ibc.Chain) *Setup {
-	h, ok := hub.(ibc.RollHub)
+	h, ok := hub.(ibc.Hub)
 	if !ok {
-		panic("Error RollHub chain")
+		panic("Error Hub chain")
 	}
 
 	a, ok := rollApp.(ibc.RollApp)

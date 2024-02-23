@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dymshub"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dyms"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -126,9 +126,9 @@ func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValida
 	}
 
 	if cfg.Type == "rollapp" {
-		return dyms.NewDymsRollApp(testName, cfg, nv, nf, log), nil
+		return rollapp.NewRollApp(testName, cfg, nv, nf, log), nil
 	} else if cfg.Type == "hub" {
-		return dymshub.NewDymsHub(testName, cfg, nv, nf, log), nil
+		return hub.NewHub(testName, cfg, nv, nf, log), nil
 	}
 
 	return cosmos.NewCosmosChain(testName, cfg, nv, nf, log), nil

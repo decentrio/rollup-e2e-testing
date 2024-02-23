@@ -92,7 +92,7 @@ type Chain interface {
 	BuildRelayerWallet(ctx context.Context, keyName string) (Wallet, error)
 }
 
-type RollHub interface {
+type Hub interface {
 	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error
 	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error
 	SetRollApp(rollApp RollApp)

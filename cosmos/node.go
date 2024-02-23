@@ -1100,11 +1100,12 @@ func (node *Node) InitValidatorGenTx(
 		return err
 	}
 
-	if node.Chain.Config().Type == "rollapp" {
+	if _, ok := node.Chain.(ibc.RollApp); ok {
 		if err := node.GentxSeq(ctx, valKey); err != nil {
 			return err
 		}
 	}
+
 	return node.Gentx(ctx, valKey, genesisSelfDelegation)
 }
 

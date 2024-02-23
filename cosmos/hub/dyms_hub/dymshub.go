@@ -1,4 +1,4 @@
-package dymshub
+package dyms_hub
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type DymsHub struct {
 }
 
 var _ ibc.Chain = (*DymsHub)(nil)
-var _ ibc.RollHub = (*DymsHub)(nil)
+var _ ibc.Hub = (*DymsHub)(nil)
 
 const (
 	sequencerName = "sequencer"

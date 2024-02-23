@@ -105,6 +105,7 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	for _, v := range c.Validators {
 		v := v
 		c.keyDir = v.HomeDir()
+		v.Chain = c
 		v.Validator = true
 		eg.Go(func() error {
 			if err := v.InitFullNodeFiles(ctx); err != nil {
@@ -139,6 +140,7 @@ func (c *DymsRollApp) Configuration(testName string, ctx context.Context, additi
 	for _, n := range c.FullNodes {
 		n := n
 		n.Validator = false
+		n.Chain = c
 		eg.Go(func() error {
 			if err := n.InitFullNodeFiles(ctx); err != nil {
 				return err

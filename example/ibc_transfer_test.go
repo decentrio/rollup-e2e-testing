@@ -42,7 +42,7 @@ func TestIBCTransfer(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp",
+				Type:    "rollapp-dyms",
 				Name:    "rollapp-temp",
 				ChainID: "demo-dymension-rollapp",
 				Images: []ibc.DockerImage{

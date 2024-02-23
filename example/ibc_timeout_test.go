@@ -7,7 +7,7 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dymshub"
+	dymshub "github.com/decentrio/rollup-e2e-testing/cosmos/hub/dyms_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dyms"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 

@@ -174,6 +174,10 @@ func (node *Node) OverwriteGenesisFile(ctx context.Context, content []byte) erro
 	return nil
 }
 
+func (node *Node) CopyGentx(ctx context.Context, destVal *Node) error {
+	return node.copyGentx(ctx, destVal)
+}
+
 func (node *Node) copyGentx(ctx context.Context, destVal *Node) error {
 	nid, err := node.NodeID(ctx)
 	if err != nil {
@@ -599,8 +603,8 @@ func (node *Node) CreateKey(ctx context.Context, name string) error {
 	return err
 }
 
-// CreateHubKey creates a key in the keyring backend test for the given node
-func (node *Node) CreateHubKey(ctx context.Context, name string) error {
+// CreateKeyWithKeyDir creates a key in the keyring backend test for the given node
+func (node *Node) CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
@@ -693,7 +697,7 @@ func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
 
 	var command []string
 
-	seq, err := node.ShowSeq(ctx)
+	seq, err := node.Chain.(ibc.RollApp).ShowSequencer(ctx)
 	if err != nil {
 		return err
 	}
@@ -725,14 +729,6 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
-}
-
-func (node *Node) ShowSeq(ctx context.Context) (string, error) {
-	var command []string
-	command = append(command, "dymint", "show-sequencer")
-
-	seq, _, err := node.ExecBin(ctx, command...)
-	return string(bytes.TrimSuffix(seq, []byte("\n"))), err
 }
 
 // CollectGentxs runs collect gentxs on the node's home folders
@@ -1033,7 +1029,7 @@ func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	} else {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants"}
 	}
-	if chainCfg.Type == "rollapp" {
+	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
 	}
 	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd)
@@ -1096,11 +1092,12 @@ func (node *Node) InitValidatorGenTx(
 		return err
 	}
 
-	if node.Chain.Config().Type == "rollapp" {
+	if _, ok := node.Chain.(ibc.RollApp); ok {
 		if err := node.GentxSeq(ctx, valKey); err != nil {
 			return err
 		}
 	}
+
 	return node.Gentx(ctx, valKey, genesisSelfDelegation)
 }
 
@@ -1150,9 +1147,9 @@ func (node *Node) KeyBech32(ctx context.Context, name string, bech string) (stri
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
-// HubKeyBech32 retrieves the named key's address in bech32 format from the node.
+// KeyBech32WithKeyDir retrieves the named key's address in bech32 format from the node.
 // bech is the bech32 prefix (acc|val|cons). If empty, defaults to the account key (same as "acc").
-func (node *Node) HubKeyBech32(ctx context.Context, name string, bech string) (string, error) {
+func (node *Node) KeyBech32WithKeyDir(ctx context.Context, name string, keyDir string, bech string) (string, error) {
 	command := []string{node.Chain.Config().Bin, "keys", "show", "--address", name,
 		"--home", node.HomeDir(),
 		"--keyring-backend", keyring.BackendTest,
@@ -1177,8 +1174,8 @@ func (node *Node) AccountKeyBech32(ctx context.Context, name string) (string, er
 }
 
 // AccountHubKeyBech32 retrieves the named key's address in bech32 account format.
-func (node *Node) AccountHubKeyBech32(ctx context.Context, name string) (string, error) {
-	return node.HubKeyBech32(ctx, name, "")
+func (node *Node) AccountKeyBech32WithKeyDir(ctx context.Context, name string, keyDir string) (string, error) {
+	return node.KeyBech32WithKeyDir(ctx, name, keyDir, "")
 }
 
 // PeerString returns the string for connecting the nodes passed in
@@ -1236,4 +1233,8 @@ func (node *Node) logger() *zap.Logger {
 		zap.String("chain_id", node.Chain.Config().ChainID),
 		zap.String("test", node.TestName),
 	)
+}
+
+func (node *Node) Logger() *zap.Logger {
+	return node.logger()
 }

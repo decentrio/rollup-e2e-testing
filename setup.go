@@ -75,6 +75,25 @@ type relayerPath struct {
 	Path    string
 }
 
+func (s *Setup) AddRollUp(hub ibc.Chain, rollApp ibc.Chain) *Setup {
+	h, ok := hub.(ibc.Hub)
+	if !ok {
+		panic("Error Hub chain")
+	}
+
+	a, ok := rollApp.(ibc.RollApp)
+	if !ok {
+		panic("Error RollApp chain")
+	}
+
+	h.SetRollApp(a)
+
+	s.AddChain(hub)
+	s.AddChain(rollApp)
+
+	return s
+}
+
 // AddChain adds the given chain to the Setup,
 // using the chain ID reported by the chain's config.
 // If the given chain already exists,
@@ -237,6 +256,10 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	if err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
+	}
+
+	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts); err != nil {
+		return fmt.Errorf("failed to configuration chains: %w", err)
 	}
 
 	if err := s.cs.Start(ctx, opts.TestName, walletAmounts); err != nil {

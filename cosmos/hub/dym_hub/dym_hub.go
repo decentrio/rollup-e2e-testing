@@ -92,3 +92,15 @@ func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
 func (c *DymHub) GetRollApp() ibc.RollApp {
 	return c.rollApp
 }
+
+func (c *DymHub) FullfillDemandOrder(ctx context.Context,
+	node *cosmos.Node,
+	id string,
+	keyName string,
+) (txhash string, _ error) {
+	command := []string{
+		"tx", "eibc",
+		"fulfill-order", id,
+	}
+	return node.ExecTx(ctx, keyName, command...)
+}

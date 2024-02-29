@@ -99,7 +99,7 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 	keyName string,
 ) (txhash string, _ error) {
 	command := []string{
-		"tx", "eibc",
+		"eibc",
 		"fulfill-order", id,
 	}
 	return node.ExecTx(ctx, keyName, command...)

@@ -101,5 +101,5 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 		"eibc",
 		"fulfill-order", id,
 	}
-	return c.GetNode().ExecTx(ctx, keyName, command...)
+	return c.FullNodes[0].ExecTx(ctx, keyName, command...)
 }

@@ -310,7 +310,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}
-	txResp, err := c.getTransaction(txHash)
+	txResp, err := c.GetTransaction(txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
@@ -396,7 +396,7 @@ func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*Pa
 }
 
 func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
-	txResp, err := c.getTransaction(txHash)
+	txResp, err := c.GetTransaction(txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
@@ -462,7 +462,7 @@ func (c *CosmosChain) AllBalances(ctx context.Context, address string) (types.Co
 	return res.GetBalances(), nil
 }
 
-func (c *CosmosChain) getTransaction(txhash string) (*types.TxResponse, error) {
+func (c *CosmosChain) GetTransaction(txhash string) (*types.TxResponse, error) {
 	fn := c.getFullNode()
 	return fn.getTransaction(fn.CliContext(), txhash)
 }

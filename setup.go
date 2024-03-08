@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
@@ -328,7 +327,6 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 				return err
 			}
 
-			time.Sleep(10 * time.Minute)
 			if err := rp.Relayer.LinkPath(ctx, rep, rp.Path, link.createChannelOpts, link.createClientOpts); err != nil {
 				return fmt.Errorf(
 					"failed to link path %s on relayer %s between chains %s and %s: %w",

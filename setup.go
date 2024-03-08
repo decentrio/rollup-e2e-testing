@@ -326,6 +326,13 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 			if err := link.createChannelOpts.Validate(); err != nil {
 				return err
 			}
+			cmd := []string{
+				"rly", "keys", "list", c0.GetChainID(),
+				"--coin-type", "60",
+			}
+			if res := rp.Relayer.Exec(ctx, rep, cmd, nil); err != nil {
+				return res.Err
+			}
 
 			if err := rp.Relayer.LinkPath(ctx, rep, rp.Path, link.createChannelOpts, link.createClientOpts); err != nil {
 				return fmt.Errorf(
@@ -388,6 +395,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 			Denom:   c.Config().Denom,
 			Amount:  math.NewInt(1_000_000_000_000), // Every wallet gets 1t units of denom.
 		})
+		fmt.Println(walletAmounts[c])
 	}
 
 	return walletAmounts, nil

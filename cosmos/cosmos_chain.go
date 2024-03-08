@@ -273,7 +273,7 @@ func (c *CosmosChain) BuildRelayerWallet(ctx context.Context, keyName string) (i
 	if err != nil {
 		return nil, fmt.Errorf("invalid coin type: %w", err)
 	}
-
+	fmt.Println("coinnn", coinType)
 	info, mnemonic, err := c.keyring.NewMnemonic(
 		keyName,
 		keyring.English,

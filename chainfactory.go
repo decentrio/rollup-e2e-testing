@@ -128,10 +128,8 @@ func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValida
 	chainType := strings.Split(cfg.Type, "-")
 
 	if chainType[0] == "rollapp" {
-		cfg.Type = chainType[1]
 		return rollapp.NewRollApp(testName, cfg, nv, nf, log), nil
 	} else if chainType[0] == "hub" {
-		cfg.Type = chainType[1]
 		return hub.NewHub(testName, cfg, nv, nf, log), nil
 	}
 

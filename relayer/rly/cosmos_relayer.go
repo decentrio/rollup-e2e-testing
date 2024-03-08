@@ -77,11 +77,11 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 	clientType := tmClientType
 
 	chainType := strings.Split(chainConfig.Type, "-")
-
+	fmt.Println(chainType[0])
 	if chainType[0] == "rollapp" {
 		clientType = dmClientType
 	}
-
+	fmt.Println(clientType)
 	return CosmosRelayerChainConfig{
 		Type: "cosmos",
 		Value: Value{

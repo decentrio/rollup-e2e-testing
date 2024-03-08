@@ -75,7 +75,8 @@ const (
 func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
 	// by default clientType should be tmClientType
 	clientType := tmClientType
-
+	fmt.Println(chainConfig.Type)
+	fmt.Println(chainConfig.ChainID)
 	chainType := strings.Split(chainConfig.Type, "-")
 	fmt.Println(chainType[0])
 	if chainType[0] == "rollapp" {

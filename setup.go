@@ -327,10 +327,10 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 				return err
 			}
 			cmd := []string{
-				"rly", "keys", "list", c0.GetChainID(),
-				"--coin-type", "60",
+				"rly", "keys", "list",
 			}
 			if res := rp.Relayer.Exec(ctx, rep, cmd, nil); err != nil {
+				fmt.Println("resss ", res.Stdout)
 				return res.Err
 			}
 

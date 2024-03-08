@@ -445,6 +445,15 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 			); err != nil {
 				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
+
+			cmd := []string{c.Config().Bin, "keys", "migrate", "--home", "/var/rly/keys/" + c.Config().ChainID, "--keyring-backend", "test"}
+			if _, _, err := c.Exec(ctx,
+				cmd,
+				nil,
+			); err != nil {
+				return err
+			}
+
 		}
 	}
 

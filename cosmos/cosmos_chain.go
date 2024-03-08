@@ -255,9 +255,6 @@ func (c *CosmosChain) BuildWallet(ctx context.Context, keyName string, mnemonic 
 		if err := c.CreateKey(ctx, keyName); err != nil {
 			return nil, fmt.Errorf("failed to create key with name %q on chain %s: %w", keyName, c.cfg.Name, err)
 		}
-		if err := c.CreateKey(ctx, c.cfg.ChainID); err != nil {
-			return nil, fmt.Errorf("failed to create key with name %q on chain %s: %w", c.cfg.ChainID, c.cfg.Name, err)
-		}
 	}
 
 	addrBytes, err := c.GetAddress(ctx, keyName)

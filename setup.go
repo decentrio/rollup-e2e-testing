@@ -446,6 +446,12 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 			); err != nil {
 				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
+			if err := c.RecoverKey(ctx, chainName,
+				s.relayerWallets[relayerChain{R: r, C: c}].Mnemonic(),
+			); err != nil {
+				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+			}
+
 		}
 	}
 

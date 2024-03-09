@@ -464,7 +464,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
 				Address: wallet.FormattedAddress(),
 				Amount:  math.NewInt(10_000_000_000),
-				Denom:   c.Config().CoinType,
+				Denom:   c.Config().Denom,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to get funds from faucet: %w", err)

@@ -461,7 +461,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 
-			err = c.SendFunds(ctx, chainName, ibc.WalletData{
+			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
 				Address: wallet.FormattedAddress(),
 				Amount:  math.NewInt(10_000_000_000),
 				Denom:   c.Config().CoinType,

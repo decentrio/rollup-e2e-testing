@@ -267,8 +267,11 @@ func (r *DockerRelayer) GetClients(ctx context.Context, rep ibc.RelayerExecRepor
 }
 
 func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, channelOpts ibc.CreateChannelOptions, clientOpts ibc.CreateClientOptions) error {
-	cmd := r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
+	cmd := []string{"sed", "-i", "s/extra-codecs: \\[\\]/extra-codecs: \\[\"ethermint\"\\]/g", "/home/relayer/config/config.yaml"}
 	res := r.Exec(ctx, rep, cmd, nil)
+
+	cmd = r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
+	res = r.Exec(ctx, rep, cmd, nil)
 	return res.Err
 }
 

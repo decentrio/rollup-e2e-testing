@@ -363,7 +363,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 
 	// Wallet amounts for genesis.
 	walletAmounts := make(map[ibc.Chain][]ibc.WalletData, len(s.cs.chains))
-
+	fmt.Println("walamount: ", walletAmounts)
 	// Add faucet for each chain first.
 	for c := range s.chains {
 		// The values are nil at this point, so it is safe to directly assign the slice.
@@ -383,13 +383,15 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 	// Then add all defined relayer wallets.
 	for rc, wallet := range s.relayerWallets {
 		c := rc.C
+		fmt.Println("chainnnn", c)
+		fmt.Println("addrrr", wallet.FormattedAddress())
 		walletAmounts[c] = append(walletAmounts[c], ibc.WalletData{
 			Address: wallet.FormattedAddress(),
 			Denom:   c.Config().Denom,
 			Amount:  math.NewInt(1_000_000_000_000), // Every wallet gets 1t units of denom.
 		})
 	}
-
+	fmt.Println("walamount: ", walletAmounts)
 	return walletAmounts, nil
 }
 

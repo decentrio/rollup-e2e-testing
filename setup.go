@@ -438,12 +438,22 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 
-			if err := r.RestoreKey(ctx,
+			wallet, err := r.AddKey(ctx,
 				rep,
-				c.Config(), chainName,
-				s.relayerWallets[relayerChain{R: r, C: c}].Mnemonic(),
-			); err != nil {
-				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+				chainName, chainName,
+				c.Config().CoinType,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+			}
+
+			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
+				Address: wallet.FormattedAddress(),
+				Amount:  math.NewInt(50_000_000_000_000),
+				Denom:   c.Config().Denom,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to get funds from faucet: %w", err)
 			}
 		}
 	}

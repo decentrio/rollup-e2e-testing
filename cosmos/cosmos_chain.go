@@ -289,6 +289,7 @@ func (c *CosmosChain) BuildRelayerWallet(ctx context.Context, keyName string) (i
 	addrBytes, err := info.GetAddress()
 	fmt.Println("typee", info.GetType())
 	fmt.Println(addrBytes)
+	fmt.Println(mnemonic)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get address: %w", err)
 	}

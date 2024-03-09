@@ -270,6 +270,9 @@ func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporte
 	cmd := []string{"sed", "-i", "s/extra-codecs: \\[\\]/extra-codecs: \\[\"ethermint\"\\]/g", "/home/relayer/config/config.yaml"}
 	res := r.Exec(ctx, rep, cmd, nil)
 
+	// cmd = []string{"sleep", "1000"}
+	// res = r.Exec(ctx, rep, cmd, nil)
+
 	cmd = r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
 	res = r.Exec(ctx, rep, cmd, nil)
 	return res.Err
@@ -320,7 +323,7 @@ func (r *DockerRelayer) RestoreKey(ctx context.Context, rep ibc.RelayerExecRepor
 	}
 	addrBytes := r.c.ParseRestoreKeyOutput(string(res.Stdout), string(res.Stderr))
 
-	r.wallets[chainID] = r.c.CreateWallet("", addrBytes, mnemonic)
+	r.wallets[chainID] = r.c.CreateWallet(chainID, addrBytes, mnemonic)
 
 	return nil
 }

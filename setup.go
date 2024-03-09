@@ -384,6 +384,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 		c := rc.C
 		fmt.Println("chainnnn", c.Config().ChainID)
 		fmt.Println("addrrr", wallet.FormattedAddress())
+		fmt.Println(wallet.Mnemonic())
 		walletAmounts[c] = append(walletAmounts[c], ibc.WalletData{
 			Address: wallet.FormattedAddress(),
 			Denom:   c.Config().Denom,

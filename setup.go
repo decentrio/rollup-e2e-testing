@@ -405,6 +405,7 @@ func (s *Setup) generateRelayerWallets(ctx context.Context) error {
 		for _, c := range chains {
 			// Just an ephemeral unique name, only for the local use of the keyring.
 			accountName := s.relayers[r] + "-" + s.chains[c]
+			fmt.Println("acc name:", accountName)
 			newWallet, err := c.BuildRelayerWallet(ctx, accountName)
 			if err != nil {
 				return err

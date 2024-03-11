@@ -2,10 +2,12 @@ package dym_hub
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"go.uber.org/zap"
 )
@@ -102,4 +104,26 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 		"fulfill-order", id,
 	}
 	return c.FullNodes[0].ExecTx(ctx, keyName, command...)
+}
+
+func (c *DymHub) QueryRollappState(ctx context.Context,
+	rollappName string,
+	onlyFinalized bool,
+) (*dymension.RollappState, error) {
+	var finalizedFlag string
+	if onlyFinalized {
+		finalizedFlag = "--finalized"
+	} else {
+		finalizedFlag = ""
+	}
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "state", rollappName, finalizedFlag)
+	if err != nil {
+		return nil, err
+	}
+	var rollappState dymension.RollappState
+	err = json.Unmarshal(stdout, &rollappState)
+	if err != nil {
+		return nil, err
+	}
+	return &rollappState, nil
 }

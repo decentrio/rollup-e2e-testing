@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	defaultRlyHomeDirectory = "/home/relayer"
+	defaultRlyHomeDirectory = "/tmp/rly"
 )
 
 // DockerRelayer provides a common base for relayer implementations
@@ -456,7 +456,7 @@ func (r *DockerRelayer) Name() string {
 
 // Bind returns the home folder bind point for running the node.
 func (r *DockerRelayer) Bind() []string {
-	return []string{"/tmp:/home"}
+	return []string{"/tmp/rly" + ":" + r.HomeDir()}
 }
 
 // HomeDir returns the home directory of the relayer on the underlying Docker container's filesystem.

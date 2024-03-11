@@ -5,8 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -269,45 +267,7 @@ func (r *DockerRelayer) GetClients(ctx context.Context, rep ibc.RelayerExecRepor
 }
 
 func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, channelOpts ibc.CreateChannelOptions, clientOpts ibc.CreateClientOptions) error {
-
-	filePath := "/home/relayer/config/config.yaml"
-	cmd := []string{"sleep", "60"}
-	job := dockerutil.NewImage(r.log, r.client, r.networkID, r.testName, r.containerImage().Repository, r.containerImage().Version)
-	opts := dockerutil.ContainerOptions{
-		Binds: r.Bind(),
-	}
-	_ = job.Run(ctx, cmd, opts)
-	// Copy the YAML file from the container to local filesystem
-	rc, _, err := r.client.CopyFromContainer(context.Background(), r.containerLifecycle.ContainerID(), filePath)
-	if err != nil {
-		log.Fatalf("Failed to copy file from container: %v", err)
-	}
-	defer rc.Close()
-
-	// Read the YAML content
-	content, err := io.ReadAll(rc)
-	if err != nil {
-		log.Fatalf("Failed to read YAML content: %v", err)
-	}
-
-	// Modify the content
-	err = os.WriteFile("temp_config.yaml", []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
-	if err != nil {
-		log.Fatalf("Failed to write to file: %s", err)
-	}
-
-	// Copy the updated YAML file back into the container
-	fileContent, err := os.ReadFile("temp_config.yaml")
-	if err != nil {
-		log.Fatalf("Failed to read updated YAML content: %v", err)
-	}
-	reader := bytes.NewReader(fileContent)
-
-	if err := r.client.CopyToContainer(context.Background(), r.containerLifecycle.ContainerID(), filePath, reader, types.CopyToContainerOptions{AllowOverwriteDirWithFile: true, CopyUIDGID: true}); err != nil {
-		log.Fatalf("Failed to copy updated YAML file to container: %v", err)
-	}
-
-	cmd = r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
+	cmd := r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
 	res := r.Exec(ctx, rep, cmd, nil)
 	return res.Err
 }

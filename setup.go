@@ -3,6 +3,9 @@ package rollupe2etesting
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -273,6 +276,18 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	if err := s.configureRelayerKeys(ctx, rep); err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
+	}
+
+	filePath := "/tmp/rly/config/config.yaml"
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Fatalf("Failed to read file: %s", err)
+	}
+
+	err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
+	if err != nil {
+		log.Fatalf("Failed to write to file: %s", err)
 	}
 
 	// Some tests may want to configure the relayer from a lower level,

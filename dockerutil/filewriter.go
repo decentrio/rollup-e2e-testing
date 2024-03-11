@@ -172,7 +172,7 @@ func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, chainName
 			Labels: map[string]string{CleanupLabel: w.testName},
 		},
 		&container.HostConfig{
-			Binds:      []string{"/tmp/rly" + ":" + mountPath},
+			Binds:      []string{"/mnt/rly" + ":" + mountPath},
 			AutoRemove: true,
 		},
 		nil, // No networking necessary.

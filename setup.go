@@ -278,7 +278,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return err
 	}
 
-	filePath := "/tmp/rly/config/config.yaml"
+	filePath := "rly/config/config.yaml"
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {

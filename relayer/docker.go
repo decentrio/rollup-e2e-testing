@@ -461,7 +461,7 @@ func (r *DockerRelayer) Bind() []string {
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
-	return []string{pwd + ":" + r.HomeDir()}
+	return []string{pwd + "/rly" + ":" + r.HomeDir()}
 }
 
 // HomeDir returns the home directory of the relayer on the underlying Docker container's filesystem.

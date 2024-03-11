@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -150,7 +151,10 @@ func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, chainName
 	}
 
 	containerName := fmt.Sprintf("test-writefile-%d-%s", time.Now().UnixNano(), RandLowerCaseLetterString(5))
-
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
 	cc, err := w.cli.ContainerCreate(
 		ctx,
 		&container.Config{
@@ -172,7 +176,7 @@ func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, chainName
 			Labels: map[string]string{CleanupLabel: w.testName},
 		},
 		&container.HostConfig{
-			Binds:      []string{"/tmp/rly" + ":" + mountPath},
+			Binds:      []string{pwd + ":" + mountPath},
 			AutoRemove: true,
 		},
 		nil, // No networking necessary.

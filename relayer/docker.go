@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -456,7 +457,11 @@ func (r *DockerRelayer) Name() string {
 
 // Bind returns the home folder bind point for running the node.
 func (r *DockerRelayer) Bind() []string {
-	return []string{"/tmp/rly" + ":" + r.HomeDir()}
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	return []string{pwd + ":" + r.HomeDir()}
 }
 
 // HomeDir returns the home directory of the relayer on the underlying Docker container's filesystem.

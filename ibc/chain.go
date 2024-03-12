@@ -14,14 +14,9 @@ type Chain interface {
 	// Initialize initializes node structs so that things like initializing keys can be done before starting the chain
 	Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error
 
-	// StartHub sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Hub to start from genesis.
-	StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...WalletData) error
+	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Chain to start from genesis.
+	Start(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 
-	// CreateRollapp sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
-	CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) (string, error)
-
-	// StartRollapp start everything (validators, gentx, fullnodes, peering, additional accounts).
-	StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
 	// is up to the chain implementation.
@@ -50,12 +45,18 @@ type Chain interface {
 	// the container's filesystem (not the host).
 	HomeDir() string
 
+	// GetChainID ID of the specific chain
+	GetChainID() string
+
 	// CreateKey creates a test key in the "user" node (either the first fullnode or the first validator if no fullnodes).
 	CreateKey(ctx context.Context, keyName string) error
 
-	CreateHubKey(ctx context.Context, keyName string) error
+	// CreateKey creates a key with a specific keyDir
+	CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error
 
-	AccountHubKeyBech32(ctx context.Context, keyName string) (string, error)
+	// AccountKeyBech32WithKeyDir create account for rollapp
+	AccountKeyBech32WithKeyDir(ctx context.Context, keyName string, keyDir string) (string, error)
+
 	// RecoverKey recovers an existing user from a given mnemonic.
 	RecoverKey(ctx context.Context, name, mnemonic string) error
 
@@ -92,6 +93,28 @@ type Chain interface {
 	// be restored in the relayer node using the mnemonic. After it is built, that address is included in
 	// genesis with some funds.
 	BuildRelayerWallet(ctx context.Context, keyName string) (Wallet, error)
+}
+
+type Hub interface {
+	// Register RollApp to Hub
+	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error
+	// Register Sequencer to Hub
+	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error
+	// Set RollApp to Hub
+	SetRollApp(rollApp RollApp)
+	// Get RollApp chain
+	GetRollApp() RollApp
+}
+
+type RollApp interface {
+	// Configuration sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
+	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
+	// Get key sequencer location
+	GetSequencerKeyDir() string
+	// Show Sequencer Key
+	ShowSequencer(ctx context.Context) (string, error)
+	// Get Sequencer
+	GetSequencer() string
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

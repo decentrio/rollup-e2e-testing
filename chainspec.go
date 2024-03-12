@@ -1,4 +1,4 @@
-package cosmos
+package rollupe2etesting
 
 import (
 	"errors"

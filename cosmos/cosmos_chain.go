@@ -74,6 +74,10 @@ func NewCosmosChain(testName string, chainConfig ibc.ChainConfig, numValidators 
 	}
 }
 
+func (c *CosmosChain) Logger() *zap.Logger {
+	return c.log
+}
+
 // Nodes returns all nodes, including validators and fullnodes.
 func (c *CosmosChain) Nodes() Nodes {
 	return append(c.Validators, c.FullNodes...)
@@ -205,18 +209,23 @@ func (c *CosmosChain) HomeDir() string {
 	return c.getFullNode().HomeDir()
 }
 
+func (c *CosmosChain) GetChainID() string {
+	return c.cfg.ChainID
+}
+
 // Implements Chain interface
 func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
 	return c.getFullNode().CreateKey(ctx, keyName)
 }
 
 // Implements Chain interface
-func (c *CosmosChain) CreateHubKey(ctx context.Context, keyName string) error {
-	return c.getFullNode().CreateHubKey(ctx, keyName)
+func (c *CosmosChain) CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error {
+	return c.getFullNode().CreateKeyWithKeyDir(ctx, name, keyDir)
 }
 
-func (c *CosmosChain) AccountHubKeyBech32(ctx context.Context, keyName string) (string, error) {
-	return c.getFullNode().AccountHubKeyBech32(ctx, keyName)
+// Implements Chain interface
+func (c *CosmosChain) AccountKeyBech32WithKeyDir(ctx context.Context, keyName string, keyDir string) (string, error) {
+	return c.getFullNode().AccountKeyBech32WithKeyDir(ctx, keyName, keyDir)
 }
 
 // Implements Chain interface
@@ -301,7 +310,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}
-	txResp, err := c.getTransaction(txHash)
+	txResp, err := c.GetTransaction(txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
@@ -354,8 +363,8 @@ func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*Pr
 }
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
-func (c *CosmosChain) UpgradeProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().UpgradeProposal(ctx, keyName, prop)
+func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
+	txHash, err := c.getFullNode().UpgradeLegacyProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -387,7 +396,7 @@ func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*Pa
 }
 
 func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
-	txResp, err := c.getTransaction(txHash)
+	txResp, err := c.GetTransaction(txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
@@ -453,7 +462,7 @@ func (c *CosmosChain) AllBalances(ctx context.Context, address string) (types.Co
 	return res.GetBalances(), nil
 }
 
-func (c *CosmosChain) getTransaction(txhash string) (*types.TxResponse, error) {
+func (c *CosmosChain) GetTransaction(txhash string) (*types.TxResponse, error) {
 	fn := c.getFullNode()
 	return fn.getTransaction(fn.CliContext(), txhash)
 }
@@ -609,10 +618,8 @@ type ValidatorWithIntPower struct {
 	PubKeyBase64 string
 }
 
-var keyDir string
-
-// StartHub bootstraps the hubs and starts it from genesis
-func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string, additionalGenesisWallets ...ibc.WalletData) error {
+// Start bootstraps the hubs and starts it from genesis
+func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -809,262 +816,8 @@ func (c *CosmosChain) StartHub(testName string, ctx context.Context, seq string,
 	if err := eg.Wait(); err != nil {
 		return err
 	}
-	// Wait for 5 blocks before considering the chains "started"
-	if err := testutil.WaitForBlocks(ctx, 5, c.getFullNode()); err != nil {
-		return err
-	}
-
-	if err := c.CreateHubKey(ctx, "sequencer"); err != nil {
-		return err
-	}
-	sequencer, err := c.AccountHubKeyBech32(ctx, "sequencer")
-	if err != nil {
-		return err
-	}
-	amount := sdkmath.NewInt(10_000_000_000_000)
-	fund := ibc.WalletData{
-		Address: sequencer,
-		Denom:   c.Config().Denom,
-		Amount:  amount,
-	}
-	if err := c.SendFunds(ctx, "faucet", fund); err != nil {
-		return err
-	}
-	if err := c.RegisterRollAppToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", keyDir); err != nil {
-		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
-	}
-	if err := c.RegisterSequencerToHub(ctx, "sequencer", "demo-dymension-rollapp", "5", seq, keyDir); err != nil {
-		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
-	}
-	return nil
-}
-
-// CreateRollapp bootstraps the hubs
-func (c *CosmosChain) CreateRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) (string, error) {
-	chainCfg := c.Config()
-
-	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
-
-	genesisAmount := types.Coin{
-		Amount: sdkmath.NewInt(100_000_000_000_000).MulRaw(decimalPow),
-		Denom:  chainCfg.Denom,
-	}
-
-	genesisSelfDelegation := types.Coin{
-		Amount: sdkmath.NewInt(50_000_000_000_000).MulRaw(decimalPow),
-		Denom:  chainCfg.Denom,
-	}
-
-	if chainCfg.ModifyGenesisAmounts != nil {
-		genesisAmount, genesisSelfDelegation = chainCfg.ModifyGenesisAmounts()
-	}
-
-	genesisAmounts := []types.Coin{genesisAmount}
-
-	configFileOverrides := chainCfg.ConfigFileOverrides
-
-	eg := new(errgroup.Group)
-	// Initialize config and sign gentx for each validator.
-	for _, v := range c.Validators {
-		v := v
-		keyDir = v.HomeDir()
-		v.Validator = true
-		eg.Go(func() error {
-			if err := v.InitFullNodeFiles(ctx); err != nil {
-				return err
-			}
-			for configFile, modifiedConfig := range configFileOverrides {
-				modifiedToml, ok := modifiedConfig.(testutil.Toml)
-				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
-				}
-				if err := testutil.ModifyTomlConfigFile(
-					ctx,
-					v.logger(),
-					v.DockerClient,
-					v.TestName,
-					v.VolumeName,
-					v.Chain.Config().Name,
-					configFile,
-					modifiedToml,
-				); err != nil {
-					return err
-				}
-			}
-			if !c.cfg.SkipGenTx {
-				return v.InitValidatorGenTx(ctx, &chainCfg, genesisAmounts, genesisSelfDelegation)
-			}
-			return nil
-		})
-	}
-
-	// Initialize config for each full node.
-	for _, n := range c.FullNodes {
-		n := n
-		n.Validator = false
-		eg.Go(func() error {
-			if err := n.InitFullNodeFiles(ctx); err != nil {
-				return err
-			}
-			for configFile, modifiedConfig := range configFileOverrides {
-				modifiedToml, ok := modifiedConfig.(testutil.Toml)
-				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
-				}
-				if err := testutil.ModifyTomlConfigFile(
-					ctx,
-					n.logger(),
-					n.DockerClient,
-					n.TestName,
-					n.VolumeName,
-					n.Chain.Config().Name,
-					configFile,
-					modifiedToml,
-				); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-	}
-
-	// wait for this to finish
-	if err := eg.Wait(); err != nil {
-		return "", err
-	}
-
-	if c.cfg.PreGenesis != nil {
-		err := c.cfg.PreGenesis(chainCfg)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// for the validators we need to collect the gentxs and the accounts
-	// to the first node's genesis file
-	validator0 := c.Validators[0]
-	for i := 1; i < len(c.Validators); i++ {
-		validatorN := c.Validators[i]
-
-		bech32, err := validatorN.AccountKeyBech32(ctx, valKey)
-		if err != nil {
-			return "", err
-		}
-
-		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
-			return "", err
-		}
-
-		if !c.cfg.SkipGenTx {
-			if err := validatorN.copyGentx(ctx, validator0); err != nil {
-				return "", err
-			}
-		}
-	}
-	for _, wallet := range additionalGenesisWallets {
-
-		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []types.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-			return "", err
-		}
-	}
-
-	if !c.cfg.SkipGenTx {
-		if err := validator0.CollectGentxs(ctx); err != nil {
-			return "", err
-		}
-	}
-
-	genbz, err := validator0.GenesisFileContent(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
-
-	if c.cfg.ModifyGenesis != nil {
-		genbz, err = c.cfg.ModifyGenesis(chainCfg, genbz)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// Provide EXPORT_GENESIS_FILE_PATH and EXPORT_GENESIS_CHAIN to help debug genesis file
-	exportGenesis := os.Getenv("EXPORT_GENESIS_FILE_PATH")
-	exportGenesisChain := os.Getenv("EXPORT_GENESIS_CHAIN")
-	if exportGenesis != "" && exportGenesisChain == c.cfg.Name {
-		c.log.Debug("Exporting genesis file",
-			zap.String("chain", exportGenesisChain),
-			zap.String("path", exportGenesis),
-		)
-		_ = os.WriteFile(exportGenesis, genbz, 0600)
-	}
-	nodes := c.Nodes()
-
-	for _, node := range nodes {
-		if err := node.OverwriteGenesisFile(ctx, genbz); err != nil {
-			return "", err
-		}
-	}
-	seq, err := c.ShowSeq(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
-	}
-	return seq, nil
-}
-
-// StartRollapp start the Rollapps from genesis
-func (c *CosmosChain) StartRollapp(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
-	nodes := c.Nodes()
-
-	if err := nodes.LogGenesisHashes(ctx); err != nil {
-		return err
-	}
-
-	eg, egCtx := errgroup.WithContext(ctx)
-	for _, n := range nodes {
-		n := n
-		eg.Go(func() error {
-			return n.CreateNodeContainer(egCtx)
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-
-	peers := nodes.PeerString(ctx)
-
-	eg, egCtx = errgroup.WithContext(ctx)
-	for _, n := range nodes {
-		n := n
-		c.log.Info("Starting container", zap.String("container", n.Name()))
-		eg.Go(func() error {
-			if err := n.SetPeers(egCtx, peers); err != nil {
-				return err
-			}
-			return n.StartContainer(egCtx)
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-
 	// Wait for 5 blocks before considering the chains "started"
 	return testutil.WaitForBlocks(ctx, 5, c.getFullNode())
-}
-
-// RegisterSequencerToHub register sequencer for rollapp on settlement.
-func (c *CosmosChain) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
-	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq, keyDir)
-}
-
-// RegisterRollAppToHub register rollapp on settlement.
-func (c *CosmosChain) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
-}
-
-// ShowSeq will show sequencer addr
-func (c *CosmosChain) ShowSeq(ctx context.Context) (string, error) {
-	return c.GetNode().ShowSeq(ctx)
 }
 
 // Height implements ibc.Chain

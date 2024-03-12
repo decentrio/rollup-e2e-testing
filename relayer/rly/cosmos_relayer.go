@@ -76,7 +76,9 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 	// by default clientType should be tmClientType
 	clientType := tmClientType
 
-	if chainConfig.Type == "rollapp" {
+	chainType := strings.Split(chainConfig.Type, "-")
+
+	if chainType[0] == "rollapp" {
 		clientType = dmClientType
 	}
 

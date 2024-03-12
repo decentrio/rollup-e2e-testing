@@ -3,6 +3,9 @@ package rollupe2etesting
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -73,6 +76,25 @@ func NewSetup() *Setup {
 type relayerPath struct {
 	Relayer ibc.Relayer
 	Path    string
+}
+
+func (s *Setup) AddRollUp(hub ibc.Chain, rollApp ibc.Chain) *Setup {
+	h, ok := hub.(ibc.Hub)
+	if !ok {
+		panic("Error Hub chain")
+	}
+
+	a, ok := rollApp.(ibc.RollApp)
+	if !ok {
+		panic("Error RollApp chain")
+	}
+
+	h.SetRollApp(a)
+
+	s.AddChain(hub)
+	s.AddChain(rollApp)
+
+	return s
 }
 
 // AddChain adds the given chain to the Setup,
@@ -239,6 +261,10 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return err
 	}
 
+	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts); err != nil {
+		return fmt.Errorf("failed to configuration chains: %w", err)
+	}
+
 	if err := s.cs.Start(ctx, opts.TestName, walletAmounts); err != nil {
 		return fmt.Errorf("failed to start chains: %w", err)
 	}
@@ -250,6 +276,18 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	if err := s.configureRelayerKeys(ctx, rep); err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
+	}
+
+	filePath := "/tmp/rly/config/config.yaml"
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Fatalf("Failed to read file: %s", err)
+	}
+
+	err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
+	if err != nil {
+		log.Fatalf("Failed to write to file: %s", err)
 	}
 
 	// Some tests may want to configure the relayer from a lower level,
@@ -415,12 +453,22 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 
-			if err := r.RestoreKey(ctx,
+			wallet, err := r.AddKey(ctx,
 				rep,
-				c.Config(), chainName,
-				s.relayerWallets[relayerChain{R: r, C: c}].Mnemonic(),
-			); err != nil {
-				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+				chainName, chainName,
+				c.Config().CoinType,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+			}
+
+			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
+				Address: wallet.FormattedAddress(),
+				Amount:  math.NewInt(50_000_000_000_000),
+				Denom:   c.Config().Denom,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to get funds from faucet: %w", err)
 			}
 		}
 	}

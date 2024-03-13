@@ -279,7 +279,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	}
 	for _, c := range chains {
 		chainType := strings.Split(c.Config().Type, "-")
-		if chainType[0] == "rollapp" && chainType[2] == "evm" {
+		if chainType[0] == "rollapp" && chainType[1] == "dym" {
 			filePath := "/tmp/rly/config/config.yaml"
 
 			content, err := os.ReadFile(filePath)

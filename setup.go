@@ -277,17 +277,21 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		// Error already wrapped with appropriate detail.
 		return err
 	}
+	for _, c := range chains {
+		chainType := strings.Split(c.Config().Type, "-")
+		if chainType[0] == "rollapp" && chainType[2] == "evm" {
+			filePath := "/tmp/rly/config/config.yaml"
 
-	filePath := "/tmp/rly/config/config.yaml"
+			content, err := os.ReadFile(filePath)
+			if err != nil {
+				log.Fatalf("Failed to read file: %s", err)
+			}
 
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Fatalf("Failed to read file: %s", err)
-	}
-
-	err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
-	if err != nil {
-		log.Fatalf("Failed to write to file: %s", err)
+			err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
+			if err != nil {
+				log.Fatalf("Failed to write to file: %s", err)
+			}
+		}
 	}
 
 	// Some tests may want to configure the relayer from a lower level,
@@ -393,16 +397,6 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 		if s.AdditionalGenesisWallets != nil {
 			walletAmounts[c] = append(walletAmounts[c], s.AdditionalGenesisWallets[c]...)
 		}
-	}
-
-	// Then add all defined relayer wallets.
-	for rc, wallet := range s.relayerWallets {
-		c := rc.C
-		walletAmounts[c] = append(walletAmounts[c], ibc.WalletData{
-			Address: wallet.FormattedAddress(),
-			Denom:   c.Config().Denom,
-			Amount:  math.NewInt(1_000_000_000_000), // Every wallet gets 1t units of denom.
-		})
 	}
 
 	return walletAmounts, nil

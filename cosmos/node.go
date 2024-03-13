@@ -981,6 +981,7 @@ func (node *Node) ParamChangeProposal(ctx context.Context, keyName string, prop 
 		"gov", "submit-legacy-proposal",
 		"param-change",
 		proposalPath,
+		"--gas=auto",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)

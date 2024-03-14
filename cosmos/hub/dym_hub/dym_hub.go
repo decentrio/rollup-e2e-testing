@@ -68,7 +68,6 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		return err
 	}
 
-	// TODO: custom to create genesis_accounts.json that will pass in the rollapp
 	hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 	flags := map[string]string{}
 	if hasFlagGenesisPath && ok {

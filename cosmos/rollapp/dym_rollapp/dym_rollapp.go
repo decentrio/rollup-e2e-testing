@@ -297,7 +297,3 @@ func (c *DymRollApp) GetSequencer() string {
 func (c *DymRollApp) GetSequencerKeyDir() string {
 	return c.sequencerKeyDir
 }
-
-func (c *DymRollApp) GetHomeDir() string {
-	return c.HomeDir()
-}

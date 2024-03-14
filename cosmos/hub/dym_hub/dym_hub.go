@@ -71,7 +71,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 	flags := map[string]string{}
 	if hasFlagGenesisPath && ok {
-		flags["genesis-accounts-path"] = c.rollApp.GetHomeDir() + "/genesis_accounts.json"
+		flags["genesis-accounts-path"] = c.rollApp.(ibc.Chain).HomeDir() + "/genesis_accounts.json"
 	}
 	if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)

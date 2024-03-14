@@ -115,8 +115,6 @@ type RollApp interface {
 	ShowSequencer(ctx context.Context) (string, error)
 	// Get Sequencer
 	GetSequencer() string
-	// Get Validator Genesis Dir
-	GetHomeDir() string
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

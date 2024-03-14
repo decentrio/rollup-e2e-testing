@@ -731,6 +731,27 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	return err
 }
 
+// UpdateState update an rollapp state.
+func (node *Node) UpdateState(ctx context.Context, keyName string, rollappId, startHeight, numBlocks, daPath, version, bds, keyDir string) error {
+	var command []string
+	keyPath := keyDir + "/sequencer_keys"
+	command = append(command, "rollapp", "update-state",
+		rollappId, startHeight, numBlocks, daPath, version, bds, "--gas", "auto", "--broadcast-mode", "block", "--keyring-dir", keyPath)
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
+func (node *Node) GetLatestState(ctx context.Context, rollappChainID string) (string, error) {
+	var command []string
+	command = append(command, "rollapp", "state", rollappChainID)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
+}
+
 // CollectGentxs runs collect gentxs on the node's home folders
 func (node *Node) CollectGentxs(ctx context.Context) error {
 	command := []string{node.Chain.Config().Bin}

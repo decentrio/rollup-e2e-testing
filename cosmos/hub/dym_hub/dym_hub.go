@@ -85,6 +85,16 @@ func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChain
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
 }
 
+// GetLatestState returns the latest state info of a rollapp.
+func (c *DymHub) GetLatestState(ctx context.Context, rollappChainID string) (string, error) {
+	return c.GetNode().GetLatestState(ctx, rollappChainID)
+}
+
+// UpdateState call rollapp update state.
+func (c *DymHub) UpdateState(ctx context.Context, keyname, rollappId, startHeight, numBlocks, daPath, version, bds, keydir string) error {
+	return c.GetNode().UpdateState(ctx, keyname, rollappId, startHeight, numBlocks, daPath, version, bds, keydir)
+}
+
 func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
 	c.rollApp = rollApp
 }

@@ -108,7 +108,8 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	).Build(t, client, network)
 
 	ic := test.NewSetup().
-		AddRollUp(celestia, gm1).
+		AddChain(celestia).
+		AddChain(gm1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
 			Chain1:  celestia,

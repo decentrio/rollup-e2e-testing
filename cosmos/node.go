@@ -731,6 +731,18 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	return err
 }
 
+func (node *Node) RegisterEVMValidatorToHub(ctx context.Context, keyName string) error {
+	var command []string
+	addr, err := node.KeyBech32(ctx, "validator", "val")
+	if err != nil {
+		return err
+	}
+	command = append(command, "qgb", "register", addr, "0x966e6f22781EF6a6A82BBB4DB3df8E225DfD9488",
+		"--broadcast-mode", "block")
+	_, err = node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 // CollectGentxs runs collect gentxs on the node's home folders
 func (node *Node) CollectGentxs(ctx context.Context) error {
 	command := []string{node.Chain.Config().Bin}
@@ -1093,8 +1105,10 @@ func (node *Node) InitValidatorGenTx(
 	}
 
 	if _, ok := node.Chain.(ibc.RollApp); ok {
-		if err := node.GentxSeq(ctx, valKey); err != nil {
-			return err
+		if node.Chain.Config().Type == "rollapp-dym" {
+			if err := node.GentxSeq(ctx, valKey); err != nil {
+				return err
+			}
 		}
 	}
 

@@ -6,6 +6,6 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) ibc.Chain {
-	return dym_rollapp.NewDymRollApp(testName, chainConfig, numValidators, numFullNodes, log)
+func NewRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger, extraFlags map[string]interface{}) ibc.Chain {
+	return dym_rollapp.NewDymRollApp(testName, chainConfig, numValidators, numFullNodes, log, extraFlags)
 }

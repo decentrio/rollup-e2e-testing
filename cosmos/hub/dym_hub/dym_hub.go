@@ -12,7 +12,8 @@ import (
 
 type DymHub struct {
 	*cosmos.CosmosChain
-	rollApp ibc.RollApp
+	rollApp    ibc.RollApp
+	extraFlags map[string]interface{}
 }
 
 var _ ibc.Chain = (*DymHub)(nil)
@@ -23,11 +24,12 @@ const (
 	maxSequencers = "5"
 )
 
-func NewDymHub(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymHub {
+func NewDymHub(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger, extraFlags map[string]interface{}) *DymHub {
 	cosmosChain := cosmos.NewCosmosChain(testName, chainConfig, numValidators, numFullNodes, log)
 
 	c := &DymHub{
 		CosmosChain: cosmosChain,
+		extraFlags:  extraFlags,
 	}
 
 	return c
@@ -66,9 +68,15 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		return err
 	}
 
-	if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir); err != nil {
+	hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+	flags := map[string]string{}
+	if hasFlagGenesisPath && ok {
+		flags["genesis-accounts-path"] = c.rollApp.(ibc.Chain).HomeDir() + "/genesis_accounts.json"
+	}
+	if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
+
 	if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, maxSequencers, seq, keyDir); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
@@ -81,8 +89,8 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
 func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {

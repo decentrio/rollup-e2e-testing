@@ -711,12 +711,15 @@ func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
 	var command []string
 	detail := "{\"Addresses\":[]}"
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
+	for flagName := range flags {
+		command = append(command, "--"+flagName, flags[flagName])
+	}
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }

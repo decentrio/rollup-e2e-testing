@@ -90,6 +90,11 @@ func (c *DymHub) GetLatestState(ctx context.Context, rollappChainID string) (str
 	return c.GetNode().GetLatestState(ctx, rollappChainID)
 }
 
+// GetLatestState returns the latest state info of a rollapp.
+func (c *DymHub) SubmitFraudProposal(ctx context.Context, keyName, rollappChainID, height, proposerAddr, clientId, tittle, descrition, keyDir string) error {
+	return c.GetNode().SubmitFraudProposal(ctx, keyName, rollappChainID, height, proposerAddr, clientId, tittle, descrition, keyDir)
+}
+
 // UpdateState call rollapp update state.
 func (c *DymHub) UpdateState(ctx context.Context, keyname, rollappId, startHeight, numBlocks, daPath, version, bds, keydir string) error {
 	return c.GetNode().UpdateState(ctx, keyname, rollappId, startHeight, numBlocks, daPath, version, bds, keydir)

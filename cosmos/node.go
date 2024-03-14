@@ -741,6 +741,17 @@ func (node *Node) UpdateState(ctx context.Context, keyName string, rollappId, st
 	return err
 }
 
+// UpdateState update an rollapp state.
+func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, tittle, description, keyDir string) error {
+	var command []string
+	keyPath := keyDir + "/sequencer_keys"
+	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
+		rollappId, height, proposerAddr, clientId, " --title", tittle, "--description", description,
+		"--gas", "auto", "--broadcast-mode", "block", "--keyring-dir", keyPath)
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 func (node *Node) GetLatestState(ctx context.Context, rollappChainID string) (string, error) {
 	var command []string
 	command = append(command, "rollapp", "state", rollappChainID)

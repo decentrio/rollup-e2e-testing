@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strconv"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"go.uber.org/zap"
@@ -340,4 +342,57 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 		"fulfill-order", id,
 	}
 	return c.FullNodes[0].ExecTx(ctx, keyName, command...)
+}
+
+func (c *DymHub) QueryRollappState(ctx context.Context,
+	rollappName string,
+	onlyFinalized bool,
+) (*dymension.RollappState, error) {
+	var finalizedFlag string
+	if onlyFinalized {
+		finalizedFlag = "--finalized"
+	} else {
+		finalizedFlag = ""
+	}
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "state", rollappName, finalizedFlag)
+	if err != nil {
+		return nil, err
+	}
+	var rollappState dymension.RollappState
+	err = json.Unmarshal(stdout, &rollappState)
+	if err != nil {
+		return nil, err
+	}
+	return &rollappState, nil
+}
+
+func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (uint64, error) {
+	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(rollappState.StateInfo.BlockDescriptors.BD) == 0 {
+		return 0, fmt.Errorf("no block descriptors found for rollapp %s", rollappName)
+	}
+
+	lastBD := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1]
+	parsedHeight, err := strconv.ParseUint(lastBD.Height, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsedHeight, nil
+}
+
+func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName string) (uint64, error) {
+	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
+	if err != nil {
+		return 0, err
+	}
+
+	parsedHeight, err := strconv.ParseUint(rollappState.StateInfo.CreationHeight, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsedHeight, nil
 }

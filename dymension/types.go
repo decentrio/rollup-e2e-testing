@@ -7,3 +7,34 @@ type EibcEvent struct {
 	IsFulfilled  bool   `json:"is_fulfilled"`
 	PacketStatus string `json:"packet_status"`
 }
+
+type RollappState struct {
+	StateInfo StateInfo `json:"stateInfo"`
+}
+
+type StateInfo struct {
+	StateInfoIndex   StateInfoIndex `json:"stateInfoIndex"`
+	Sequencer        string         `json:"sequencer"`
+	StartHeight      string         `json:"startHeight"`
+	NumBlocks        string         `json:"numBlocks"`
+	DAPath           string         `json:"DAPath"`
+	Version          string         `json:"version"`
+	CreationHeight   string         `json:"creationHeight"`
+	Status           string         `json:"status"`
+	BlockDescriptors BDs            `json:"BDs"`
+}
+
+type StateInfoIndex struct {
+	RollappId string `json:"rollappId"`
+	Index     string `json:"index"`
+}
+
+type BDs struct {
+	BD []BlockDescriptor `json:"BD"`
+}
+
+type BlockDescriptor struct {
+	Height                 string `json:"height"`
+	StateRoot              string `json:"stateRoot"`
+	IntermediateStatesRoot string `json:"intermediateStatesRoot"`
+}

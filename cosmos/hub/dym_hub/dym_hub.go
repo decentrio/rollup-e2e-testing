@@ -135,3 +135,26 @@ func (c *DymHub) QueryRollappState(ctx context.Context,
 	}
 	return &rollappState, nil
 }
+
+func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (string, error) {
+	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
+	if err != nil {
+		return "", err
+	}
+
+	if len(rollappState.StateInfo.BlockDescriptors.BD) == 0 {
+		return "", fmt.Errorf("no block descriptors found for rollapp %s", rollappName)
+	}
+
+	lastBD := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1]
+	return lastBD.Height, nil
+}
+
+func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName string) (string, error) {
+	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
+	if err != nil {
+		return "", err
+	}
+
+	return rollappState.StateInfo.CreationHeight, nil
+}

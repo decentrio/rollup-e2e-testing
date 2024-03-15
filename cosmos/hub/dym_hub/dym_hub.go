@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -136,25 +137,33 @@ func (c *DymHub) QueryRollappState(ctx context.Context,
 	return &rollappState, nil
 }
 
-func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (string, error) {
+func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (uint64, error) {
 	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if len(rollappState.StateInfo.BlockDescriptors.BD) == 0 {
-		return "", fmt.Errorf("no block descriptors found for rollapp %s", rollappName)
+		return 0, fmt.Errorf("no block descriptors found for rollapp %s", rollappName)
 	}
 
 	lastBD := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1]
-	return lastBD.Height, nil
+	parsedHeight, err := strconv.ParseUint(lastBD.Height, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsedHeight, nil
 }
 
-func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName string) (string, error) {
+func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName string) (uint64, error) {
 	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return rollappState.StateInfo.CreationHeight, nil
+	parsedHeight, err := strconv.ParseUint(rollappState.StateInfo.CreationHeight, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsedHeight, nil
 }

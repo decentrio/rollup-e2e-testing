@@ -1039,7 +1039,7 @@ func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	if chainCfg.NoHostMount {
 		cmd = []string{"sh", "-c", fmt.Sprintf("cp -r %s %s_nomnt && %s start --home %s_nomnt --x-crisis-skip-assert-invariants", node.HomeDir(), node.HomeDir(), chainCfg.Bin, node.HomeDir())}
 	} else {
-		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants"}
+		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants", "--grpc.enable"}
 	}
 	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}

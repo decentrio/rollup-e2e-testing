@@ -3,7 +3,6 @@ package dym_rollapp
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -26,11 +25,6 @@ type DymRollApp struct {
 	sequencerKeyDir string
 	sequencerKey    string
 	extraFlags      map[string]interface{}
-}
-
-type GenesisAccount struct {
-	Amount  sdk.Coin `json:"amount"`
-	Address string   `json:"address"`
 }
 
 var _ ibc.Chain = (*DymRollApp)(nil)
@@ -191,16 +185,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
 	validator0 := c.Validators[0]
-	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
-	if err != nil {
-		return err
-	}
-	genesisAccounts := []GenesisAccount{
-		{
-			Amount:  genesisAmount,
-			Address: bech32,
-		},
-	}
 	for i := 1; i < len(c.Validators); i++ {
 		validatorN := c.Validators[i]
 
@@ -208,10 +192,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		if err != nil {
 			return err
 		}
-		genesisAccounts = append(genesisAccounts, GenesisAccount{
-			Amount:  genesisAmount,
-			Address: bech32,
-		})
 		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 			return err
 		}
@@ -221,14 +201,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 				return err
 			}
 		}
-	}
-	fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile("/tmp/"+validator0.Chain.Config().Name+validator0.VolumeName+"/genesis_accounts.json", fileBz, 0644)
-	if err != nil {
-		return err
 	}
 
 	for _, wallet := range additionalGenesisWallets {

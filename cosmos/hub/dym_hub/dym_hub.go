@@ -325,6 +325,11 @@ func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChain
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
+// QueryLatestIndex returns the latest state index of a rollapp based on rollapp id.
+func (c *DymHub) QueryLatestIndex(ctx context.Context, rollappChainID string) (*cosmos.StateIndexResponse, error) {
+	return c.GetNode().QueryLatestStateIndex(ctx, rollappChainID)
+}
+
 func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
 	c.rollApp = rollApp
 }

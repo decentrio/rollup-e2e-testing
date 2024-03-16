@@ -895,6 +895,24 @@ func (node *Node) VoteOnProposal(ctx context.Context, keyName string, proposalID
 	return err
 }
 
+// QueryLatestState returns the latest state info of a rollapp based on rollapp id.
+func (node *Node) QueryLatestStateIndex(ctx context.Context, rollappChainID string) (*StateIndexResponse, error) {
+	var command []string
+	command = append(command, "rollapp", "latest-state-index", rollappChainID)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var stateIndex StateIndexResponse
+	err = json.Unmarshal(stdout, &stateIndex)
+	if err != nil {
+		return nil, err
+	}
+	return &stateIndex, nil
+}
+
 // QueryProposal returns the state and details of a governance proposal.
 func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
 	stdout, _, err := node.ExecQuery(ctx, "gov", "proposal", proposalID)
@@ -907,6 +925,16 @@ func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*Propos
 		return nil, err
 	}
 	return &proposal, nil
+}
+
+// SubmitFraudProposal a fraud proposal to the chain.
+
+func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {
+	var command []string
+	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
+		rollappId, height, proposerAddr, clientId, "--title=fraud", "--description=fraud",
+		"--gas", "auto", "--broadcast-mode", "block", "--deposit", deposit)
+	return node.ExecTx(ctx, keyName, command...)
 }
 
 // SubmitProposal submits a gov v1 proposal to the chain.

@@ -390,6 +390,16 @@ func (c *CosmosChain) ParamChangeProposal(ctx context.Context, keyName string, p
 	return c.txProposal(txHash)
 }
 
+// SubmitFraudProposal submit a fraud proposal.
+func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName, rollappChainID, height, proposerAddr, clientId, title, descrition, deposit string) error {
+	_, err := c.getFullNode().SubmitFraudProposal(ctx, keyName, rollappChainID, height, proposerAddr, clientId, title, descrition, deposit)
+	if err != nil {
+		return fmt.Errorf("failed to submit fraud proposal: %w", err)
+	}
+
+	return nil
+}
+
 // QueryParam returns the param state of a given key.
 func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
 	return c.getFullNode().QueryParam(ctx, subspace, key)

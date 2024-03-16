@@ -103,3 +103,12 @@ type ContractStateModels struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+type StateIndexResponse struct {
+	StateIndex StateIndex `json:"stateIndex"`
+}
+
+type StateIndex struct {
+	RollappID string `json:"rollappId"`
+	Index     string `json:"index"`
+}

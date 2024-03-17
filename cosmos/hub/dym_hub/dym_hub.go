@@ -349,6 +349,21 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 	return c.FullNodes[0].ExecTx(ctx, keyName, command...)
 }
 
+func (c *DymHub) QueryRollappParams(ctx context.Context,
+	rollappName string,
+) (*dymension.QueryGetRollappResponse, error) {
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "show", rollappName)
+	if err != nil {
+		return nil, err
+	}
+	var rollappState dymension.QueryGetRollappResponse
+	err = json.Unmarshal(stdout, &rollappState)
+	if err != nil {
+		return nil, err
+	}
+	return &rollappState, nil
+}
+
 func (c *DymHub) QueryRollappState(ctx context.Context,
 	rollappName string,
 	onlyFinalized bool,

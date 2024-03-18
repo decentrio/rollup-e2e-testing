@@ -37,6 +37,7 @@ import (
 	libclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 )
 
 // Node represents a node in the test network that is being created
@@ -1030,6 +1031,42 @@ func (node *Node) UnsafeResetAll(ctx context.Context) error {
 
 	_, _, err := node.ExecBin(ctx, "unsafe-reset-all")
 	return err
+}
+
+func (node *Node) GetGenesisHash(ctx context.Context) []byte {
+	var genesis []byte
+	cnt := 0
+	max := 100 // Set your desired value for MAX
+	for len(genesis) <= 4 && cnt != max {
+		
+		blockHeight, err := node.QueryBlockHeight(ctx, 1)
+		if err != nil {
+			node.logger().Info("Block was not yet produced")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		
+		genesis = blockHeight.BlockId.Hash
+		cnt++
+		time.Sleep(1 * time.Second)
+	}
+
+	return genesis
+}
+
+func (node *Node) QueryBlockHeight(ctx context.Context, height uint64) (*tmservice.GetBlockByHeightResponse, error) {
+	stdout, _, err := node.ExecQuery(ctx, "blocks", "proposal", fmt.Sprintf("%d", height))
+	if err != nil {
+		return nil, err
+	}
+
+	var blockHeight tmservice.GetBlockByHeightResponse
+	err = json.Unmarshal(stdout, &blockHeight)
+	if err != nil {
+		return nil, err
+	}
+
+	return &blockHeight, nil
 }
 
 func (node *Node) CreateNodeContainer(ctx context.Context) error {

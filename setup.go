@@ -277,20 +277,6 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		// Error already wrapped with appropriate detail.
 		return err
 	}
-	if s.relayers != nil {
-		filePath := "/tmp/rly/config/config.yaml"
-
-		content, err := os.ReadFile(filePath)
-		if err != nil {
-			log.Fatalf("Failed to read file: %s", err)
-		}
-
-		err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
-		if err != nil {
-			log.Fatalf("Failed to write to file: %s", err)
-		}
-
-	}
 
 	// Some tests may want to configure the relayer from a lower level,
 	// but still have wallets configured.
@@ -440,6 +426,18 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 	// But we are only testing with a single relayer so far, so we don't need this yet.
 
 	for r, chains := range s.relayerChains() {
+		filePath := "/tmp/rly/config/config.yaml"
+
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Fatalf("Failed to read file: %s", err)
+		}
+
+		err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
+		if err != nil {
+			log.Fatalf("Failed to write to file: %s", err)
+		}
+
 		for _, c := range chains {
 			rpcAddr, grpcAddr := c.GetRPCAddress(), c.GetGRPCAddress()
 			if !r.UseDockerNetwork() {

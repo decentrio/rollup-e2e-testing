@@ -325,6 +325,11 @@ func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChain
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
+// QueryLatestIndex returns the latest state index of a rollapp based on rollapp id.
+func (c *DymHub) QueryLatestIndex(ctx context.Context, rollappChainID string) (*cosmos.StateIndexResponse, error) {
+	return c.GetNode().QueryLatestStateIndex(ctx, rollappChainID)
+}
+
 func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
 	c.rollApp = rollApp
 }
@@ -342,6 +347,21 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 		"fulfill-order", id,
 	}
 	return c.FullNodes[0].ExecTx(ctx, keyName, command...)
+}
+
+func (c *DymHub) QueryRollappParams(ctx context.Context,
+	rollappName string,
+) (*dymension.QueryGetRollappResponse, error) {
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "show", rollappName)
+	if err != nil {
+		return nil, err
+	}
+	var rollappState dymension.QueryGetRollappResponse
+	err = json.Unmarshal(stdout, &rollappState)
+	if err != nil {
+		return nil, err
+	}
+	return &rollappState, nil
 }
 
 func (c *DymHub) QueryRollappState(ctx context.Context,

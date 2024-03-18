@@ -24,7 +24,7 @@ import (
 
 type DymHub struct {
 	*cosmos.CosmosChain
-	rollApp    ibc.RollApp
+	rollApp    []ibc.RollApp
 	extraFlags map[string]interface{}
 }
 
@@ -280,40 +280,44 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	if c.rollApp == nil {
 		return nil
 	}
+	rollApps := c.rollApp
+	for _, r := range rollApps {
+		r := r
+		rollAppChainID := r.(ibc.Chain).GetChainID()
+		keyDir := r.GetSequencerKeyDir()
+		seq := r.GetSequencer()
 
-	rollAppChainID := c.GetRollApp().(ibc.Chain).GetChainID()
-	keyDir := c.GetRollApp().GetSequencerKeyDir()
-	seq := c.GetRollApp().GetSequencer()
+		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
+			return err
+		}
+		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
+		if err != nil {
+			return err
+		}
+		amount := sdkmath.NewInt(10_000_000_000_000)
+		fund := ibc.WalletData{
+			Address: sequencer,
+			Denom:   c.Config().Denom,
+			Amount:  amount,
+		}
+		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+			return err
+		}
 
-	if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
-		return err
-	}
-	sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
-	if err != nil {
-		return err
-	}
-	amount := sdkmath.NewInt(10_000_000_000_000)
-	fund := ibc.WalletData{
-		Address: sequencer,
-		Denom:   c.Config().Denom,
-		Amount:  amount,
-	}
-	if err := c.SendFunds(ctx, "faucet", fund); err != nil {
-		return err
+		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+		flags := map[string]string{}
+		if hasFlagGenesisPath && ok {
+			flags["genesis-accounts-path"] = validator0.HomeDir() + "/genesis_accounts.json"
+		}
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
+
+		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, maxSequencers, seq, keyDir); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
 	}
 
-	hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
-	flags := map[string]string{}
-	if hasFlagGenesisPath && ok {
-		flags["genesis-accounts-path"] = validator0.HomeDir() + "/genesis_accounts.json"
-	}
-	if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
-		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
-	}
-
-	if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, maxSequencers, seq, keyDir); err != nil {
-		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
-	}
 	return nil
 }
 
@@ -333,10 +337,10 @@ func (c *DymHub) QueryLatestIndex(ctx context.Context, rollappChainID string) (*
 }
 
 func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
-	c.rollApp = rollApp
+	c.rollApp = append(c.rollApp, rollApp)
 }
 
-func (c *DymHub) GetRollApp() ibc.RollApp {
+func (c *DymHub) GetRollApp() []ibc.RollApp {
 	return c.rollApp
 }
 

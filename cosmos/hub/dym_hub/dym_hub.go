@@ -24,7 +24,7 @@ import (
 
 type DymHub struct {
 	*cosmos.CosmosChain
-	rollApp    []ibc.RollApp
+	rollApps    []ibc.RollApp
 	extraFlags map[string]interface{}
 }
 
@@ -277,10 +277,10 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	// Wait for 5 blocks before considering the chains "started"
 	testutil.WaitForBlocks(ctx, 5, c.GetNode())
 	// if not have rollApp, we just return the function
-	if c.rollApp == nil {
+	if len(c.rollApps) == 0 {
 		return nil
 	}
-	rollApps := c.rollApp
+	rollApps := c.rollApps
 	for _, r := range rollApps {
 		r := r
 		rollAppChainID := r.(ibc.Chain).GetChainID()
@@ -337,11 +337,11 @@ func (c *DymHub) QueryLatestIndex(ctx context.Context, rollappChainID string) (*
 }
 
 func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
-	c.rollApp = append(c.rollApp, rollApp)
+	c.rollApps = append(c.rollApps, rollApp)
 }
 
-func (c *DymHub) GetRollApp() []ibc.RollApp {
-	return c.rollApp
+func (c *DymHub) GetRollApps() []ibc.RollApp {
+	return c.rollApps
 }
 
 func (c *DymHub) FullfillDemandOrder(ctx context.Context,

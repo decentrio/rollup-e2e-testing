@@ -103,7 +103,7 @@ type Hub interface {
 	// Set RollApp to Hub
 	SetRollApp(rollApp RollApp)
 	// Get RollApp chain
-	GetRollApp() RollApp
+	GetRollApp() []RollApp
 }
 
 type RollApp interface {

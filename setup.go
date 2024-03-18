@@ -90,10 +90,13 @@ func (s *Setup) AddRollUp(hub ibc.Chain, rollApp ibc.Chain) *Setup {
 	}
 
 	h.SetRollApp(a)
-
-	s.AddChain(hub)
 	s.AddChain(rollApp)
-
+	for c := range s.chains {
+		if c == hub {
+			return s
+		}
+	}
+	s.AddChain(hub)
 	return s
 }
 

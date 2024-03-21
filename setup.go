@@ -279,8 +279,8 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		// Error already wrapped with appropriate detail.
 		return err
 	}
-	for range s.relayerChains() {
-		filePath := "/tmp/rly/config/config.yaml"
+	for r := range s.relayerChains() {
+		filePath := "/tmp/" + s.relayers[r] + "/config/config.yaml"
 
 		content, err := os.ReadFile(filePath)
 		if err != nil {

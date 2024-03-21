@@ -155,7 +155,7 @@ func (r *DockerRelayer) AddChainConfiguration(ctx context.Context, rep ibc.Relay
 	}
 
 	fw := dockerutil.NewFileWriter(r.log, r.client, r.testName)
-	if err := fw.RelayerWriteFile(ctx, r.volumeName, r.Name(), chainConfigFile, configContent); err != nil {
+	if err := fw.RelayerWriteFile(ctx, r.volumeName, r.relayerName, chainConfigFile, configContent); err != nil {
 		return fmt.Errorf("failed to rly config: %w", err)
 	}
 

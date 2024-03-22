@@ -929,15 +929,25 @@ func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*Propos
 // QueryModuleAccount returns the information about a module account
 func (node *Node) QueryModuleAccount(ctx context.Context, moduleName string) (*ModuleAccountResponse, error) {
 	stdout, _, err := node.ExecQuery(ctx, "auth", "module-account", moduleName, "--output=json")
-    if err!= nil {
-        return nil, err
-    }
-    var moduleAccount ModuleAccountResponse
-    err = json.Unmarshal(stdout, &moduleAccount)
-    if err!= nil {
-        return nil, err
-    }
-    return &moduleAccount, nil
+	if err != nil {
+		return nil, err
+	}
+	var moduleAccount ModuleAccountResponse
+	err = json.Unmarshal(stdout, &moduleAccount)
+	if err != nil {
+		return nil, err
+	}
+	return &moduleAccount, nil
+}
+
+// QueryEscrowAddress returns the escrow address of a given channel.
+func (node *Node) QueryEscrowAddress(ctx context.Context, portID, channelID string) (string, error) {
+	stdout, _, err := node.ExecQuery(ctx, "ibc-transfer", "escrow-address", portID, channelID, "--output=json")
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
 // SubmitFraudProposal a fraud proposal to the chain.

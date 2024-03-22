@@ -1,5 +1,12 @@
 package dymension
 
+import (
+	"math"
+	sdkmath "cosmossdk.io/math"
+)
+
+var GenesisEventAmount = sdkmath.NewInt(100_000_000_000_000).MulRaw(int64(math.Pow10(6)))
+
 type EibcEvent struct {
 	ID           string `json:"id"`
 	Price        string `json:"price"`

@@ -1055,7 +1055,7 @@ func (node *Node) GetGenesisHash(ctx context.Context) []byte {
 }
 
 func (node *Node) QueryBlockHeight(ctx context.Context, height uint64) (*tmservice.GetBlockByHeightResponse, error) {
-	stdout, _, err := node.ExecQuery(ctx, "blocks", "proposal", fmt.Sprintf("%d", height))
+	stdout, _, err := node.ExecQuery(ctx, "block", fmt.Sprintf("%d", height))
 	if err != nil {
 		return nil, err
 	}

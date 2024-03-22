@@ -926,6 +926,20 @@ func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*Propos
 	return &proposal, nil
 }
 
+// QueryModuleAccount returns the information about a module account
+func (node *Node) QueryModuleAccount(ctx context.Context, moduleName string) (*ModuleAccountResponse, error) {
+	stdout, _, err := node.ExecQuery(ctx, "auth", "module-account", moduleName, "--output=json")
+    if err!= nil {
+        return nil, err
+    }
+    var moduleAccount ModuleAccountResponse
+    err = json.Unmarshal(stdout, &moduleAccount)
+    if err!= nil {
+        return nil, err
+    }
+    return &moduleAccount, nil
+}
+
 // SubmitFraudProposal a fraud proposal to the chain.
 
 func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {

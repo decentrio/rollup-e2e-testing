@@ -12,5 +12,5 @@ import (
 func AssertBalance(t *testing.T, ctx context.Context, chain ibc.Chain, address string, denom string, expectedBalance sdkmath.Int) {
 	balance, err := chain.GetBalance(ctx, address, denom)
 	require.NoError(t, err)
-	require.Equal(t, expectedBalance, balance)
+	require.Equal(t, expectedBalance.String(), balance.String())
 }

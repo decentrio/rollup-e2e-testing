@@ -142,7 +142,7 @@ func (w *FileWriter) WriteFile(ctx context.Context, volumeName, chainName, relPa
 }
 
 // RelayerWriteFile writes the single file containing content, at relPath within the given volume.
-func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, chainName, relPath string, content []byte) error {
+func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, relayerName, relPath string, content []byte) error {
 	const mountPath = "/mnt/dockervolume"
 
 	if err := ensureBusybox(ctx, w.cli); err != nil {
@@ -172,7 +172,7 @@ func (w *FileWriter) RelayerWriteFile(ctx context.Context, volumeName, chainName
 			Labels: map[string]string{CleanupLabel: w.testName},
 		},
 		&container.HostConfig{
-			Binds:      []string{"/tmp/rly" + ":" + mountPath},
+			Binds:      []string{"/tmp/" + relayerName + ":" + mountPath},
 			AutoRemove: true,
 		},
 		nil, // No networking necessary.

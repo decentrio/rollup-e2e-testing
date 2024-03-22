@@ -1289,3 +1289,28 @@ func (node *Node) logger() *zap.Logger {
 func (node *Node) Logger() *zap.Logger {
 	return node.logger()
 }
+
+// Celestia DA funcs
+
+// CelestiaDaBridgeInit init Celestia DA bridge
+func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string) error{
+	command := []string{"celestia-da", "bridge", "init", "--node.store", nodeStore}
+
+	_, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return fmt.Errorf("failed to init celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+	return nil
+}
+
+//
+func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accname, gatewayAddr, rpcAddr, nameSpace, grpcListen string) error{
+	command := []string{"celestia-da", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--keyring.accname", accname,
+		"--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--da.grpc.namespace", nameSpace, "--da.grpc.listen", "--da.grpc.listen", grpcListen}
+
+	_, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+	return nil
+}

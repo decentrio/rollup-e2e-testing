@@ -785,7 +785,6 @@ func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.Wa
 	_, err := node.ExecTx(ctx,
 		keyName, "bank", "send", keyName,
 		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
-		"--broadcast-mode", "block",
 	)
 	return err
 }
@@ -925,6 +924,20 @@ func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*Propos
 		return nil, err
 	}
 	return &proposal, nil
+}
+
+// QueryModuleAccount returns the information about a module account
+func (node *Node) QueryModuleAccount(ctx context.Context, moduleName string) (*ModuleAccountResponse, error) {
+	stdout, _, err := node.ExecQuery(ctx, "auth", "module-account", moduleName, "--output=json")
+    if err!= nil {
+        return nil, err
+    }
+    var moduleAccount ModuleAccountResponse
+    err = json.Unmarshal(stdout, &moduleAccount)
+    if err!= nil {
+        return nil, err
+    }
+    return &moduleAccount, nil
 }
 
 // SubmitFraudProposal a fraud proposal to the chain.

@@ -3,6 +3,7 @@ package dym_rollapp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -10,8 +11,10 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	"github.com/icza/dyno"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -230,6 +233,49 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		}
 	}
 
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+
+	// Add balance to hub genesis module account
+	bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
+	if err != nil {
+		return fmt.Errorf("failed to retrieve bank balances: %w", err)
+	}
+	hubgenesisBalance := map[string]interface{}{
+		"address": "ethm1748tamme3jj3v9wq95fc3pmglxtqscljdy7483",
+		"coins": []interface{}{
+			map[string]interface{}{
+				"denom":  chainCfg.Denom,
+				"amount": dymension.GenesisEventAmount.String(),
+			},
+		},
+	}
+
+	newBankBalances := append(bankBalancesData.([]interface{}), hubgenesisBalance)
+	if err := dyno.Set(g, newBankBalances, "app_state", "bank", "balances"); err != nil {
+		return fmt.Errorf("failed to set bank balances in genesis json: %w", err)
+	}
+
+	// Update supply for chain denom
+	bankSupplyAmount, err := dyno.Get(g, "app_state", "bank", "supply", 0, "amount")
+	if err != nil {
+		return fmt.Errorf("failed to retrieve bank supply: %w", err)
+	}
+	amount, ok := sdkmath.NewIntFromString(bankSupplyAmount.(string))
+	if !ok {
+		return fmt.Errorf("failed to parse bank supply amount: %s", bankSupplyAmount)
+	}
+	newBankSupplyAmount := amount.Add(dymension.GenesisEventAmount)
+	if err := dyno.Set(g, newBankSupplyAmount.String(), "app_state", "bank", "supply", 0, "amount"); err != nil {
+		return fmt.Errorf("failed to set bank supply in genesis json: %w", err)
+	}
+
+	outGenBz, err := json.Marshal(g)
+	if err != nil {
+		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
 	// Provide EXPORT_GENESIS_FILE_PATH and EXPORT_GENESIS_CHAIN to help debug genesis file
 	exportGenesis := os.Getenv("EXPORT_GENESIS_FILE_PATH")
 	exportGenesisChain := os.Getenv("EXPORT_GENESIS_CHAIN")
@@ -238,12 +284,12 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			zap.String("chain", exportGenesisChain),
 			zap.String("path", exportGenesis),
 		)
-		_ = os.WriteFile(exportGenesis, genbz, 0600)
+		_ = os.WriteFile(exportGenesis, outGenBz, 0600)
 	}
 	nodes := c.Nodes()
 
 	for _, node := range nodes {
-		if err := node.OverwriteGenesisFile(ctx, genbz); err != nil {
+		if err := node.OverwriteGenesisFile(ctx, outGenBz); err != nil {
 			return err
 		}
 	}

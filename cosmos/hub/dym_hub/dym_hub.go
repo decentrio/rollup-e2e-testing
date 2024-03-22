@@ -24,7 +24,7 @@ import (
 
 type DymHub struct {
 	*cosmos.CosmosChain
-	rollApps    []ibc.RollApp
+	rollApps   []ibc.RollApp
 	extraFlags map[string]interface{}
 }
 
@@ -162,7 +162,10 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	}
 	genesisAccounts := []GenesisAccount{
 		{
-			Amount:  genesisAmount,
+			Amount: types.Coin{
+				Amount: dymension.GenesisEventAmount,
+				Denom:  chainCfg.Denom,
+			},
 			Address: bech32,
 		},
 	}
@@ -173,10 +176,6 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		if err != nil {
 			return err
 		}
-		genesisAccounts = append(genesisAccounts, GenesisAccount{
-			Amount:  genesisAmount,
-			Address: bech32,
-		})
 		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 			return err
 		}
@@ -196,7 +195,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	if err != nil {
 		return err
 	}
-	fmt.Println("file saved to ", c.HomeDir()+"/genesis_accounts.json")
+	c.Logger().Info("file saved to " + c.HomeDir() + "/genesis_accounts.json")
 
 	for _, wallet := range additionalGenesisWallets {
 		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []types.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {

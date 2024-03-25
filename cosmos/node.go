@@ -1303,9 +1303,9 @@ func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string) er
 	return nil
 }
 
-func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string) error {
+func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, coreRpcPort string) error {
 	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, 
-	"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--da.grpc.namespace"}
+	"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--core.rpc.port", coreRpcPort}
 
 	_, stderr, err := node.Exec(ctx, command, nil)
 	if err != nil {

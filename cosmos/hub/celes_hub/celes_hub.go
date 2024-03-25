@@ -37,6 +37,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 		accName     = "validator"
 		gatewayAddr = "0.0.0.0"
 		rpcAddr     = "0.0.0.0"
+		coreRpcPort = "26658"
 	)
 
 	// Start chain
@@ -62,7 +63,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	}
 
 	// start bridge
-	err = c.Nodes()[0].CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr)
+	err = c.Nodes()[0].CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, coreRpcPort)
 	if err != nil {
 		return err
 	}

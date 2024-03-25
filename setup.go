@@ -305,6 +305,8 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		c0 := link.chains[0]
 		c1 := link.chains[1]
 
+		log.Default().Println("source and dest", c0, "and -----------------------", c1)
+
 		if err := rp.Relayer.GeneratePath(ctx, rep, c0.Config().ChainID, c1.Config().ChainID, rp.Path); err != nil {
 			return fmt.Errorf(
 				"failed to generate path %s on relayer %s between chains %s and %s: %w",

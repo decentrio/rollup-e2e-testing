@@ -3,6 +3,7 @@ package celes_hub
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -37,9 +38,9 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	if err := c.RegisterEVMValidatorToHub(ctx, "validator"); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
-	//cp -r $APP_PATH/keyring-test/ $NODE_PATH/keys/keyring-test/
-	src := "/tmp/" + c.HomeDir() + "/keyring-test/"
-	dst := "/tmp/celestia/bridge/keys/keyring-test/"
+	tmp := strings.Split(c.HomeDir(), "/")
+	src := "/tmp/" + tmp[len(tmp) - 1] + "/keyring-test"
+	dst := "/tmp/celestia/bridge/keys/keyring-test"
 	util.CopyDir(src, dst)
 
 	return nil

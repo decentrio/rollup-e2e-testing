@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -19,9 +20,15 @@ func AssertBalance(t *testing.T, ctx context.Context, chain ibc.Chain, address s
 }
 
 func CopyDir(src, dst string) error {
-	// Create destination directory
-	if err := os.MkdirAll(dst, 0755); err != nil {
-		return err
+	// Check source directory is exists
+	if _, err := os.Stat(src); os.IsNotExist(err) {
+		return fmt.Errorf("source directory is not exist %s: %s", src, err)
+	}
+	// Check destination directory is exists, if not create it
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
+		if err := os.MkdirAll(dst, 0755); err != nil {
+			return fmt.Errorf("can not create destination directory %s: %s", dst, err)
+		}
 	}
 
 	entries, err := os.ReadDir(src)

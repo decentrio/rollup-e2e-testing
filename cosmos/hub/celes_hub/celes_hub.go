@@ -30,6 +30,15 @@ func NewCelesHub(testName string, chainConfig ibc.ChainConfig, numValidators int
 }
 
 func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+	// DA bridge parameters
+	var (
+		nodeStore   = "/home/celestia/bridge"
+		coreIp      = "127.0.0.1"
+		accName     = "validator"
+		gatewayAddr = "0.0.0.0"
+		rpcAddr     = "0.0.0.0"
+	)
+
 	// Start chain
 	err := c.CosmosChain.Start(testName, ctx, additionalGenesisWallets...)
 	if err != nil {
@@ -38,10 +47,25 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	if err := c.RegisterEVMValidatorToHub(ctx, "validator"); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
+	// copy data from app path to node path
 	tmp := strings.Split(c.HomeDir(), "/")
-	src := "/tmp/" + tmp[len(tmp) - 1] + "/keyring-test"
+	src := "/tmp/" + tmp[len(tmp)-1] + "/keyring-test"
 	dst := "/tmp/celestia/bridge/keys/keyring-test"
 	util.CopyDir(src, dst)
+
+	c.Nodes().LogGenesisHashes(ctx)
+
+	// initialize bridge
+	err = c.Nodes()[0].CelestiaDaBridgeInit(ctx, nodeStore)
+	if err != nil {
+		return err
+	}
+
+	// start bridge
+	err = c.Nodes()[0].CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

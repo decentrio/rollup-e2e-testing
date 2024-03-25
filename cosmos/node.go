@@ -18,7 +18,7 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	// "github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -1033,41 +1033,41 @@ func (node *Node) UnsafeResetAll(ctx context.Context) error {
 	return err
 }
 
-func (node *Node) GetGenesisHash(ctx context.Context) []byte {
-	var genesis []byte
-	cnt := 0
-	max := 100 // Set your desired value for MAX
-	for len(genesis) <= 4 && cnt != max {
+// func (node *Node) GetGenesisHash(ctx context.Context) []byte {
+// 	var genesis []byte
+// 	cnt := 0
+// 	max := 100 // Set your desired value for MAX
+// 	for len(genesis) <= 4 && cnt != max {
 
-		blockHeight, err := node.QueryBlockHeight(ctx, 1)
-		if err != nil {
-			node.logger().Info("Block was not yet produced")
-			time.Sleep(1 * time.Second)
-			continue
-		}
+// 		blockHeight, err := node.QueryBlockHeight(ctx, 1)
+// 		if err != nil {
+// 			node.logger().Info("Block was not yet produced")
+// 			time.Sleep(1 * time.Second)
+// 			continue
+// 		}
 
-		genesis = blockHeight.BlockId.Hash
-		cnt++
-		time.Sleep(1 * time.Second)
-	}
+// 		genesis = blockHeight.BlockId.Hash
+// 		cnt++
+// 		time.Sleep(1 * time.Second)
+// 	}
 
-	return genesis
-}
+// 	return genesis
+// }
 
-func (node *Node) QueryBlockHeight(ctx context.Context, height uint64) (*tmservice.GetBlockByHeightResponse, error) {
-	stdout, _, err := node.ExecQuery(ctx, "block", fmt.Sprintf("%d", height))
-	if err != nil {
-		return nil, err
-	}
+// func (node *Node) QueryBlockHeight(ctx context.Context, height uint64) (*tmservice.GetBlockByHeightResponse, error) {
+// 	stdout, _, err := node.ExecQuery(ctx, "block", fmt.Sprintf("%d", height))
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var blockHeight tmservice.GetBlockByHeightResponse
-	err = json.Unmarshal(stdout, &blockHeight)
-	if err != nil {
-		return nil, err
-	}
+// 	var blockHeight tmservice.GetBlockByHeightResponse
+// 	err = json.Unmarshal(stdout, &blockHeight)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &blockHeight, nil
-}
+// 	return &blockHeight, nil
+// }
 
 func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	chainCfg := node.Chain.Config()
@@ -1303,9 +1303,9 @@ func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string) er
 	return nil
 }
 
-func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accname, gatewayAddr, rpcAddr, nameSpace, grpcListen string) error {
-	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--keyring.accname", accname,
-		"--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--da.grpc.namespace", nameSpace, "--da.grpc.listen", "--da.grpc.listen", grpcListen}
+func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string) error {
+	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, 
+	"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--da.grpc.namespace"}
 
 	_, stderr, err := node.Exec(ctx, command, nil)
 	if err != nil {

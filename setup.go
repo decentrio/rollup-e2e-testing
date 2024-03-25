@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
@@ -317,41 +318,42 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	// Creates clients, connections, and channels for each link/path.
 	var eg errgroup.Group
 	for rp, link := range s.links {
+
 		rp := rp
 		link := link
 		c0 := link.chains[0]
 		c1 := link.chains[1]
-		eg.Go(func() error {
-			// If the user specifies a zero value CreateClientOptions struct then we fall back to the default
-			// client options.
-			if link.createClientOpts == (ibc.CreateClientOptions{}) {
-				link.createClientOpts = ibc.DefaultClientOpts()
-			}
 
-			// Check that the client creation options are valid and fully specified.
-			if err := link.createClientOpts.Validate(); err != nil {
-				return err
-			}
+		// If the user specifies a zero value CreateClientOptions struct then we fall back to the default
+		// client options.
+		if link.createClientOpts == (ibc.CreateClientOptions{}) {
+			link.createClientOpts = ibc.DefaultClientOpts()
+		}
 
-			// If the user specifies a zero value CreateChannelOptions struct then we fall back to the default
-			// channel options for an ics20 fungible token transfer channel.
-			if link.createChannelOpts == (ibc.CreateChannelOptions{}) {
-				link.createChannelOpts = ibc.DefaultChannelOpts()
-			}
+		// Check that the client creation options are valid and fully specified.
+		if err := link.createClientOpts.Validate(); err != nil {
+			return err
+		}
 
-			// Check that the channel creation options are valid and fully specified.
-			if err := link.createChannelOpts.Validate(); err != nil {
-				return err
-			}
+		// If the user specifies a zero value CreateChannelOptions struct then we fall back to the default
+		// channel options for an ics20 fungible token transfer channel.
+		if link.createChannelOpts == (ibc.CreateChannelOptions{}) {
+			link.createChannelOpts = ibc.DefaultChannelOpts()
+		}
 
-			if err := rp.Relayer.LinkPath(ctx, rep, rp.Path, link.createChannelOpts, link.createClientOpts); err != nil {
-				return fmt.Errorf(
-					"failed to link path %s on relayer %s between chains %s and %s: %w",
-					rp.Path, rp.Relayer, s.chains[c0], s.chains[c1], err,
-				)
-			}
-			return nil
-		})
+		// Check that the channel creation options are valid and fully specified.
+		if err := link.createChannelOpts.Validate(); err != nil {
+			return err
+		}
+
+		if err := rp.Relayer.LinkPath(ctx, rep, rp.Path, link.createChannelOpts, link.createClientOpts); err != nil {
+			return fmt.Errorf(
+				"failed to link path %s on relayer %s between chains %s and %s: %w",
+				rp.Path, rp.Relayer, s.chains[c0], s.chains[c1], err,
+			)
+		}
+
+		time.Sleep(10 * time.Second)
 	}
 
 	return eg.Wait()

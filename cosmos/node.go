@@ -18,6 +18,7 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -37,7 +38,6 @@ import (
 	libclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 )
 
 // Node represents a node in the test network that is being created
@@ -1038,14 +1038,14 @@ func (node *Node) GetGenesisHash(ctx context.Context) []byte {
 	cnt := 0
 	max := 100 // Set your desired value for MAX
 	for len(genesis) <= 4 && cnt != max {
-		
+
 		blockHeight, err := node.QueryBlockHeight(ctx, 1)
 		if err != nil {
 			node.logger().Info("Block was not yet produced")
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		
+
 		genesis = blockHeight.BlockId.Hash
 		cnt++
 		time.Sleep(1 * time.Second)
@@ -1293,8 +1293,8 @@ func (node *Node) Logger() *zap.Logger {
 // Celestia DA funcs
 
 // CelestiaDaBridgeInit init Celestia DA bridge
-func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string) error{
-	command := []string{"celestia-da", "bridge", "init", "--node.store", nodeStore}
+func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string) error {
+	command := []string{"celestia", "bridge", "init", "--node.store", nodeStore}
 
 	_, stderr, err := node.Exec(ctx, command, nil)
 	if err != nil {
@@ -1303,9 +1303,8 @@ func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string) er
 	return nil
 }
 
-//
-func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accname, gatewayAddr, rpcAddr, nameSpace, grpcListen string) error{
-	command := []string{"celestia-da", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--keyring.accname", accname,
+func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accname, gatewayAddr, rpcAddr, nameSpace, grpcListen string) error {
+	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--keyring.accname", accname,
 		"--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--da.grpc.namespace", nameSpace, "--da.grpc.listen", "--da.grpc.listen", grpcListen}
 
 	_, stderr, err := node.Exec(ctx, command, nil)

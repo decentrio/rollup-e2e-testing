@@ -6,6 +6,7 @@ import (
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	util "github.com/decentrio/rollup-e2e-testing/testutil"
 	"go.uber.org/zap"
 )
 
@@ -36,6 +37,11 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	if err := c.RegisterEVMValidatorToHub(ctx, "validator"); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
+	//cp -r $APP_PATH/keyring-test/ $NODE_PATH/keys/keyring-test/
+	src := "/tmp/" + c.HomeDir() + "/keyring-test/"
+	dst := "/tmp/celestia/bridge/keys/keyring-test/"
+	util.CopyDir(src, dst)
+
 	return nil
 }
 

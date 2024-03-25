@@ -213,7 +213,7 @@ type PrivValidatorKeyFile struct {
 
 // Bind returns the home folder bind point for running the node
 func (node *Node) Bind() []string {
-	return []string{fmt.Sprintf("%s:%s", "/tmp", "/var/cosmos-chain")}
+	return []string{fmt.Sprintf("%s:%s", "/tmp", "/var/cosmos-chain"), fmt.Sprintf("%s:%s", "/tmp/celestia", "/home/celestia")}
 }
 
 func (node *Node) HomeDir() string {

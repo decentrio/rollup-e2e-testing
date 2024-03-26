@@ -130,3 +130,19 @@ type BaseAccount struct {
     AccountNumber string      `json:"account_number"`
     Sequence      string      `json:"sequence"`
 }
+
+type CelestiaResponse struct {
+	Result CelestiaBlockResult `json:"result"`
+}
+
+type CelestiaBlockResult struct {
+	Block CelestiaBlock `json:"block"`
+}
+
+type CelestiaBlock struct {
+	Header CelestiaBlockHeader `json:"header"`
+}
+
+type CelestiaBlockHeader struct {
+	Height string `json:"height"`
+}

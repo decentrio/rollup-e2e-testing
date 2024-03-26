@@ -105,7 +105,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "v2.4.2", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client,  "relayer", network)
 
 	ic := test.NewSetup().
 		AddChain(celestia).

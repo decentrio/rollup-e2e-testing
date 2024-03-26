@@ -49,6 +49,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	if err := c.RegisterEVMValidatorToHub(ctx, "validator"); err != nil {
 		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 	}
+	// TODO: fix the hard code here
 	// copy data from app path to node path
 	tmp := strings.Split(c.HomeDir(), "/")
 	src := "/tmp/" + tmp[len(tmp)-1] + "/keyring-test"
@@ -62,13 +63,13 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	env := []string{"CELESTIA_CUSTOM=test:" + hash}
 
 	// initialize bridge
-	err = c.GetNode().CelestiaDaBridgeInit(ctx, nodeStore, env)
+	err = c.GetNode().InitCelestiaDaBridge(ctx, nodeStore, env)
 	if err != nil {
 		return err
 	}
 
 	// start bridge
-	go c.GetNode().CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
+	go c.GetNode().StartCelestiaDaBridge(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
 
 	return nil
 }

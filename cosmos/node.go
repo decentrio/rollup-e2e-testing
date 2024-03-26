@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"io"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -1335,8 +1337,8 @@ func (node *Node) Logger() *zap.Logger {
 
 // Celestia DA funcs
 
-// CelestiaDaBridgeInit init Celestia DA bridge
-func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string, env []string) error {
+// InitCelestiaDaBridge init Celestia DA bridge
+func (node *Node) InitCelestiaDaBridge(ctx context.Context, nodeStore string, env []string) error {
 	command := []string{"celestia", "bridge", "init", "--node.store", nodeStore}
 
 	_, stderr, err := node.Exec(ctx, command, env)
@@ -1345,8 +1347,8 @@ func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string, en
 	}
 	return nil
 }
-
-func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string, env []string) error {
+// StartCelestiaDaBridge start Celestia DA bridge
+func (node *Node) StartCelestiaDaBridge(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string, env []string) error {
 	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp,
 		"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr}
 
@@ -1355,4 +1357,41 @@ func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, 
 		return fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
 	}
 	return nil
+}
+
+// GetAuthTokenCelestiaDaBridge get token auth of Celestia DA bridge
+func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore string) (token string, err error) {
+	// TODO: docker exec $(docker ps -q) ?
+	command := []string{"celestia", "bridge", "auth", "admin", "--node.store", nodeStore}
+
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+
+	return string(stdout), nil
+}
+
+// DA functions
+func (node *Node) GetDABlockHeight() string {
+	resp, err := http.Get(fmt.Sprintf("tcp://%s:26657/block", node.HostName()))
+	if err != nil {
+		node.logger().Info("celestia block response read failed ", zap.String("error", err.Error()))
+		return ""
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		node.logger().Info("celestia block response read failed ", zap.String("error", err.Error()))
+		return ""
+	}
+
+	var celestiaResult CelestiaResponse
+	if err := json.Unmarshal(body, &celestiaResult); err != nil {
+		node.logger().Info("celestia block response unmarshal failed ", zap.String("error", err.Error()))
+		return ""
+	}
+	return celestiaResult.Result.Block.Header.Height
 }

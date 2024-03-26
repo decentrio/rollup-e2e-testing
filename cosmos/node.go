@@ -18,7 +18,6 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -1033,21 +1032,29 @@ func (node *Node) UnsafeResetAll(ctx context.Context) error {
 	return err
 }
 
-func (node *Node) QueryBlockHeight(ctx context.Context, height string) (*tmservice.GetBlockByHeightResponse, error) {
+func (node *Node) QueryHashOfBlockHeight(ctx context.Context, height string) (string, error) {
 	command := []string{"celestia-appd", "query", "block", height, "--node", fmt.Sprintf("tcp://%s:26657", node.HostName())}
 
 	stdout, _, err := node.Exec(ctx, command, nil)
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+	var jsonResult map[string]interface{}
+	if err := json.Unmarshal(stdout, &jsonResult); err != nil {
+		return "", err
 	}
 
-	var blockHeight tmservice.GetBlockByHeightResponse
-	err = tmjson.Unmarshal(stdout, &blockHeight)
-	if err != nil {
-		return nil, err
+	blockId, ok := jsonResult["block_id"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("failed to parse block id")
 	}
 
-	return &blockHeight, nil
+	hash, ok := blockId["hash"].(string)
+	if !ok {
+		return "", fmt.Errorf("failed to parse block hash from block id ")
+	}
+
+	return hash, nil
 }
 
 func (node *Node) CreateNodeContainer(ctx context.Context) error {

@@ -55,11 +55,11 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	dst := "/tmp/celestia/bridge/keys/keyring-test"
 	util.CopyDir(src, dst)
 
-	blockHeight, err := c.GetNode().QueryBlockHeight(ctx, heightQuery)
+	hash, err := c.GetNode().QueryHashOfBlockHeight(ctx, heightQuery)
 	if err != nil {
-		return fmt.Errorf("failed to fetch block height %s: %w", heightQuery, err)
+		return fmt.Errorf("failed to fetch hash of block height %s: %w", heightQuery, err)
 	}
-	env := []string{"CELESTIA_CUSTOM=test:" + string(blockHeight.BlockId.Hash)}
+	env := []string{"CELESTIA_CUSTOM=test:" + hash}
 
 	// initialize bridge
 	err = c.GetNode().CelestiaDaBridgeInit(ctx, nodeStore, env)

@@ -32,9 +32,9 @@ func NewCelesHub(testName string, chainConfig ibc.ChainConfig, numValidators int
 func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	// DA bridge parameters
 	var (
-		nodeStore   = "/tmp/celestia/bridge"
+		nodeStore = "/home/celestia/bridge"
 		//coreIp      = "127.0.0.1"
-		coreIp = fmt.Sprintf("tcp://%s", c.GetNode().Name())
+		coreIp      = fmt.Sprintf("tcp://%s", c.GetNode().Name())
 		accName     = "validator"
 		gatewayAddr = "0.0.0.0"
 		rpcAddr     = "0.0.0.0"

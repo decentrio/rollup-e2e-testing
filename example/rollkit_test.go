@@ -73,7 +73,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 				Type:           "hub-celes",
 				GasPrices:      "0utia",
 				TrustingPeriod: "112h",
-				ChainID:        "celestia1",
+				ChainID:        "test",
 				Bin:            "celestia-appd",
 				Images: []ibc.DockerImage{
 					{

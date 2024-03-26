@@ -68,10 +68,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	}
 
 	// start bridge
-	err = c.GetNode().CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
-	if err != nil {
-		return err
-	}
+	go c.GetNode().CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
 
 	return nil
 }

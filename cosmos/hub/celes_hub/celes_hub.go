@@ -38,6 +38,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 		gatewayAddr = "0.0.0.0"
 		rpcAddr     = "0.0.0.0"
 		coreRpcPort = "26658"
+		heightQuery = "1"
 	)
 
 	// Start chain
@@ -54,16 +55,20 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	dst := "/tmp/celestia/bridge/keys/keyring-test"
 	util.CopyDir(src, dst)
 
-	c.Nodes().LogGenesisHashes(ctx)
+	blockHeight, err := c.GetNode().QueryBlockHeight(ctx, heightQuery)
+	if err != nil {
+		return fmt.Errorf("failed to fetch block height %s: %w", heightQuery, err)
+	}
+	env := []string{"CELESTIA_CUSTOM=test:" + string(blockHeight.BlockId.Hash)}
 
 	// initialize bridge
-	err = c.Nodes()[0].CelestiaDaBridgeInit(ctx, nodeStore)
+	err = c.GetNode().CelestiaDaBridgeInit(ctx, nodeStore, env)
 	if err != nil {
 		return err
 	}
 
 	// start bridge
-	err = c.Nodes()[0].CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, coreRpcPort)
+	err = c.GetNode().CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, coreRpcPort, env)
 	if err != nil {
 		return err
 	}

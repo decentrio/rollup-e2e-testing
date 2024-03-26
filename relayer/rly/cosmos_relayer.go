@@ -23,7 +23,7 @@ type CosmosRelayer struct {
 	*relayer.DockerRelayer
 }
 
-func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, networkID string, options ...relayer.RelayerOption) *CosmosRelayer {
+func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, relayerName, networkID string, options ...relayer.RelayerOption) *CosmosRelayer {
 	c := commander{log: log}
 	for _, opt := range options {
 		switch o := opt.(type) {
@@ -31,7 +31,7 @@ func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, netw
 			c.extraStartFlags = o.Flags
 		}
 	}
-	dr, err := relayer.NewDockerRelayer(context.TODO(), log, testName, cli, networkID, c, options...)
+	dr, err := relayer.NewDockerRelayer(context.TODO(), log, testName, cli, relayerName, networkID, c, options...)
 	if err != nil {
 		panic(err) // TODO: return
 	}

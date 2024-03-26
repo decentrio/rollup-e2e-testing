@@ -103,3 +103,30 @@ type ContractStateModels struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+type StateIndexResponse struct {
+	StateIndex StateIndex `json:"stateIndex"`
+}
+
+type StateIndex struct {
+	RollappID string `json:"rollappId"`
+	Index     string `json:"index"`
+}
+
+type ModuleAccountResponse struct {
+	Account ModuleAccount `json:"account"`
+}
+
+type ModuleAccount struct {
+	Type    string `json:"@type"`
+	BaseAccount BaseAccount `json:"base_account"`
+    Name        string      `json:"name"`
+    Permissions []string    `json:"permissions"`
+}
+
+type BaseAccount struct {
+    Address       string      `json:"address"`
+    PubKey        interface{} `json:"pub_key"`
+    AccountNumber string      `json:"account_number"`
+    Sequence      string      `json:"sequence"`
+}

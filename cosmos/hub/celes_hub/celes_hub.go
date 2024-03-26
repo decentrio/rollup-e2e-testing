@@ -84,8 +84,8 @@ func (c *CelesHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappC
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *CelesHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir)
+func (c *CelesHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
 func (c *CelesHub) SetRollApp(rollApp ibc.RollApp) {
@@ -95,4 +95,9 @@ func (c *CelesHub) SetRollApp(rollApp ibc.RollApp) {
 func (c *CelesHub) GetRollApp() ibc.RollApp {
 	// Todo
 	return nil
+}
+
+func (c *CelesHub) GetRollApps() []ibc.RollApp {
+	// TODO
+	return  nil
 }

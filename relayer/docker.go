@@ -26,8 +26,8 @@ const (
 // DockerRelayer provides a common base for relayer implementations
 // that run on Docker.
 type DockerRelayer struct {
-	log *zap.Logger
-
+	log         *zap.Logger
+	relayerName string
 	// c defines all the commands to run inside the container.
 	c RelayerCommander
 
@@ -52,14 +52,15 @@ type DockerRelayer struct {
 var _ ibc.Relayer = (*DockerRelayer)(nil)
 
 // NewDockerRelayer returns a new DockerRelayer.
-func NewDockerRelayer(ctx context.Context, log *zap.Logger, testName string, cli *client.Client, networkID string, c RelayerCommander, options ...RelayerOption) (*DockerRelayer, error) {
+func NewDockerRelayer(ctx context.Context, log *zap.Logger, testName string, cli *client.Client, relayerName, networkID string, c RelayerCommander, options ...RelayerOption) (*DockerRelayer, error) {
 	r := DockerRelayer{
 		log: log,
 
 		c: c,
 
-		networkID: networkID,
-		client:    cli,
+		relayerName: relayerName,
+		networkID:   networkID,
+		client:      cli,
 
 		// pull true by default, can be overridden with options
 		pullImage: true,
@@ -154,7 +155,7 @@ func (r *DockerRelayer) AddChainConfiguration(ctx context.Context, rep ibc.Relay
 	}
 
 	fw := dockerutil.NewFileWriter(r.log, r.client, r.testName)
-	if err := fw.RelayerWriteFile(ctx, r.volumeName, r.Name(), chainConfigFile, configContent); err != nil {
+	if err := fw.RelayerWriteFile(ctx, r.volumeName, r.relayerName, chainConfigFile, configContent); err != nil {
 		return fmt.Errorf("failed to rly config: %w", err)
 	}
 
@@ -456,7 +457,7 @@ func (r *DockerRelayer) Name() string {
 
 // Bind returns the home folder bind point for running the node.
 func (r *DockerRelayer) Bind() []string {
-	return []string{"/tmp/rly" + ":" + r.HomeDir()}
+	return []string{"/tmp/" + r.relayerName + ":" + r.HomeDir()}
 }
 
 // HomeDir returns the home directory of the relayer on the underlying Docker container's filesystem.

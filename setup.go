@@ -78,22 +78,24 @@ type relayerPath struct {
 	Path    string
 }
 
-func (s *Setup) AddRollUp(hub ibc.Chain, rollApp ibc.Chain) *Setup {
+func (s *Setup) AddRollUp(hub ibc.Chain, rollApps ...ibc.Chain) *Setup {
 	h, ok := hub.(ibc.Hub)
 	if !ok {
 		panic("Error Hub chain")
 	}
 
-	a, ok := rollApp.(ibc.RollApp)
-	if !ok {
-		panic("Error RollApp chain")
-	}
-
-	h.SetRollApp(a)
-
 	s.AddChain(hub)
-	s.AddChain(rollApp)
 
+	for _, rollApp := range rollApps {
+		a, ok := rollApp.(ibc.RollApp)
+		if !ok {
+			panic("Error RollApp chain")
+		}
+
+		h.SetRollApp(a)
+
+		s.AddChain(rollApp)
+	}
 	return s
 }
 
@@ -277,19 +279,19 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		// Error already wrapped with appropriate detail.
 		return err
 	}
+	for r := range s.relayerChains() {
+		filePath := "/tmp/" + s.relayers[r] + "/config/config.yaml"
 
-	filePath := "/tmp/rly/config/config.yaml"
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Fatalf("Failed to read file: %s", err)
+		}
 
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Fatalf("Failed to read file: %s", err)
+		err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
+		if err != nil {
+			log.Fatalf("Failed to write to file: %s", err)
+		}
 	}
-
-	err = os.WriteFile(filePath, []byte(strings.ReplaceAll(string(content), `extra-codecs: []`, `extra-codecs: ["ethermint"]`)), 0644)
-	if err != nil {
-		log.Fatalf("Failed to write to file: %s", err)
-	}
-
 	// Some tests may want to configure the relayer from a lower level,
 	// but still have wallets configured.
 	if opts.SkipPathCreation {
@@ -464,7 +466,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 
 			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
 				Address: wallet.FormattedAddress(),
-				Amount:  math.NewInt(50_000_000_000_000),
+				Amount:  math.NewInt(10_000_000_000_000),
 				Denom:   c.Config().Denom,
 			})
 			if err != nil {

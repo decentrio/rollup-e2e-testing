@@ -9,11 +9,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) ibc.Chain {
+func NewRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger, extraFlags map[string]interface{}) ibc.Chain {
 	chainType := strings.Split(chainConfig.Type, "-")
 
 	if chainType[1] == "dym" {
-		return dym_rollapp.NewDymRollApp(testName, chainConfig, numValidators, numFullNodes, log)
+		return dym_rollapp.NewDymRollApp(testName, chainConfig, numValidators, numFullNodes, log, extraFlags)
 	} else if chainType[1] == "gm" {
 		return gm_rollapp.NewGmRollApp(testName, chainConfig, numValidators, numFullNodes, log)
 	}

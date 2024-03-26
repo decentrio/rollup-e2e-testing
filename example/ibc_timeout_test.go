@@ -86,7 +86,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).

@@ -1032,7 +1032,7 @@ func (node *Node) UnsafeResetAll(ctx context.Context) error {
 	return err
 }
 
-func (node *Node) QueryHashOfBlockHeight(ctx context.Context, height string) (string, error) {
+func (node *Node) GetHashOfBlockHeight(ctx context.Context, height string) (string, error) {
 	command := []string{"celestia-appd", "query", "block", height, "--node", fmt.Sprintf("tcp://%s:26657", node.HostName())}
 
 	stdout, _, err := node.Exec(ctx, command, nil)
@@ -1291,9 +1291,9 @@ func (node *Node) CelestiaDaBridgeInit(ctx context.Context, nodeStore string, en
 	return nil
 }
 
-func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, coreRpcPort string, env []string) error {
+func (node *Node) CelestiaDaBridgeStart(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string, env []string) error {
 	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp,
-		"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr, "--core.rpc.port", coreRpcPort}
+		"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr}
 
 	_, stderr, err := node.Exec(ctx, command, env)
 	if err != nil {

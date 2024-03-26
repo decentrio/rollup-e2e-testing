@@ -32,12 +32,12 @@ func NewCelesHub(testName string, chainConfig ibc.ChainConfig, numValidators int
 func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	// DA bridge parameters
 	var (
-		nodeStore   = "/home/celestia/bridge"
-		coreIp      = "127.0.0.1"
+		nodeStore   = "/tmp/celestia/bridge"
+		//coreIp      = "127.0.0.1"
+		coreIp = fmt.Sprintf("tcp://%s", c.GetNode().Name())
 		accName     = "validator"
 		gatewayAddr = "0.0.0.0"
 		rpcAddr     = "0.0.0.0"
-		coreRpcPort = "26658"
 		heightQuery = "1"
 	)
 
@@ -55,7 +55,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	dst := "/tmp/celestia/bridge/keys/keyring-test"
 	util.CopyDir(src, dst)
 
-	hash, err := c.GetNode().QueryHashOfBlockHeight(ctx, heightQuery)
+	hash, err := c.GetNode().GetHashOfBlockHeight(ctx, heightQuery)
 	if err != nil {
 		return fmt.Errorf("failed to fetch hash of block height %s: %w", heightQuery, err)
 	}
@@ -68,7 +68,7 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	}
 
 	// start bridge
-	err = c.GetNode().CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, coreRpcPort, env)
+	err = c.GetNode().CelestiaDaBridgeStart(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
 	if err != nil {
 		return err
 	}

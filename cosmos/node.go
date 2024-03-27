@@ -1413,7 +1413,7 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(genbz))
+
 	appGenesis := map[string]interface{}{}
 	err = json.Unmarshal(genbz, &appGenesis)
 	if err != nil {

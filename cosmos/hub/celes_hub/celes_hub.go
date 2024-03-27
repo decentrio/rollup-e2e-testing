@@ -13,6 +13,7 @@ import (
 
 type CelesHub struct {
 	*cosmos.CosmosChain
+	rollApps []ibc.RollApp
 }
 
 var _ ibc.Chain = (*CelesHub)(nil)
@@ -71,6 +72,17 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	// start bridge
 	go c.GetNode().StartCelestiaDaBridge(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
 
+	token, err := c.GetNode().GetAuthTokenCelestiaDaBridge(ctx, nodeStore)
+	if err != nil {
+		return err
+	}
+
+	c.GetRollApps()[0].SetAuthToken(token)
+
+	daBlockHeight := c.GetNode().GetDABlockHeight()
+
+	c.GetRollApps()[0].SetDABlockHeight(daBlockHeight)
+
 	return nil
 }
 
@@ -90,15 +102,9 @@ func (c *CelesHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappCha
 }
 
 func (c *CelesHub) SetRollApp(rollApp ibc.RollApp) {
-	// Todo
-}
-
-func (c *CelesHub) GetRollApp() ibc.RollApp {
-	// Todo
-	return nil
+	c.rollApps = append(c.rollApps, rollApp)
 }
 
 func (c *CelesHub) GetRollApps() []ibc.RollApp {
-	// TODO
-	return  nil
+	return c.rollApps
 }

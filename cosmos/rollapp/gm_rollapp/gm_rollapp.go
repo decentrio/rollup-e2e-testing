@@ -22,6 +22,8 @@ const (
 
 type GmRollApp struct {
 	*cosmos.CosmosChain
+	token         string
+	daBlockHeight string
 }
 
 var _ ibc.Chain = (*GmRollApp)(nil)
@@ -44,11 +46,13 @@ func (c *GmRollApp) Start(testName string, ctx context.Context, additionalGenesi
 		return err
 	}
 
+	cmd := []string{c.Config().Bin, "start", "--rollkit.aggregator", fmt.Sprintf("--rollkit.da_auth_token=%s", c.GetAuthToken()), "--rollkit.da_namespace", "00000000000000000000000000000000000000000008e5f679bf7116cb", "--rollkit.da_start_height", c.GetDABlockHeight()}
+
 	eg, egCtx := errgroup.WithContext(ctx)
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
-			return n.CreateNodeContainer(egCtx)
+			return n.CreateNodeContainer(egCtx, cmd)
 		})
 	}
 	if err := eg.Wait(); err != nil {
@@ -241,7 +245,11 @@ func (c *GmRollApp) Configuration(testName string, ctx context.Context, addition
 		if err := node.OverwriteGenesisFile(ctx, genbz); err != nil {
 			return err
 		}
+		if err := node.ModifyConsensusGenesis(ctx); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
@@ -258,4 +266,20 @@ func (c *GmRollApp) GetSequencer() string {
 func (c *GmRollApp) GetSequencerKeyDir() string {
 	// Todo
 	return ""
+}
+
+func (c *GmRollApp) GetAuthToken() string {
+	return c.token
+}
+
+func (c *GmRollApp) SetAuthToken(token string) {
+	c.token = token
+}
+
+func (c *GmRollApp) GetDABlockHeight() string {
+	return c.daBlockHeight
+}
+
+func (c *GmRollApp) SetDABlockHeight(daBlockHeight string) {
+	c.daBlockHeight = daBlockHeight
 }

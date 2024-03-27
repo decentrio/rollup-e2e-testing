@@ -55,7 +55,7 @@ func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenes
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
-			return n.CreateNodeContainer(egCtx)
+			return n.CreateNodeContainer(egCtx, nil)
 		})
 	}
 	if err := eg.Wait(); err != nil {
@@ -316,4 +316,19 @@ func (c *DymRollApp) GetSequencer() string {
 
 func (c *DymRollApp) GetSequencerKeyDir() string {
 	return c.sequencerKeyDir
+}
+
+func (c *DymRollApp) GetAuthToken() string {
+	// Not use
+	return ""
+}
+
+func (c *DymRollApp) SetAuthToken(token string) {
+}
+
+func (c *DymRollApp) GetDABlockHeight() string {
+	return ""
+}
+
+func (c *DymRollApp) SetDABlockHeight(daBlockHeight string) {
 }

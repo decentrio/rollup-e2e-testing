@@ -176,7 +176,7 @@ func (node *Node) OverwriteGenesisFile(ctx context.Context, content []byte) erro
 	return nil
 }
 
-func (node *Node) ExtractPrivateValKeyFile(ctx context.Context)  (PrivValidatorKeyFile, error) {
+func (node *Node) ExtractPrivateValKeyFile(ctx context.Context) (PrivValidatorKeyFile, error) {
 	contents, err := node.ReadFile(ctx, "config/priv_validator_key.json")
 	if err != nil {
 		return PrivValidatorKeyFile{}, fmt.Errorf("fail to getting priv_validator_key.json content: %w", err)
@@ -1118,7 +1118,7 @@ func (node *Node) GetHashOfBlockHeight(ctx context.Context, height string) (stri
 	return hash, nil
 }
 
-func (node *Node) CreateNodeContainer(ctx context.Context) error {
+func (node *Node) CreateNodeContainer(ctx context.Context, command []string) error {
 	chainCfg := node.Chain.Config()
 
 	var cmd []string
@@ -1129,6 +1129,11 @@ func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	}
 	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
+	}
+	chainType := strings.Split(chainCfg.Type, "-")
+
+	if chainType[0] == "rollapp" && chainType[1] == "gm" {
+		cmd = append(command, "--home", node.HomeDir())
 	}
 	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd)
 }
@@ -1351,6 +1356,7 @@ func (node *Node) InitCelestiaDaBridge(ctx context.Context, nodeStore string, en
 	}
 	return nil
 }
+
 // StartCelestiaDaBridge start Celestia DA bridge
 func (node *Node) StartCelestiaDaBridge(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string, env []string) error {
 	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp,
@@ -1414,7 +1420,7 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 		return err
 	}
 
-	privateKeys, err :=  node.ExtractPrivateValKeyFile(ctx)
+	privateKeys, err := node.ExtractPrivateValKeyFile(ctx)
 	if err != nil {
 		return err
 	}

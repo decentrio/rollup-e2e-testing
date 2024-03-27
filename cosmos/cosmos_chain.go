@@ -132,7 +132,7 @@ func (c *CosmosChain) AddFullNodes(ctx context.Context, configFileOverrides map[
 					return err
 				}
 			}
-			if err := fn.CreateNodeContainer(ctx); err != nil {
+			if err := fn.CreateNodeContainer(ctx, nil); err != nil {
 				return err
 			}
 			return fn.StartContainer(ctx)
@@ -803,7 +803,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
-			return n.CreateNodeContainer(egCtx)
+			return n.CreateNodeContainer(egCtx, nil)
 		})
 	}
 	if err := eg.Wait(); err != nil {
@@ -933,7 +933,7 @@ func (c *CosmosChain) StartAllNodes(ctx context.Context) error {
 	for _, n := range c.Nodes() {
 		n := n
 		eg.Go(func() error {
-			if err := n.CreateNodeContainer(ctx); err != nil {
+			if err := n.CreateNodeContainer(ctx, nil); err != nil {
 				return err
 			}
 			return n.StartContainer(ctx)

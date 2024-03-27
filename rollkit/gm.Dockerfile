@@ -10,9 +10,9 @@ COPY --from=ignite /usr/bin/ignite /usr/bin/ignite
 
 WORKDIR /apps
 
-RUN ignite scaffold chain gm --address-prefix gm
+COPY --chown=1000:1000 gm .
 
-RUN cd gm && ignite chain build --release
+RUN ignite chain build --release
 
 FROM docker.io/alpine:3.18.3
 
@@ -34,7 +34,7 @@ RUN apk --no-cache add \
         -s /sbin/nologin \
         -u ${UID}
 
-COPY --from=builder /apps/gm/release /release
+COPY --from=builder /apps/release /release
 
 WORKDIR /release
 

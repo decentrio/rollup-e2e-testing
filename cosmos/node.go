@@ -691,25 +691,6 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-func (node *Node) GentxSeq(ctx context.Context, keyName string) error {
-	node.lock.Lock()
-	defer node.lock.Unlock()
-
-	var command []string
-
-	seq, err := node.Chain.(ibc.RollApp).ShowSequencer(ctx)
-	if err != nil {
-		return err
-	}
-
-	command = append(command, "gentx_seq",
-		"--pubkey", seq,
-		"--from", keyName,
-		"--keyring-backend", keyring.BackendTest)
-
-	_, _, err = node.ExecBin(ctx, command...)
-	return err
-}
 
 func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
 	var command []string
@@ -1145,12 +1126,6 @@ func (node *Node) InitValidatorGenTx(
 	}
 	if err := node.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 		return err
-	}
-
-	if _, ok := node.Chain.(ibc.RollApp); ok {
-		if err := node.GentxSeq(ctx, valKey); err != nil {
-			return err
-		}
 	}
 
 	return node.Gentx(ctx, valKey, genesisSelfDelegation)

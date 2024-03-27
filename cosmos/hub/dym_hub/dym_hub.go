@@ -330,6 +330,11 @@ func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChain
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
+// TriggerGenesisEvent trigger rollapp genesis event on dym hub.
+func (c *DymHub) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
+	return c.GetNode().TriggerGenesisEvent(ctx, keyName, rollappChainID, channelId, keyDir)
+}
+
 // QueryLatestIndex returns the latest state index of a rollapp based on rollapp id.
 func (c *DymHub) QueryLatestIndex(ctx context.Context, rollappChainID string) (*cosmos.StateIndexResponse, error) {
 	return c.GetNode().QueryLatestStateIndex(ctx, rollappChainID)

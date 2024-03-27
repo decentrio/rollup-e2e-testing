@@ -715,6 +715,16 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	return err
 }
 
+func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
+	var command []string
+	keyPath := keyDir + "/sequencer_keys"
+	command = append(command, "rollapp", "genesis-event", rollappChainID, channelId,
+		"--broadcast-mode", "block", "--keyring-dir", keyPath)
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 // CollectGentxs runs collect gentxs on the node's home folders
 func (node *Node) CollectGentxs(ctx context.Context) error {
 	command := []string{node.Chain.Config().Bin}

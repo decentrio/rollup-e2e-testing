@@ -176,6 +176,21 @@ func (node *Node) OverwriteGenesisFile(ctx context.Context, content []byte) erro
 	return nil
 }
 
+func (node *Node) ExtractPrivateValKeyFile(ctx context.Context)  (PrivValidatorKeyFile, error) {
+	contents, err := node.ReadFile(ctx, "config/priv_validator_key.json")
+	if err != nil {
+		return PrivValidatorKeyFile{}, fmt.Errorf("fail to getting priv_validator_key.json content: %w", err)
+	}
+
+	var privValidatorKeyFile PrivValidatorKeyFile
+	err = json.Unmarshal(contents, &privValidatorKeyFile)
+	if err != nil {
+		return PrivValidatorKeyFile{}, err
+	}
+
+	return privValidatorKeyFile, nil
+}
+
 func (node *Node) CopyGentx(ctx context.Context, destVal *Node) error {
 	return node.copyGentx(ctx, destVal)
 }
@@ -199,17 +214,6 @@ func (node *Node) copyGentx(ctx context.Context, destVal *Node) error {
 	}
 
 	return nil
-}
-
-type PrivValidatorKey struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
-}
-
-type PrivValidatorKeyFile struct {
-	Address string           `json:"address"`
-	PubKey  PrivValidatorKey `json:"pub_key"`
-	PrivKey PrivValidatorKey `json:"priv_key"`
 }
 
 // Bind returns the home folder bind point for running the node
@@ -1335,7 +1339,7 @@ func (node *Node) Logger() *zap.Logger {
 	return node.logger()
 }
 
-// Celestia DA funcs
+// Celestia DA functions
 
 // InitCelestiaDaBridge init Celestia DA bridge
 func (node *Node) InitCelestiaDaBridge(ctx context.Context, nodeStore string, env []string) error {
@@ -1394,4 +1398,52 @@ func (node *Node) GetDABlockHeight() string {
 		return ""
 	}
 	return celestiaResult.Result.Block.Header.Height
+}
+
+// Rollkit roll app functions
+func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
+	// get genesis file content
+	genbz, err := node.GenesisFileContent(ctx)
+	if err != nil {
+		return err
+	}
+
+	appGenesis := map[string]interface{}{}
+	err = json.Unmarshal(genbz, &appGenesis)
+	if err != nil {
+		return err
+	}
+
+	privateKeys, err :=  node.ExtractPrivateValKeyFile(ctx)
+	if err != nil {
+		return err
+	}
+
+	consensusGenesis := appGenesis["consensus"].(map[string]interface{})
+	consensusGenesis["validators"] = []map[string]interface{}{
+		{
+			"address": privateKeys.Address,
+			"pub_key": map[string]string{
+				"type":  privateKeys.PubKey.Type,
+				"value": privateKeys.PubKey.Value,
+			},
+
+			"power": "1000",
+			"name":  "Rollkit Sequencer",
+		},
+	}
+
+	appGenesis["consensus"] = consensusGenesis
+
+	genbz, err = json.Marshal(appGenesis)
+	if err != nil {
+		return err
+	}
+
+	err = node.OverwriteGenesisFile(ctx, genbz)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

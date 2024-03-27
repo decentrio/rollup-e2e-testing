@@ -46,8 +46,8 @@ func TestRollkitIBCTransfer(t *testing.T) {
 				ChainID: "gm1",
 				Images: []ibc.DockerImage{
 					{
-						Repository: "ghcr.io/rollkit/gm",
-						Version:    "d908f4f",
+						Repository: "ghcr.io/decentrio/gm",
+						Version:    "debug",
 						UidGid:     "1025:1025",
 					},
 				},

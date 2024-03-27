@@ -1,0 +1,17 @@
+syntax = "proto3";
+package gm.gm;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "gm/gm/params.proto";
+
+option go_package = "gm/x/gm/types";
+
+// GenesisState defines the gm module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}

@@ -353,7 +353,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 			)
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(20 * time.Second)
 	}
 
 	return eg.Wait()

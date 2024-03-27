@@ -53,9 +53,9 @@ func TestRollkitIBCTransfer(t *testing.T) {
 				},
 				Bin:                 "gmd",
 				Bech32Prefix:        "gm",
-				Denom:               "ugm",
+				Denom:               "stake",
 				CoinType:            "118",
-				GasPrices:           "0.0ugm",
+				GasPrices:           "0.0stake",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
@@ -105,11 +105,10 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "v2.4.2", "100:1000"),
-	).Build(t, client,  "relayer", network)
+	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
-		AddChain(celestia).
-		AddChain(gm1).
+		AddRollUp(celestia, gm1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
 			Chain1:  celestia,

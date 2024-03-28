@@ -280,6 +280,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		// Error already wrapped with appropriate detail.
 		return err
 	}
+  
 	for r := range s.relayerChains() {
 		filePath := "/tmp/" + s.relayers[r] + "/config/config.yaml"
 
@@ -397,16 +398,6 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 		if s.AdditionalGenesisWallets != nil {
 			walletAmounts[c] = append(walletAmounts[c], s.AdditionalGenesisWallets[c]...)
 		}
-	}
-
-	// Then add all defined relayer wallets.
-	for rc, wallet := range s.relayerWallets {
-		c := rc.C
-		walletAmounts[c] = append(walletAmounts[c], ibc.WalletData{
-			Address: wallet.FormattedAddress(),
-			Denom:   c.Config().Denom,
-			Amount:  math.NewInt(1_000_000_000_000), // Every wallet gets 1t units of denom.
-		})
 	}
 
 	return walletAmounts, nil

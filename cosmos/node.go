@@ -724,13 +724,8 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	if node.Image.Version == "latest" {
-		command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
-			"--broadcast-mode", "block", "--keyring-dir", keyPath)
-	} else {
-		command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}",
-			"--broadcast-mode", "block", "--keyring-dir", keyPath)
-	}
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
+		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err

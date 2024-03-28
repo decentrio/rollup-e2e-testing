@@ -117,7 +117,7 @@ func (c *CosmosChain) AddFullNodes(ctx context.Context, configFileOverrides map[
 			for configFile, modifiedConfig := range configFileOverrides {
 				modifiedToml, ok := modifiedConfig.(testutil.Toml)
 				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
 				}
 				if err := testutil.ModifyTomlConfigFile(
 					ctx,
@@ -664,7 +664,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 			for configFile, modifiedConfig := range configFileOverrides {
 				modifiedToml, ok := modifiedConfig.(testutil.Toml)
 				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
 				}
 				if err := testutil.ModifyTomlConfigFile(
 					ctx,
@@ -697,7 +697,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 			for configFile, modifiedConfig := range configFileOverrides {
 				modifiedToml, ok := modifiedConfig.(testutil.Toml)
 				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
 				}
 				if err := testutil.ModifyTomlConfigFile(
 					ctx,
@@ -1006,11 +1006,11 @@ func (c *CosmosChain) IBCTransfer(ctx context.Context, chainA, chainB ibc.Chain,
 	}
 
 	if !chainAOrigBal.Equal(chainAUpdateBal.Add(transferAmount)) {
-		return fmt.Errorf("Balance not change")
+		return fmt.Errorf("balance not change")
 	}
 
 	if !chainBUpdateBal.Equal(transferAmount) {
-		return fmt.Errorf("Balance not change")
+		return fmt.Errorf("balance not change")
 	}
 
 	err = rly.StopRelayer(ctx, eRep)

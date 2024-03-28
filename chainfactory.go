@@ -56,8 +56,6 @@ func initBuiltinChainConfig(log *zap.Logger) (map[string]ibc.ChainConfig, error)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		// dat = embeddedConfiguredChains
 	}
 
 	builtinChainConfigs := make(map[string]ibc.ChainConfig)

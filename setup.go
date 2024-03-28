@@ -280,7 +280,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		// Error already wrapped with appropriate detail.
 		return err
 	}
-  
+
 	for r := range s.relayerChains() {
 		filePath := "/tmp/" + s.relayers[r] + "/config/config.yaml"
 

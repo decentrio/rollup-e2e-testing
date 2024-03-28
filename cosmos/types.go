@@ -118,15 +118,38 @@ type ModuleAccountResponse struct {
 }
 
 type ModuleAccount struct {
-	Type    string `json:"@type"`
+	Type        string      `json:"@type"`
 	BaseAccount BaseAccount `json:"base_account"`
-    Name        string      `json:"name"`
-    Permissions []string    `json:"permissions"`
+	Name        string      `json:"name"`
+	Permissions []string    `json:"permissions"`
 }
 
 type BaseAccount struct {
-    Address       string      `json:"address"`
-    PubKey        interface{} `json:"pub_key"`
-    AccountNumber string      `json:"account_number"`
-    Sequence      string      `json:"sequence"`
+	Address       string      `json:"address"`
+	PubKey        interface{} `json:"pub_key"`
+	AccountNumber string      `json:"account_number"`
+	Sequence      string      `json:"sequence"`
+}
+
+type DenomMetadataResponse struct {
+	Metadata DenomMetadata `json:"metadata"`
+}
+
+// DenomMetadata represents a struct that describes
+// a basic token.
+type DenomMetadata struct {
+	Description string      `json:"description"`
+	DenomUnits  []DenomUnit `json:"denom_units"`
+	Base        string      `json:"base"`
+	Display     string      `json:"display"`
+	Name        string      `json:"name"`
+	Symbol      string      `json:"symbol"`
+	URI         string      `json:"uri"`
+	URIHash     string      `json:"uri_hash"`
+}
+
+type DenomUnit struct {
+	Denom    string   `json:"denom"`
+	Exponent uint32   `json:"exponent"`
+	Aliases  []string `json:"aliases"`
 }

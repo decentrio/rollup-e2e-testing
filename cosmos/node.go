@@ -691,12 +691,13 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir, metadataFileDir string, flags map[string]string) error {
 	var command []string
 	detail := "{\"Addresses\":[]}"
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
+	command = append(
+		command, "rollapp", "create-rollapp",
+		rollappChainID, maxSequencers, detail, metadataFileDir,
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
@@ -1141,7 +1142,7 @@ func (node *Node) RemoveContainer(ctx context.Context) error {
 // InitValidatorFiles creates the node files and signs a genesis transaction
 func (node *Node) InitValidatorGenTx(
 	ctx context.Context,
-	chainType *ibc.ChainConfig,
+	chainConfig *ibc.ChainConfig,
 	genesisAmounts []types.Coin,
 	genesisSelfDelegation types.Coin,
 ) error {

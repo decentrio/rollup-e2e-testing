@@ -903,6 +903,24 @@ func (node *Node) QueryLatestStateIndex(ctx context.Context, rollappChainID stri
 	return &stateIndex, nil
 }
 
+// QueryDenomMetadata returns denom metadata of a given denom
+func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomMetadata, error) {
+	var command []string
+	command = append(command, "bank", "denom-metadata", "--denom", denom)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var denomMetadata DenomMetadataResponse
+	err = json.Unmarshal(stdout, &denomMetadata)
+	if err != nil {
+		return nil, err
+	}
+	return &denomMetadata.Metadata, nil
+}
+
 // QueryProposal returns the state and details of a governance proposal.
 func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
 	stdout, _, err := node.ExecQuery(ctx, "gov", "proposal", proposalID)

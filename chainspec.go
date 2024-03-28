@@ -40,6 +40,9 @@ type ChainSpec struct {
 	// If unspecified, NumValidators defaults to 2 and NumFullNodes defaults to 1.
 	NumValidators, NumFullNodes *int
 
+	// ExtraFlags appends additional flags when starting the chain.
+	ExtraFlags map[string]interface{}
+
 	// Generate the automatic suffix on demand when needed.
 	autoSuffixOnce sync.Once
 	autoSuffix     string

@@ -3,6 +3,7 @@ package dym_rollapp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -10,8 +11,10 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	"github.com/icza/dyno"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -24,16 +27,18 @@ type DymRollApp struct {
 	*cosmos.CosmosChain
 	sequencerKeyDir string
 	sequencerKey    string
+	extraFlags      map[string]interface{}
 }
 
 var _ ibc.Chain = (*DymRollApp)(nil)
 var _ ibc.RollApp = (*DymRollApp)(nil)
 
-func NewDymRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) *DymRollApp {
+func NewDymRollApp(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger, extraFlags map[string]interface{}) *DymRollApp {
 	cosmosChain := cosmos.NewCosmosChain(testName, chainConfig, numValidators, numFullNodes, log)
 
 	c := &DymRollApp{
 		CosmosChain: cosmosChain,
+		extraFlags:  extraFlags,
 	}
 
 	return c
@@ -103,7 +108,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 
 	eg := new(errgroup.Group)
 	// Initialize config and sign gentx for each validator.
-	for _, v := range c.Validators {
+	for i, v := range c.Validators {
 		v := v
 		c.sequencerKeyDir = v.HomeDir()
 		v.Chain = c
@@ -131,7 +136,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 				}
 			}
 			if !c.Config().SkipGenTx {
-				return v.InitValidatorGenTx(ctx, &chainCfg, genesisAmounts, genesisSelfDelegation)
+				return c.InitValidatorGenTx(ctx, v, i, &chainCfg, genesisAmounts, genesisSelfDelegation)
 			}
 			return nil
 		})
@@ -190,7 +195,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		if err != nil {
 			return err
 		}
-
 		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 			return err
 		}
@@ -201,6 +205,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			}
 		}
 	}
+
 	for _, wallet := range additionalGenesisWallets {
 
 		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
@@ -228,6 +233,51 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		}
 	}
 
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+
+	if c.CosmosChain.Config().Bech32Prefix == "ethm" {
+		// Add balance to hub genesis module account
+		bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
+		if err != nil {
+			return fmt.Errorf("failed to retrieve bank balances: %w", err)
+		}
+		hubgenesisBalance := map[string]interface{}{
+			"address": "ethm1748tamme3jj3v9wq95fc3pmglxtqscljdy7483",
+			"coins": []interface{}{
+				map[string]interface{}{
+					"denom":  chainCfg.Denom,
+					"amount": dymension.GenesisEventAmount.String(),
+				},
+			},
+		}
+
+		newBankBalances := append(bankBalancesData.([]interface{}), hubgenesisBalance)
+		if err := dyno.Set(g, newBankBalances, "app_state", "bank", "balances"); err != nil {
+			return fmt.Errorf("failed to set bank balances in genesis json: %w", err)
+		}
+
+		// Update supply for chain denom
+		bankSupplyAmount, err := dyno.Get(g, "app_state", "bank", "supply", 0, "amount")
+		if err != nil {
+			return fmt.Errorf("failed to retrieve bank supply: %w", err)
+		}
+		amount, ok := sdkmath.NewIntFromString(bankSupplyAmount.(string))
+		if !ok {
+			return fmt.Errorf("failed to parse bank supply amount: %s", bankSupplyAmount)
+		}
+		newBankSupplyAmount := amount.Add(dymension.GenesisEventAmount)
+		if err := dyno.Set(g, newBankSupplyAmount.String(), "app_state", "bank", "supply", 0, "amount"); err != nil {
+			return fmt.Errorf("failed to set bank supply in genesis json: %w", err)
+		}
+	}
+
+	outGenBz, err := json.Marshal(g)
+	if err != nil {
+		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
 	// Provide EXPORT_GENESIS_FILE_PATH and EXPORT_GENESIS_CHAIN to help debug genesis file
 	exportGenesis := os.Getenv("EXPORT_GENESIS_FILE_PATH")
 	exportGenesisChain := os.Getenv("EXPORT_GENESIS_CHAIN")
@@ -236,12 +286,12 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			zap.String("chain", exportGenesisChain),
 			zap.String("path", exportGenesis),
 		)
-		_ = os.WriteFile(exportGenesis, genbz, 0600)
+		_ = os.WriteFile(exportGenesis, outGenBz, 0600)
 	}
 	nodes := c.Nodes()
 
 	for _, node := range nodes {
-		if err := node.OverwriteGenesisFile(ctx, genbz); err != nil {
+		if err := node.OverwriteGenesisFile(ctx, outGenBz); err != nil {
 			return err
 		}
 	}
@@ -266,4 +316,57 @@ func (c *DymRollApp) GetSequencer() string {
 
 func (c *DymRollApp) GetSequencerKeyDir() string {
 	return c.sequencerKeyDir
+}
+
+func (c *DymRollApp) InitValidatorGenTx(
+	ctx context.Context,
+	validator *cosmos.Node,
+	validatorIdx int,
+	chainConfig *ibc.ChainConfig,
+	genesisAmounts []sdk.Coin,
+	genesisSelfDelegation sdk.Coin,
+) error {
+	if err := validator.CreateKey(ctx, valKey); err != nil {
+		return err
+	}
+	bech32, err := validator.AccountKeyBech32(ctx, valKey)
+	if err != nil {
+		return err
+	}
+	if err := validator.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
+		return err
+	}
+
+	if validatorIdx == 0 {
+		genbz, err := validator.GenesisFileContent(ctx)
+		if err != nil {
+			return err
+		}
+
+		valBech32, err := validator.KeyBech32(ctx, valKey, "val")
+		if err != nil {
+			return fmt.Errorf("failed to retrieve val bech32: %w", err)
+		}
+
+		g := make(map[string]interface{})
+		if err := json.Unmarshal(genbz, &g); err != nil {
+			return fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		if err := dyno.Set(g, valBech32, "app_state", "sequencers", "genesis_operator_address"); err != nil {
+			return fmt.Errorf("failed to set genesis operator address in genesis json: %w", err)
+		}
+
+		fmt.Println("genesis_operator_address", valBech32)
+
+		outGenBz, err := json.Marshal(g)
+		if err != nil {
+			return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+		}
+
+		if err := validator.OverwriteGenesisFile(ctx, outGenBz); err != nil {
+			return err
+		}
+	}
+	return validator.Gentx(ctx, valKey, genesisSelfDelegation)
 }

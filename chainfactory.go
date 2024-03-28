@@ -100,7 +100,7 @@ func (f *BuiltinChainFactory) Chains(testName string) ([]ibc.Chain, error) {
 			return nil, fmt.Errorf("failed to build chain config at index %d: %w", i, err)
 		}
 
-		chain, err := buildChain(f.log, testName, *cfg, s.NumValidators, s.NumFullNodes)
+		chain, err := buildChain(f.log, testName, *cfg, s.NumValidators, s.NumFullNodes, s.ExtraFlags)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +115,7 @@ const (
 	defaultNumFullNodes  = 1
 )
 
-func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValidators, numFullNodes *int) (ibc.Chain, error) {
+func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValidators, numFullNodes *int, extraFlags map[string]interface{}) (ibc.Chain, error) {
 	nv := defaultNumValidators
 	if numValidators != nil {
 		nv = *numValidators
@@ -128,9 +128,9 @@ func buildChain(log *zap.Logger, testName string, cfg ibc.ChainConfig, numValida
 	chainType := strings.Split(cfg.Type, "-")
 
 	if chainType[0] == "rollapp" {
-		return rollapp.NewRollApp(testName, cfg, nv, nf, log), nil
+		return rollapp.NewRollApp(testName, cfg, nv, nf, log, extraFlags), nil
 	} else if chainType[0] == "hub" {
-		return hub.NewHub(testName, cfg, nv, nf, log), nil
+		return hub.NewHub(testName, cfg, nv, nf, log, extraFlags), nil
 	}
 
 	return cosmos.NewCosmosChain(testName, cfg, nv, nf, log), nil

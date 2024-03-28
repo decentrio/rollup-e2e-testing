@@ -97,13 +97,13 @@ type Chain interface {
 
 type Hub interface {
 	// Register RollApp to Hub
-	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string) error
+	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error
 	// Register Sequencer to Hub
 	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error
 	// Set RollApp to Hub
 	SetRollApp(rollApp RollApp)
 	// Get RollApp chain
-	GetRollApp() RollApp
+	GetRollApps() []RollApp
 }
 
 type RollApp interface {

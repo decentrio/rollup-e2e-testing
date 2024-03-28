@@ -6,6 +6,6 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewHub(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger) ibc.Chain {
-	return dym_hub.NewDymHub(testName, chainConfig, numValidators, numFullNodes, log)
+func NewHub(testName string, chainConfig ibc.ChainConfig, numValidators int, numFullNodes int, log *zap.Logger, extraFlags map[string]interface{}) ibc.Chain {
+	return dym_hub.NewDymHub(testName, chainConfig, numValidators, numFullNodes, log, extraFlags)
 }

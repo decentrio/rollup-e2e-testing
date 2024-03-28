@@ -20,7 +20,7 @@ type RelayerFactory interface {
 	Build(
 		t TestName,
 		cli *client.Client,
-		networkID string,
+		relayerName, networkID string,
 	) ibc.Relayer
 
 	// Name returns a descriptive name of the factory,
@@ -44,7 +44,7 @@ func NewBuiltinRelayerFactory(impl ibc.RelayerImplementation, logger *zap.Logger
 func (f builtinRelayerFactory) Build(
 	t TestName,
 	cli *client.Client,
-	networkID string,
+	relayerName, networkID string,
 ) ibc.Relayer {
 	switch f.impl {
 	case ibc.CosmosRly:
@@ -52,6 +52,7 @@ func (f builtinRelayerFactory) Build(
 			f.log,
 			t.Name(),
 			cli,
+			relayerName,
 			networkID,
 			f.options...,
 		)

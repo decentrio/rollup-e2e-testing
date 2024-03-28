@@ -1384,7 +1384,7 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 
 // DA functions
 func (node *Node) GetDABlockHeight() string {
-	resp, err := http.Get(fmt.Sprintf("tcp://%s:26657/block", node.HostName()))
+	resp, err := http.Get("http://0.0.0.0:26657/block")
 	if err != nil {
 		node.logger().Info("celestia block response read failed ", zap.String("error", err.Error()))
 		return ""

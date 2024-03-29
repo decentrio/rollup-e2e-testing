@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
-	"io"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -1383,27 +1381,20 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 }
 
 // DA functions
-func (node *Node) GetDABlockHeight() string {
-	resp, err := http.Get("http://0.0.0.0:26657/block")
-	if err != nil {
-		node.logger().Info("celestia block response read failed ", zap.String("error", err.Error()))
-		return ""
-	}
+func (node *Node) GetDABlockHeight(ctx context.Context) (string, error) {
+    command := []string{"curl", fmt.Sprintf("http://%s:26657/block", node.HostName())}
 
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
+	stdout, stderr, err := node.Exec(ctx, command, nil)
 	if err != nil {
-		node.logger().Info("celestia block response read failed ", zap.String("error", err.Error()))
-		return ""
+		return "", fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
 	}
 
 	var celestiaResult CelestiaResponse
-	if err := json.Unmarshal(body, &celestiaResult); err != nil {
-		node.logger().Info("celestia block response unmarshal failed ", zap.String("error", err.Error()))
-		return ""
+	if err := json.Unmarshal(stdout, &celestiaResult); err != nil {
+		return "", fmt.Errorf("celestia block response unmarshal failed: %w", err)
 	}
-	return celestiaResult.Result.Block.Header.Height
+
+	return celestiaResult.Result.Block.Header.Height, nil
 }
 
 // Rollkit roll app functions

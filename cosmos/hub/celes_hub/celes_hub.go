@@ -78,8 +78,10 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	}
 
 	c.GetRollApps()[0].SetAuthToken(token)
-
-	daBlockHeight := c.GetNode().GetDABlockHeight()
+	daBlockHeight, err := c.GetNode().GetDABlockHeight(ctx)
+	if err != nil {
+		return err
+	}
 
 	c.GetRollApps()[0].SetDABlockHeight(daBlockHeight)
 

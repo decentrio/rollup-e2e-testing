@@ -1373,7 +1373,6 @@ func (node *Node) StartCelestiaDaBridge(ctx context.Context, nodeStore, coreIp, 
 
 // GetAuthTokenCelestiaDaBridge get token auth of Celestia DA bridge
 func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore string) (token string, err error) {
-	// TODO: docker exec $(docker ps -q) ?
 	command := []string{"celestia", "bridge", "auth", "admin", "--node.store", nodeStore}
 
 	stdout, stderr, err := node.Exec(ctx, command, nil)
@@ -1381,8 +1380,8 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 		return "", fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
 	}
 	out := string(stdout)
-	out = out[:len(out)-2]
-	return out, nil
+
+	return strings.Replace(out, "\n", "", 1), nil
 }
 
 // DA functions

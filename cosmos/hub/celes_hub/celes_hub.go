@@ -35,11 +35,11 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	var (
 		nodeStore = "/home/celestia/bridge"
 		//coreIp      = "127.0.0.1"
-		coreIp      = fmt.Sprintf("tcp://%s", c.GetNode().Name())
-		accName     = "validator"
-		gatewayAddr = "0.0.0.0"
-		rpcAddr     = "0.0.0.0"
-		heightQuery = "1"
+		// coreIp      = fmt.Sprintf("tcp://%s", c.GetNode().Name())
+		// accName     = "validator"
+		// gatewayAddr = "0.0.0.0"
+		// rpcAddr     = "0.0.0.0"
+		// heightQuery = "1"
 	)
 
 	// Start chain
@@ -57,20 +57,20 @@ func (c *CelesHub) Start(testName string, ctx context.Context, additionalGenesis
 	dst := "/tmp/celestia/bridge/keys/keyring-test"
 	util.CopyDir(src, dst)
 
-	hash, err := c.GetNode().GetHashOfBlockHeight(ctx, heightQuery)
-	if err != nil {
-		return fmt.Errorf("failed to fetch hash of block height %s: %w", heightQuery, err)
-	}
-	env := []string{"CELESTIA_CUSTOM=test:" + hash}
+	// hash, err := c.GetNode().GetHashOfBlockHeight(ctx, heightQuery)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to fetch hash of block height %s: %w", heightQuery, err)
+	// }
+	// env := []string{"CELESTIA_CUSTOM=test:" + hash}
 
 	// initialize bridge
-	err = c.GetNode().InitCelestiaDaBridge(ctx, nodeStore, env)
-	if err != nil {
-		return err
-	}
+	// err = c.GetNode().InitCelestiaDaBridge(ctx, nodeStore, env)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// start bridge
-	go c.GetNode().StartCelestiaDaBridge(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
+	// // start bridge
+	// go c.GetNode().StartCelestiaDaBridge(ctx, nodeStore, coreIp, accName, gatewayAddr, rpcAddr, env)
 
 	token, err := c.GetNode().GetAuthTokenCelestiaDaBridge(ctx, nodeStore)
 	if err != nil {

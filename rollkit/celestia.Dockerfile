@@ -16,4 +16,6 @@ USER celestia
 
 COPY --from=celestia-app /bin/celestia-appd /bin/
 
-EXPOSE 26650 26657 26658 26659 9090
+COPY start.sh /opt/start.sh
+
+EXPOSE 26657 26658 26659 9090

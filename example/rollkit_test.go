@@ -71,7 +71,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 				Name:           "celestia",
 				Denom:          "utia",
 				Type:           "hub-celes",
-				GasPrices:      "0utia",
+				GasPrices:      "0.002utia",
 				TrustingPeriod: "112h",
 				ChainID:        "test",
 				Bin:            "celestia-appd",

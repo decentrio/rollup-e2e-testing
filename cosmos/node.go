@@ -274,7 +274,7 @@ func (node *Node) SetTestConfig(ctx context.Context) error {
 
 	// Enable public GRPC
 	grpc["address"] = "0.0.0.0:9090"
-
+	grpc["enable"] = true
 	a["grpc"] = grpc
 
 	api := make(testutil.Toml)
@@ -1123,7 +1123,7 @@ func (node *Node) CreateNodeContainer(ctx context.Context, command []string) err
 	if chainCfg.NoHostMount {
 		cmd = []string{"sh", "-c", fmt.Sprintf("cp -r %s %s_nomnt && %s start --home %s_nomnt --x-crisis-skip-assert-invariants", node.HomeDir(), node.HomeDir(), chainCfg.Bin, node.HomeDir())}
 	} else {
-		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants", "--grpc.enable"}
+		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants"}
 	}
 	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
@@ -1132,6 +1132,10 @@ func (node *Node) CreateNodeContainer(ctx context.Context, command []string) err
 
 	if chainType[0] == "rollapp" && chainType[1] == "gm" {
 		cmd = append(command, "--home", node.HomeDir())
+	}
+
+	if chainType[0] == "hub" && chainType[1] == "celes" {
+		cmd = []string{"/bin/bash", "/opt/start.sh", node.HomeDir()}
 	}
 	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd)
 }
@@ -1382,7 +1386,7 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 
 // DA functions
 func (node *Node) GetDABlockHeight(ctx context.Context) (string, error) {
-    command := []string{"curl", fmt.Sprintf("http://%s:26657/block", node.HostName())}
+	command := []string{"curl", fmt.Sprintf("http://%s:26657/block", node.HostName())}
 
 	stdout, stderr, err := node.Exec(ctx, command, nil)
 	if err != nil {

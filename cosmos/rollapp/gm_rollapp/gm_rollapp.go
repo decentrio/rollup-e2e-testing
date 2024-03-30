@@ -46,7 +46,7 @@ func (c *GmRollApp) Start(testName string, ctx context.Context, additionalGenesi
 		return err
 	}
 
-	cmd := []string{c.Config().Bin, "start", "--rollkit.aggregator", fmt.Sprintf("--rollkit.da_auth_token=%s", c.GetAuthToken()), "--rollkit.da_namespace", "00000000000000000000000000000000000000000008e5f679bf7116cb", "--rollkit.da_start_height", c.GetDABlockHeight()}
+	cmd := []string{c.Config().Bin, "start", "--rollkit.aggregator", fmt.Sprintf("--rollkit.da_auth_token=%s", c.GetAuthToken()), "--rollkit.da_address", "http://test-val-0-TestRollkitIBCTransfer:26658", "--rollkit.da_namespace", "00000000000000000000000000000000000000000008e5f679bf7116cb", "--rollkit.da_start_height", c.GetDABlockHeight()}
 
 	eg, egCtx := errgroup.WithContext(ctx)
 	for _, n := range nodes {

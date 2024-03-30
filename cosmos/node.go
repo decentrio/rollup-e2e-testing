@@ -1380,8 +1380,9 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 	if err != nil {
 		return "", fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
 	}
-
-	return string(stdout), nil
+	out := string(stdout)
+	out = out[:len(out)-2]
+	return out, nil
 }
 
 // DA functions

@@ -1,5 +1,3 @@
-CHAINID="test"
-
 # Register the validator EVM address
 {
   # wait for block 1
@@ -12,6 +10,7 @@ CHAINID="test"
     --from validator \
     --home $1 \
     --fees 30000utia -b block \
+    --chain-id test \
     -y
 } &
 
@@ -34,8 +33,7 @@ done
 echo $GENESIS
 export CELESTIA_CUSTOM=test:$GENESIS
 echo "$CELESTIA_CUSTOM"
-echo chainnnnnn
-echo $CHAINID
+
 celestia bridge init --node.store /home/celestia/bridge
 celestia bridge start \
   --node.store /home/celestia/bridge --gateway \

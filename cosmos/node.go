@@ -1428,7 +1428,7 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 				"value": privateKeys.PubKey.Value,
 			},
 
-			"power": "1000",
+			"power": "50000000000000",
 			"name":  "Rollkit Sequencer",
 		},
 	}

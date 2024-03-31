@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/gm_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -90,6 +91,13 @@ func TestRollkitIBCTransfer(t *testing.T) {
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
+		{
+			Name:          "gaia",
+			Version:       "v15.1.0",
+			ChainConfig:   gaiaConfig,
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
 	})
 
 	// Get chains from the chain factory
@@ -98,6 +106,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 
 	gm1 := chains[0].(*gm_rollapp.GmRollApp)
 	celestia := chains[1].(*celes_hub.CelesHub)
+	gaia := chains[2].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -109,9 +118,10 @@ func TestRollkitIBCTransfer(t *testing.T) {
 
 	ic := test.NewSetup().
 		AddRollUp(celestia, gm1).
+		AddChain(gaia).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
-			Chain1:  celestia,
+			Chain1:  gaia,
 			Chain2:  gm1,
 			Relayer: r,
 			Path:    ibcPath,
@@ -134,17 +144,18 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, celestia, gm1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, celestia, gm1, gaia)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, celestia, gm1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	celesUser, gmUser := users[0], users[1]
+	celesUser, gmUser, gaiaUser := users[0], users[1], users[2]
 
 	celesUserAddr := celesUser.FormattedAddress()
 	gmUserAddr := gmUser.FormattedAddress()
+	gaiaUserAddr := gaiaUser.FormattedAddress()
 
 	// Get original account balances
 	celesOrigBal, err := celestia.GetBalance(ctx, celesUserAddr, celestia.Config().Denom)
@@ -155,4 +166,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gmOrigBal)
 
+	gaiaOrigBal, err := gaia.GetBalance(ctx, gaiaUserAddr, gaia.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, walletAmount, gaiaOrigBal)
 }

@@ -26,6 +26,14 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	// Setup for gaia
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
+
+	gaiaImage = ibc.DockerImage{
+		Repository: gaiaImageRepo,
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dyms",
 		Name:                "dymension",
@@ -38,6 +46,24 @@ var (
 		GasPrices:           "0.0udym",
 		EncodingConfig:      evmConfig(),
 		GasAdjustment:       1.1,
+		TrustingPeriod:      "112h",
+		NoHostMount:         false,
+		ModifyGenesis:       nil,
+		ConfigFileOverrides: nil,
+	}
+
+	gaiaConfig = ibc.ChainConfig{
+		Type:                "cosmos",
+		Name:                "gaia",
+		ChainID:             "gaia-1",
+		Images:              []ibc.DockerImage{gaiaImage},
+		Bin:                 "gaiad",
+		Bech32Prefix:        "cosmos",
+		Denom:               "uatom",
+		CoinType:            "118",
+		GasPrices:           "0uatom",
+		EncodingConfig:      nil,
+		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
 		ModifyGenesis:       nil,

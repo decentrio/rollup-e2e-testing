@@ -1,4 +1,4 @@
-FROM docker.io/ignitehq/cli:v28.2.0 as ignite
+FROM docker.io/ignitehq/cli:v28.3.0 as ignite
 
 FROM docker.io/golang:1.22.1-alpine3.18 as builder
 

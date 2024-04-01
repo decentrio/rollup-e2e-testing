@@ -691,12 +691,13 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir, metadataFileDir string, flags map[string]string) error {
 	var command []string
 	detail := "{\"Addresses\":[]}"
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "rollapp", "create-rollapp", rollappChainID, maxSequencers, detail,
+	command = append(
+		command, "rollapp", "create-rollapp",
+		rollappChainID, maxSequencers, detail, metadataFileDir,
 		"--broadcast-mode", "block", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
@@ -901,6 +902,24 @@ func (node *Node) QueryLatestStateIndex(ctx context.Context, rollappChainID stri
 		return nil, err
 	}
 	return &stateIndex, nil
+}
+
+// QueryDenomMetadata returns denom metadata of a given denom
+func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomMetadata, error) {
+	var command []string
+	command = append(command, "bank", "denom-metadata", "--denom", denom)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var denomMetadata DenomMetadataResponse
+	err = json.Unmarshal(stdout, &denomMetadata)
+	if err != nil {
+		return nil, err
+	}
+	return &denomMetadata.Metadata, nil
 }
 
 // QueryProposal returns the state and details of a governance proposal.
@@ -1123,7 +1142,7 @@ func (node *Node) RemoveContainer(ctx context.Context) error {
 // InitValidatorFiles creates the node files and signs a genesis transaction
 func (node *Node) InitValidatorGenTx(
 	ctx context.Context,
-	chainType *ibc.ChainConfig,
+	chainConfig *ibc.ChainConfig,
 	genesisAmounts []types.Coin,
 	genesisSelfDelegation types.Coin,
 ) error {

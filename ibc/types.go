@@ -7,7 +7,7 @@ import (
 	"cosmossdk.io/math"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
 // ChainConfig defines the chain parameters requires to run an testnet for a chain.

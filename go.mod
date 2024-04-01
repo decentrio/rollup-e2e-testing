@@ -14,6 +14,7 @@ replace (
 	// use cometbft
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.27
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
+	github.com/cosmos/cosmos-sdk => github.com/rollkit/cosmos-sdk v0.50.5-rollkit-v0.13.0-no-fraud-proofs
 )
 
 require (

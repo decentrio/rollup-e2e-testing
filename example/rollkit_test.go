@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
@@ -169,4 +170,44 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	gaiaOrigBal, err := gaia.GetBalance(ctx, gaiaUserAddr, gaia.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
+
+	// Compose an IBC transfer and send from dymension -> rollapp
+	var transferAmount = math.NewInt(1_000_000)
+
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, gm1.Config().ChainID, gaia.Config().ChainID)
+	require.NoError(t, err)
+
+	transferData := ibc.WalletData{
+		Address: gaiaUserAddr,
+		Denom:   gm1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = gm1.SendIBCTransfer(ctx, channel.ChannelID, gmUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the rollapp
+	testutil.AssertBalance(t, ctx, gm1, gmUserAddr, gm1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err := r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
+	err = testutil.WaitForBlocks(ctx, 10, gm1, gaia)
+	require.NoError(t, err)
+
+	// Get the IBC denom for urax on Hub
+	gmTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, gm1.Config().Denom)
+	gmIBCDenom := transfertypes.ParseDenomTrace(gmTokenDenom).IBCDenom()
+
+	testutil.AssertBalance(t, ctx, gm1, gmUserAddr, gm1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gmIBCDenom, transferData.Amount)
 }

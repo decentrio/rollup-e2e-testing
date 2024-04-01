@@ -108,10 +108,12 @@ func NewRootCmd() *cobra.Command {
 	// manually register the modules on the client side.
 	// This needs to be removed after IBC supports App Wiring.
 	ibcModules := app.RegisterIBC(clientCtx.InterfaceRegistry)
-	for name, module := range ibcModules {
-		autoCliOpts.Modules[name] = module
+	for name, mod := range ibcModules {
+		moduleBasicManager[name] = module.CoreAppModuleBasicAdaptor(name, mod)
+		autoCliOpts.Modules[name] = mod
 	}
-	initRootCmd(rootCmd, clientCtx.TxConfig, clientCtx.InterfaceRegistry, clientCtx.Codec, moduleBasicManager)
+
+	initRootCmd(rootCmd, clientCtx.TxConfig, moduleBasicManager)
 
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
@@ -129,7 +131,7 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 	set := func(s *pflag.FlagSet, key, val string) {
 		if f := s.Lookup(key); f != nil {
 			f.DefValue = val
-			f.Value.Set(val)
+			_ = f.Value.Set(val)
 		}
 	}
 	for key, val := range defaults {

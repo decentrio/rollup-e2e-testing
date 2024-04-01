@@ -1,5 +1,6 @@
 version: 1
-accounts:
+validation: sovereign
+accounts: 
 - name: alice
   coins:
   - 20000token

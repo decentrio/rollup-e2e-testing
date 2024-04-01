@@ -4,6 +4,8 @@ import (
 	"cosmossdk.io/core/appmodule"
 	storetypes "cosmossdk.io/store/types"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -37,7 +39,7 @@ import (
 )
 
 // registerIBCModules register IBC keepers and non dependency inject modules.
-func (app *App) registerIBCModules() {
+func (app *App) registerIBCModules(appOpts servertypes.AppOptions) error {
 	// set up non depinject support modules store keys
 	if err := app.RegisterStores(
 		storetypes.NewKVStoreKey(capabilitytypes.StoreKey),
@@ -49,7 +51,7 @@ func (app *App) registerIBCModules() {
 		storetypes.NewMemoryStoreKey(capabilitytypes.MemStoreKey),
 		storetypes.NewTransientStoreKey(paramstypes.TStoreKey),
 	); err != nil {
-		panic(err)
+		return err
 	}
 
 	// register the key tables for legacy param subspaces
@@ -172,15 +174,17 @@ func (app *App) registerIBCModules() {
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		icamodule.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		capability.NewAppModule(app.appCodec, *app.CapabilityKeeper, false),
-		ibctm.AppModule{},
-		solomachine.AppModule{},
+		ibctm.NewAppModule(),
+		solomachine.NewAppModule(),
 	); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-// Since the IBC modules don't support dependency injection, we need to
-// manually register the modules on the client side.
+// RegisterIBC Since the IBC modules don't support dependency injection,
+// we need to manually register the modules on the client side.
 // This needs to be removed after IBC supports App Wiring.
 func RegisterIBC(registry cdctypes.InterfaceRegistry) map[string]appmodule.AppModule {
 	modules := map[string]appmodule.AppModule{
@@ -193,12 +197,8 @@ func RegisterIBC(registry cdctypes.InterfaceRegistry) map[string]appmodule.AppMo
 		solomachine.ModuleName:      solomachine.AppModule{},
 	}
 
-	for _, module := range modules {
-		if mod, ok := module.(interface {
-			RegisterInterfaces(registry cdctypes.InterfaceRegistry)
-		}); ok {
-			mod.RegisterInterfaces(registry)
-		}
+	for name, m := range modules {
+		module.CoreAppModuleBasicAdaptor(name, m).RegisterInterfaces(registry)
 	}
 
 	return modules

@@ -3,11 +3,12 @@ package gm_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	keepertest "gm/testutil/keeper"
 	"gm/testutil/nullify"
-	"gm/x/gm/module"
+	gm "gm/x/gm/module"
 	"gm/x/gm/types"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenesis(t *testing.T) {

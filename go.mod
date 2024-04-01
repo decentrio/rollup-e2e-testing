@@ -22,8 +22,9 @@ require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/atotto/clipboard v0.1.4
 	github.com/avast/retry-go/v4 v4.3.4
-	github.com/cosmos/cosmos-sdk v0.46.16-0.20231025193730-41d2a21c1348
-	github.com/cosmos/ibc-go/v6 v6.2.1
+	github.com/cosmos/cosmos-sdk v0.50.5
+	github.com/cosmos/ibc-go/modules/capability v1.0.0
+	github.com/cosmos/ibc-go/v8 v8.1.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/docker v24.0.1+incompatible
 	github.com/docker/go-connections v0.4.0

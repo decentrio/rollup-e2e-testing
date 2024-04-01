@@ -48,19 +48,6 @@ func DefaultEncoding() testutil.TestEncodingConfig {
 		ibccore.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
 	)
-	// // core modules
-	// cfg := simappparams.MakeTestEncodingConfig()
-	// std.RegisterLegacyAminoCodec(cfg.Amino)
-	// std.RegisterInterfaces(cfg.InterfaceRegistry)
-	// simapp.ModuleBasics.RegisterLegacyAminoCodec(cfg.Amino)
-	// simapp.ModuleBasics.RegisterInterfaces(cfg.InterfaceRegistry)
-
-	// // external modules
-	// banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	// ibctypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	// transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
-
-	// return cfg
 }
 
 func decodeTX(interfaceRegistry codectypes.InterfaceRegistry, txbz []byte) (sdk.Tx, error) {

@@ -2,6 +2,7 @@ package dymension
 
 import (
 	"math"
+
 	sdkmath "cosmossdk.io/math"
 )
 
@@ -80,7 +81,7 @@ type TokenMetadata struct {
 
 type DenomUnit struct {
 	Denom    string   `json:"denom"`
-	Exponent string   `json:"exponent"`
+	Exponent uint64   `json:"exponent"`
 	Aliases  []string `json:"aliases"`
 }
 

@@ -4,12 +4,9 @@ import (
 	"os"
 	"strings"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-
-	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
-	ethermint "github.com/evmos/ethermint/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 )
 
 var (
@@ -88,11 +85,8 @@ func GetDockerImageInfo() (repo, version string) {
 	return repo, branchVersion
 }
 
-func evmConfig() *simappparams.EncodingConfig {
+func evmConfig() *testutil.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
-
-	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
-	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg
 }

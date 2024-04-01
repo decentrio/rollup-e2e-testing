@@ -720,7 +720,7 @@ func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChain
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(command, "rollapp", "genesis-event", rollappChainID, channelId,
-		"--broadcast-mode", "block", "--keyring-dir", keyPath)
+		"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err

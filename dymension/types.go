@@ -85,6 +85,10 @@ type DenomUnit struct {
 	Aliases  []string `json:"aliases"`
 }
 
+type QueryGetLatestStateIndexResponse struct {
+	StateIndex StateInfoIndex `json:"stateIndex"`
+}
+
 type StateInfoIndex struct {
 	RollappId string `json:"rollappId"`
 	Index     string `json:"index"`

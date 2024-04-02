@@ -418,13 +418,15 @@ func (c *DymHub) QueryRollappState(ctx context.Context,
 	rollappName string,
 	onlyFinalized bool,
 ) (*dymension.RollappState, error) {
-	var finalizedFlag string
+
+	var command []string
+	command = append(command, "rollapp", "state", rollappName)
+	
 	if onlyFinalized {
-		finalizedFlag = "--finalized"
-	} else {
-		finalizedFlag = ""
+		command = append(command, "--finalized")
 	}
-	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "state", rollappName, finalizedFlag)
+
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, command...)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +453,7 @@ func (c *DymHub) QueryLatestStateIndex(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var queryGetLatestStateIndexResponse dymension.QueryGetLatestStateIndexResponse
 	err = json.Unmarshal(stdout, &queryGetLatestStateIndexResponse)
 	if err != nil {

@@ -436,6 +436,28 @@ func (c *DymHub) QueryRollappState(ctx context.Context,
 	return &rollappState, nil
 }
 
+func (c *DymHub) QueryLatestStateIndex(ctx context.Context,
+	rollappName string,
+	onlyFinalized bool,
+) (*dymension.QueryGetLatestStateIndexResponse, error) {
+	var finalizedFlag string
+	if onlyFinalized {
+		finalizedFlag = "--finalized"
+	} else {
+		finalizedFlag = ""
+	}
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "latest-state-index", rollappName, finalizedFlag)
+	if err != nil {
+		return nil, err
+	}
+	var queryGetLatestStateIndexResponse dymension.QueryGetLatestStateIndexResponse
+	err = json.Unmarshal(stdout, &queryGetLatestStateIndexResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &queryGetLatestStateIndexResponse, nil
+}
+
 func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (uint64, error) {
 	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
 	if err != nil {
@@ -465,6 +487,24 @@ func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName stri
 		return 0, err
 	}
 	return parsedHeight, nil
+}
+
+func (c *DymHub) FinalizedRollappStateIndex(ctx context.Context, rollappName string) (uint64, error) {
+	rollappState, err := c.QueryLatestStateIndex(ctx, rollappName, true)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(rollappState.StateIndex.Index) == 0 {
+		return 0, fmt.Errorf("no latest finalized index found for rollapp %s", rollappName)
+	}
+
+	latestIndex := rollappState.StateIndex.Index
+	parsedIndex, err := strconv.ParseUint(latestIndex, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsedIndex, nil
 }
 
 func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappChainID string, targetHeight uint64, timeoutSecs int) (bool, error) {

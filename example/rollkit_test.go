@@ -18,7 +18,9 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// TestStart is a basic test to assert that spinning up a dymension network with 1 validator works properly.
+var rlyPath = "hub-gm"
+
+// TestRollkitIBCTransfer is a test to checking ibc transfer working for GM chain and other cosmos chain
 func TestRollkitIBCTransfer(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -34,7 +36,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	configTomlOverrides["mode"] = "validator"
 
 	configFileOverrides["config/config.toml"] = configTomlOverrides
-	// Create chain factory with dymension
+	// Create chain factory
 	numHubVals := 1
 	numHubFullNodes := 0
 	numRollAppFn := 0
@@ -113,7 +115,6 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "v2.4.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
@@ -125,7 +126,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 			Chain1:  gaia,
 			Chain2:  gm1,
 			Relayer: r,
-			Path:    ibcPath,
+			Path:    rlyPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -171,7 +172,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	// Compose an IBC transfer and send from dymension -> rollapp
+	// Compose an IBC transfer and send from gm -> hub
 	var transferAmount = math.NewInt(1_000_000)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, gm1.Config().ChainID, gaia.Config().ChainID)
@@ -186,10 +187,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	_, err = gm1.SendIBCTransfer(ctx, channel.ChannelID, gmUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, gm1, gmUserAddr, gm1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
+	err = r.StartRelayer(ctx, eRep, rlyPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -208,6 +206,7 @@ func TestRollkitIBCTransfer(t *testing.T) {
 	gmTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, gm1.Config().Denom)
 	gmIBCDenom := transfertypes.ParseDenomTrace(gmTokenDenom).IBCDenom()
 
+	// Assert balance was updated on the gm and gaia wallet 
 	testutil.AssertBalance(t, ctx, gm1, gmUserAddr, gm1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gmIBCDenom, transferData.Amount)
 }

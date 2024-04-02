@@ -843,7 +843,6 @@ func (node *Node) getTransaction(clientCtx client.Context, txHash string) (*type
 	err := retry.Do(func() error {
 		var err error
 		txResp, err = authTx.QueryTx(clientCtx, txHash)
-		fmt.Println("txResptxResp", txResp)
 		return err
 	},
 		// retry for total of 3 seconds
@@ -1366,7 +1365,6 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
-// DA functions
 func (node *Node) GetDABlockHeight(ctx context.Context) (string, error) {
 	command := []string{"curl", fmt.Sprintf("http://%s:26657/block", node.HostName())}
 

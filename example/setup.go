@@ -24,7 +24,7 @@ var (
 	}
 
 	// Setup for gaia
-	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia"
 
 	gaiaImage = ibc.DockerImage{
 		Repository: gaiaImageRepo,

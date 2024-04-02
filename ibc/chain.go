@@ -115,6 +115,14 @@ type RollApp interface {
 	ShowSequencer(ctx context.Context) (string, error)
 	// Get Sequencer
 	GetSequencer() string
+	// Get Auth Token
+	GetAuthToken() string
+	// Set Auth Token
+	SetAuthToken(string)
+	// Get DABlockHeight
+	GetDABlockHeight() string
+	// Set DABlockHeight
+	SetDABlockHeight(string)
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

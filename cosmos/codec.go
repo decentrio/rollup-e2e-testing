@@ -1,32 +1,53 @@
 package cosmos
 
 import (
+	"cosmossdk.io/x/upgrade"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
-	"github.com/cosmos/cosmos-sdk/std"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/ibc-go/modules/capability"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibctypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 )
 
-func DefaultEncoding() simappparams.EncodingConfig {
-	// core modules
-	cfg := simappparams.MakeTestEncodingConfig()
-	std.RegisterLegacyAminoCodec(cfg.Amino)
-	std.RegisterInterfaces(cfg.InterfaceRegistry)
-	simapp.ModuleBasics.RegisterLegacyAminoCodec(cfg.Amino)
-	simapp.ModuleBasics.RegisterInterfaces(cfg.InterfaceRegistry)
-
-	// external modules
-	banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	ibctypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
-
-	return cfg
+func DefaultEncoding() testutil.TestEncodingConfig {
+	return testutil.MakeTestEncodingConfig(
+		auth.AppModuleBasic{},
+		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
+		staking.AppModuleBasic{},
+		mint.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		gov.NewAppModuleBasic(
+			[]govclient.ProposalHandler{
+				paramsclient.ProposalHandler,
+			},
+		),
+		params.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+		upgrade.AppModuleBasic{},
+		consensus.AppModuleBasic{},
+		transfer.AppModuleBasic{},
+		ibccore.AppModuleBasic{},
+		ibctm.AppModuleBasic{},
+	)
 }
 
 func decodeTX(interfaceRegistry codectypes.InterfaceRegistry, txbz []byte) (sdk.Tx, error) {

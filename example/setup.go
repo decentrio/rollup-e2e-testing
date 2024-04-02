@@ -4,12 +4,9 @@ import (
 	"os"
 	"strings"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-
-	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
-	ethermint "github.com/evmos/ethermint/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 )
 
 var (
@@ -26,6 +23,14 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	// Setup for gaia
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia"
+
+	gaiaImage = ibc.DockerImage{
+		Repository: gaiaImageRepo,
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dyms",
 		Name:                "dymension",
@@ -38,6 +43,24 @@ var (
 		GasPrices:           "0.0udym",
 		EncodingConfig:      evmConfig(),
 		GasAdjustment:       1.1,
+		TrustingPeriod:      "112h",
+		NoHostMount:         false,
+		ModifyGenesis:       nil,
+		ConfigFileOverrides: nil,
+	}
+
+	gaiaConfig = ibc.ChainConfig{
+		Type:                "cosmos",
+		Name:                "gaia",
+		ChainID:             "gaia-1",
+		Images:              []ibc.DockerImage{gaiaImage},
+		Bin:                 "gaiad",
+		Bech32Prefix:        "cosmos",
+		Denom:               "uatom",
+		CoinType:            "118",
+		GasPrices:           "0uatom",
+		EncodingConfig:      nil,
+		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
 		ModifyGenesis:       nil,
@@ -62,11 +85,8 @@ func GetDockerImageInfo() (repo, version string) {
 	return repo, branchVersion
 }
 
-func evmConfig() *simappparams.EncodingConfig {
+func evmConfig() *testutil.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
-
-	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
-	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg
 }

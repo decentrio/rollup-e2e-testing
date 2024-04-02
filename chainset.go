@@ -127,6 +127,9 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 		}
 	}
 
+	// TODO: Need handle time sleep
+	time.Sleep(15 * time.Second)
+
 	// After Hub chain started, we could start other chain
 	for c := range cs.chains {
 		c := c

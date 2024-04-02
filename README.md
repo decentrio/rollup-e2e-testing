@@ -12,86 +12,114 @@ The framework is developed based on the architecture of [interchaintest](https:/
 
 Use Rollup-e2e-testing as a Module:
 
-This document breaks down code snippets from [ibc_transfer_test.go](../example/ibc_transfer_test.go). This test:
+This document breaks down code snippets from [rollkit_test.go](../example/rollkit_test.go). This test:
 
-1) Spins up Rollapp and Dymension Hub
-2) Creates an IBC Path between them (client, connection, channel)
-3) Sends an IBC transaction between them.
+1) Spins up GM, Celestia DA and Gaia
+2) Creates a connection between GM and Celestia DA
+2) Creates an IBC Path between GM and Gaia (client, connection, channel)
+3) Sends an IBC transaction between GM and Gaia.
 
 It then validates each step and confirms that the balances of each wallet are correct.
 
 Three basic components of `rollup-e2e-testing`:
-- **Chain Factory** - Select hub and rollapps binaries to include in tests
+
+- **Chain Factory** - Select gm, celesita and gaia binaries to include in tests
 - **Relayer Factory** - Select Relayer to use in tests
 - **Setup** - Where the testnet is configured and spun up
 
 ### Chain Factory
 
 ```go
-	numHubVals := 1
-	numHubFullNodes := 1
-	numRollAppFn := 0
-	numRollAppVals := 1
-	cf := cosmos.NewBuiltinChainFactory(zaptest.NewLogger(t), []*cosmos.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp",
-				Name:    "rollapp-temp",
-				ChainID: "demo-dymension-rollapp",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/rollapp",
-						Version:    "e2e",
-						UidGid:     "1025:1025",
-					},
+numHubVals := 1
+numHubFullNodes := 0
+numRollAppFn := 0
+numRollAppVals := 1
+cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+	{
+		Name: "gm",
+		ChainConfig: ibc.ChainConfig{
+			Type:    "rollapp-gm",
+			Name:    "gm",
+			ChainID: "gm1",
+			Images: []ibc.DockerImage{
+				{
+					Repository: "ghcr.io/decentrio/gm",
+					Version:    "debug",
+					UidGid:     "1025:1025",
 				},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
-				Denom:               "urax",
-				CoinType:            "118",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       nil,
-				ConfigFileOverrides: configFileOverrides,
 			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
+			Bin:                 "gmd",
+			Bech32Prefix:        "gm",
+			Denom:               "stake",
+			CoinType:            "118",
+			GasPrices:           "0.0stake",
+			GasAdjustment:       1.1,
+			TrustingPeriod:      "112h",
+			NoHostMount:         false,
+			ModifyGenesis:       nil,
+			ConfigFileOverrides: nil,
 		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+		NumValidators: &numRollAppVals,
+		NumFullNodes:  &numRollAppFn,
+	},
+	{
+		Name: "celes-hub",
+		ChainConfig: ibc.ChainConfig{
+			Name:           "celestia",
+			Denom:          "utia",
+			Type:           "hub-celes",
+			GasPrices:      "0.002utia",
+			TrustingPeriod: "112h",
+			ChainID:        "test",
+			Bin:            "celestia-appd",
+			Images: []ibc.DockerImage{
+				{
+					Repository: "ghcr.io/decentrio/celestia",
+					Version:    "debug",
+					UidGid:     "1025:1025",
+				},
+			},
+			Bech32Prefix:        "celestia",
+			CoinType:            "118",
+			GasAdjustment:       1.5,
+			ConfigFileOverrides: configFileOverrides,
 		},
-	})
+		NumValidators: &numHubVals,
+		NumFullNodes:  &numHubFullNodes,
+	},
+	{
+		Name:          "gaia",
+		Version:       "v15.1.0",
+		ChainConfig:   gaiaConfig,
+		NumValidators: &numHubVals,
+		NumFullNodes:  &numHubFullNodes,
+	},
+})
 ```
 ### Relayer Factory
 
 ```go
 client, network := test.DockerSetup(t)
 
-r := relayer.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-	relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
-    ).Build(t, client, network)
+r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "v2.4.2", "100:1000"),
+).Build(t, client, "relayer", network)
 ```
 
 ### Setup
 We prep the "Setup" by adding chains, a relayer, and specifying which chains to create IBC paths for:
 ```go
-const ibcPath = "dymension-demo"
+var rlyPath = "hub-gm"
 ic := test.NewSetup().
-	AddChain(rollapp1).
-	AddChain(dymension).
-	AddRelayer(r, "relayer").
-	AddLink(test.InterchainLink{
-		Chain1:  dymension,
-		Chain2:  rollapp1,
-		Relayer: r,
-		Path:    ibcPath,
-	})
+		AddRollUp(celestia, gm1).
+		AddChain(gaia).
+		AddRelayer(r, "relayer").
+		AddLink(test.InterchainLink{
+			Chain1:  gaia,
+			Chain2:  gm1,
+			Relayer: r,
+			Path:    rlyPath,
+		})
 ```
 # Environment Variable
 
@@ -113,11 +141,13 @@ ic := test.NewSetup().
 |:----------------------------------------------------------------------------:|:----------:|:--------------:|
 |         [v6](https://github.com/decentrio/rollup-e2e-testing/tree/v6)        |     v6     |     v0.46      |
 |     [main](https://github.com/decentrio/rollup-e2e-testing/tree/main)     |     v8     |     v0.50      |
+|     [v8_rollkit](https://github.com/decentrio/rollup-e2e-testing/tree/v8_rollkit)     |     v8     |     v0.50      |
 
 # Example
 
-Send IBC transaction from Rollapp <-> Hub and vice versa.
+Send IBC transaction from GM <-> Hub and vice versa.
 ```
 cd example
-go test -race -v -run TestIBCTransfer .
+bash clean.sh
+go test -race -v -run TestRollkitIBCTransfer .
 ```

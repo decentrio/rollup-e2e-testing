@@ -108,7 +108,8 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 
 	eg := new(errgroup.Group)
 	// Initialize config and sign gentx for each validator.
-	for _, v := range c.Validators {
+	for i, v := range c.Validators {
+		i := i
 		v := v
 		c.sequencerKeyDir = v.HomeDir()
 		v.Chain = c
@@ -120,7 +121,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			for configFile, modifiedConfig := range configFileOverrides {
 				modifiedToml, ok := modifiedConfig.(testutil.Toml)
 				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
 				}
 				if err := testutil.ModifyTomlConfigFile(
 					ctx,
@@ -136,7 +137,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 				}
 			}
 			if !c.Config().SkipGenTx {
-				return v.InitValidatorGenTx(ctx, &chainCfg, genesisAmounts, genesisSelfDelegation)
+				return c.InitValidatorGenTx(ctx, v, i, &chainCfg, genesisAmounts, genesisSelfDelegation)
 			}
 			return nil
 		})
@@ -154,7 +155,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			for configFile, modifiedConfig := range configFileOverrides {
 				modifiedToml, ok := modifiedConfig.(testutil.Toml)
 				if !ok {
-					return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
 				}
 				if err := testutil.ModifyTomlConfigFile(
 					ctx,
@@ -331,4 +332,57 @@ func (c *DymRollApp) GetDABlockHeight() string {
 }
 
 func (c *DymRollApp) SetDABlockHeight(daBlockHeight string) {
+}
+
+func (c *DymRollApp) InitValidatorGenTx(
+	ctx context.Context,
+	validator *cosmos.Node,
+	validatorIdx int,
+	chainConfig *ibc.ChainConfig,
+	genesisAmounts []sdk.Coin,
+	genesisSelfDelegation sdk.Coin,
+) error {
+	if err := validator.CreateKey(ctx, valKey); err != nil {
+		return err
+	}
+	bech32, err := validator.AccountKeyBech32(ctx, valKey)
+	if err != nil {
+		return err
+	}
+	if err := validator.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
+		return err
+	}
+
+	if validatorIdx == 0 {
+		genbz, err := validator.GenesisFileContent(ctx)
+		if err != nil {
+			return err
+		}
+
+		valBech32, err := validator.KeyBech32(ctx, valKey, "val")
+		if err != nil {
+			return fmt.Errorf("failed to retrieve val bech32: %w", err)
+		}
+
+		g := make(map[string]interface{})
+		if err := json.Unmarshal(genbz, &g); err != nil {
+			return fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		if err := dyno.Set(g, valBech32, "app_state", "sequencers", "genesis_operator_address"); err != nil {
+			return fmt.Errorf("failed to set genesis operator address in genesis json: %w", err)
+		}
+
+		fmt.Println("genesis_operator_address", valBech32)
+
+		outGenBz, err := json.Marshal(g)
+		if err != nil {
+			return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+		}
+
+		if err := validator.OverwriteGenesisFile(ctx, outGenBz); err != nil {
+			return err
+		}
+	}
+	return validator.Gentx(ctx, valKey, genesisSelfDelegation)
 }

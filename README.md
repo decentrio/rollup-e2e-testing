@@ -31,70 +31,70 @@ Three basic components of `rollup-e2e-testing`:
 
 ```go
 numHubVals := 1
-	numHubFullNodes := 0
-	numRollAppFn := 0
-	numRollAppVals := 1
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "gm",
-			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp-gm",
-				Name:    "gm",
-				ChainID: "gm1",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/gm",
-						Version:    "debug",
-						UidGid:     "1025:1025",
-					},
+numHubFullNodes := 0
+numRollAppFn := 0
+numRollAppVals := 1
+cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+	{
+		Name: "gm",
+		ChainConfig: ibc.ChainConfig{
+			Type:    "rollapp-gm",
+			Name:    "gm",
+			ChainID: "gm1",
+			Images: []ibc.DockerImage{
+				{
+					Repository: "ghcr.io/decentrio/gm",
+					Version:    "debug",
+					UidGid:     "1025:1025",
 				},
-				Bin:                 "gmd",
-				Bech32Prefix:        "gm",
-				Denom:               "stake",
-				CoinType:            "118",
-				GasPrices:           "0.0stake",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       nil,
-				ConfigFileOverrides: nil,
 			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
+			Bin:                 "gmd",
+			Bech32Prefix:        "gm",
+			Denom:               "stake",
+			CoinType:            "118",
+			GasPrices:           "0.0stake",
+			GasAdjustment:       1.1,
+			TrustingPeriod:      "112h",
+			NoHostMount:         false,
+			ModifyGenesis:       nil,
+			ConfigFileOverrides: nil,
 		},
-		{
-			Name: "celes-hub",
-			ChainConfig: ibc.ChainConfig{
-				Name:           "celestia",
-				Denom:          "utia",
-				Type:           "hub-celes",
-				GasPrices:      "0.002utia",
-				TrustingPeriod: "112h",
-				ChainID:        "test",
-				Bin:            "celestia-appd",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/celestia",
-						Version:    "debug",
-						UidGid:     "1025:1025",
-					},
+		NumValidators: &numRollAppVals,
+		NumFullNodes:  &numRollAppFn,
+	},
+	{
+		Name: "celes-hub",
+		ChainConfig: ibc.ChainConfig{
+			Name:           "celestia",
+			Denom:          "utia",
+			Type:           "hub-celes",
+			GasPrices:      "0.002utia",
+			TrustingPeriod: "112h",
+			ChainID:        "test",
+			Bin:            "celestia-appd",
+			Images: []ibc.DockerImage{
+				{
+					Repository: "ghcr.io/decentrio/celestia",
+					Version:    "debug",
+					UidGid:     "1025:1025",
 				},
-				Bech32Prefix:        "celestia",
-				CoinType:            "118",
-				GasAdjustment:       1.5,
-				ConfigFileOverrides: configFileOverrides,
 			},
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+			Bech32Prefix:        "celestia",
+			CoinType:            "118",
+			GasAdjustment:       1.5,
+			ConfigFileOverrides: configFileOverrides,
 		},
-		{
-			Name:          "gaia",
-			Version:       "v15.1.0",
-			ChainConfig:   gaiaConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
-		},
-	})
+		NumValidators: &numHubVals,
+		NumFullNodes:  &numHubFullNodes,
+	},
+	{
+		Name:          "gaia",
+		Version:       "v15.1.0",
+		ChainConfig:   gaiaConfig,
+		NumValidators: &numHubVals,
+		NumFullNodes:  &numHubFullNodes,
+	},
+})
 ```
 ### Relayer Factory
 

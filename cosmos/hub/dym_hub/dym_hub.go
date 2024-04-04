@@ -556,5 +556,5 @@ func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappC
 func (c *DymHub) AssertFinalization(t *testing.T, ctx context.Context, rollappName string, minIndex uint64) {
 	latestFinalizedIndex, err := c.FinalizedRollappStateIndex(ctx, rollappName)
 	require.NoError(t, err)
-	require.Equal(t, latestFinalizedIndex > minIndex, true, fmt.Sprintf("%s did not have the latest finalized state greater than %d", rollappName, latestFinalizedIndex))
+	require.Equal(t, latestFinalizedIndex > minIndex, true, fmt.Sprintf("%s did not have the latest finalized state greater than %d, got %d", rollappName, minIndex, latestFinalizedIndex))
 }

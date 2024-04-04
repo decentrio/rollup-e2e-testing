@@ -8,13 +8,11 @@ import (
 	"math"
 	"os"
 	"strconv"
-	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/dymension"
@@ -553,8 +551,27 @@ func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappC
 	}
 }
 
-func (c *DymHub) AssertFinalization(t *testing.T, ctx context.Context, rollappName string, minIndex uint64) {
-	latestFinalizedIndex, err := c.FinalizedRollappStateIndex(ctx, rollappName)
-	require.NoError(t, err)
-	require.Equal(t, latestFinalizedIndex > minIndex, true, fmt.Sprintf("%s did not have the latest finalized state greater than %d, got %d", rollappName, minIndex, latestFinalizedIndex))
+func (c *DymHub) AssertFinalization(ctx context.Context, rollappName string, minIndex, timeoutSecs uint64) (bool, error) {
+
+	startTime := time.Now()
+	timeout := time.Duration(timeoutSecs) * time.Second
+
+	for {
+		select {
+		case <-time.After(timeout):
+			return false, fmt.Errorf("timeout reached without rollap state finalization index reach: %d", minIndex)
+		default:
+			latestFinalizedIndex, err := c.FinalizedRollappStateIndex(ctx, rollappName)
+			if err != nil {
+				if time.Since(startTime) < timeout {
+					time.Sleep(2 * time.Second) // 2sec interval
+					continue
+				}
+			}
+
+			if latestFinalizedIndex >= minIndex {
+				return true, nil
+			}
+		}
+	}
 }

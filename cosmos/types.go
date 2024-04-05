@@ -18,6 +18,14 @@ const (
 	ProposalStatusDepositPeriod = "PROPOSAL_STATUS_DEPOSIT_PERIOD"
 )
 
+// ProtoMessage is implemented by generated protocol buffer messages.
+// Pulled from github.com/cosmos/gogoproto/proto.
+type ProtoMessage interface {
+	Reset()
+	String() string
+	ProtoMessage()
+}
+
 // TxProposalv1 contains chain proposal transaction detail for gov module v1 (sdk v0.46.0+)
 type TxProposalv1 struct {
 	Messages []json.RawMessage `json:"messages"`

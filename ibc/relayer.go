@@ -265,7 +265,7 @@ type CreateClientOptions struct {
 // These default options are usually determined by the relayer
 func DefaultClientOpts() CreateClientOptions {
 	return CreateClientOptions{
-		TrustingPeriod: "0",
+		TrustingPeriod: "3000s",
 	}
 }
 

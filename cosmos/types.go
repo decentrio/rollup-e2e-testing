@@ -153,3 +153,12 @@ type DenomUnit struct {
 	Exponent uint32   `json:"exponent"`
 	Aliases  []string `json:"aliases"`
 }
+
+type Params struct {
+	// send_enabled enables or disables all cross-chain token transfers from this
+	// chain.
+	SendEnabled bool `protobuf:"varint,1,opt,name=send_enabled,json=sendEnabled,proto3" json:"send_enabled,omitempty"`
+	// receive_enabled enables or disables all cross-chain token transfers to this
+	// chain.
+	ReceiveEnabled bool `protobuf:"varint,2,opt,name=receive_enabled,json=receiveEnabled,proto3" json:"receive_enabled,omitempty"`
+}

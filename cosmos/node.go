@@ -1065,6 +1065,20 @@ func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamC
 	return &param, nil
 }
 
+func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error){
+	stdout, _, err := node.ExecQuery(ctx, "ibc-transfer", "params")
+	if err != nil {
+		return nil, err
+	}
+
+	var param Params
+	err = json.Unmarshal(stdout, &param)
+	if err != nil {
+		return nil, err
+	}
+	return &param, nil
+}
+
 func (node *Node) ExportState(ctx context.Context, height int64) (string, error) {
 	node.lock.Lock()
 	defer node.lock.Unlock()

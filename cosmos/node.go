@@ -1051,6 +1051,17 @@ func (node *Node) ParamChangeProposal(ctx context.Context, keyName string, prop 
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, proposalPath string) (string, error) {
+	command := []string{
+		"gov", "submit-legacy-proposal",
+		"register-coin ",
+		proposalPath,
+		"--gas=auto",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 // QueryParam returns the state and details of a subspace param.
 func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
 	stdout, _, err := node.ExecQuery(ctx, "params", "subspace", subspace, key)

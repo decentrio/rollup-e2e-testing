@@ -1051,11 +1051,14 @@ func (node *Node) ParamChangeProposal(ctx context.Context, keyName string, prop 
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, proposalPath string) (string, error) {
+func (node *Node) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) (string, error) {
 	command := []string{
 		"gov", "submit-legacy-proposal",
-		"register-coin ",
+		"register-coin",
 		proposalPath,
+		"--title", "Register IBC token denom proposal",
+		"--description", "Register IBC token denom proposal",
+		"--deposit", deposit,
 		"--gas=auto",
 	}
 

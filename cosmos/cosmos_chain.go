@@ -391,12 +391,12 @@ func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string,
 }
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
-func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().RegisterIBCTokenDenomProposal(ctx, keyName, deposit, proposalPath)
+func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) (error) {
+	_, err := c.getFullNode().RegisterIBCTokenDenomProposal(ctx, keyName, deposit, proposalPath)
 	if err != nil {
-		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
+		return fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
-	return c.txProposal(txHash)
+	return nil
 }
 
 // TextProposal submits a text governance proposal to the chain.

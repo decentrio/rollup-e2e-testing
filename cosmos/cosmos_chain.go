@@ -10,7 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"encoding/json"	
 
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -362,6 +364,23 @@ func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*Pr
 	return c.getFullNode().QueryProposal(ctx, proposalID)
 }
 
+// GovQueryProposalV1 returns the state and details of a v1 governance proposal.
+func (c *CosmosChain) GovQueryProposalV1(ctx context.Context, proposalID uint64) (*govv1.Proposal, error) {
+	grpcAddress := c.getFullNode().hostGRPCPort
+	conn, err := grpc.Dial(grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return &govv1.Proposal{}, err
+	}
+	defer conn.Close()
+	
+	res, err := govv1.NewQueryClient(conn).Proposal(ctx, &govv1.QueryProposalRequest{ProposalId: proposalID})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Proposal, nil
+}
+
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
 	txHash, err := c.getFullNode().UpgradeLegacyProposal(ctx, keyName, prop)
@@ -369,6 +388,15 @@ func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string,
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
 	return c.txProposal(txHash)
+}
+
+// UpgradeProposal submits a software-upgrade governance proposal to the chain.
+func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) (error) {
+	_, err := c.getFullNode().RegisterIBCTokenDenomProposal(ctx, keyName, deposit, proposalPath)
+	if err != nil {
+		return fmt.Errorf("failed to submit upgrade proposal: %w", err)
+	}
+	return nil
 }
 
 // TextProposal submits a text governance proposal to the chain.
@@ -398,6 +426,30 @@ func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName, rollappC
 	}
 
 	return c.txProposal(txHash)
+}
+
+// Build a gov v1 proposal type.
+func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, metadata, depositStr, proposer string, expedited bool) (TxProposalv1, error) {
+	var propType TxProposalv1
+	rawMsgs := make([]json.RawMessage, len(messages))
+
+	for i, msg := range messages {
+		msg, err := c.Config().EncodingConfig.Codec.MarshalInterfaceJSON(msg)
+		if err != nil {
+			return propType, err
+		}
+		rawMsgs[i] = msg
+	}
+
+	propType = TxProposalv1{
+		Messages: rawMsgs,
+		Metadata: metadata,
+		Deposit:  depositStr,
+		Title:    title,
+		Summary:  summary,
+	}
+
+	return propType, nil
 }
 
 // QueryParam returns the param state of a given key.

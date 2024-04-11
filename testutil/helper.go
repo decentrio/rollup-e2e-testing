@@ -14,3 +14,10 @@ func AssertBalance(t *testing.T, ctx context.Context, chain ibc.Chain, address s
 	require.NoError(t, err)
 	require.Equal(t, expectedBalance.String(), balance.String())
 }
+
+// ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
+func ImmediatelyTimeout() *ibc.IBCTimeout {
+	return &ibc.IBCTimeout{
+		NanoSeconds: 1,
+	}
+}

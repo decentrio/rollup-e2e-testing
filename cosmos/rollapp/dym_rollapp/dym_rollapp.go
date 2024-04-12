@@ -80,7 +80,7 @@ func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenes
 	}
 
 	// Wait for 5 blocks before considering the chains "started"
-	return testutil.WaitForBlocks(ctx, 5, c.GetNode())
+	return nil
 }
 
 func (c *DymRollApp) Configuration(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {

@@ -465,9 +465,6 @@ func (node *Node) ExecTx(ctx context.Context, keyName string, command ...string)
 	if output.Code != 0 {
 		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
 	}
-	if err := testutil.WaitForBlocks(ctx, 2, node); err != nil {
-		return "", err
-	}
 	return output.TxHash, nil
 }
 
@@ -1079,7 +1076,7 @@ func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamC
 	return &param, nil
 }
 
-func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error){
+func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error) {
 	stdout, _, err := node.ExecQuery(ctx, "ibc-transfer", "params")
 	if err != nil {
 		return nil, err

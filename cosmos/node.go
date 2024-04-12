@@ -465,6 +465,13 @@ func (node *Node) ExecTx(ctx context.Context, keyName string, command ...string)
 	if output.Code != 0 {
 		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
 	}
+	if node.Chain.Config().Type == "rollapp-dym" {
+		return output.TxHash, nil
+	}
+
+	if err := testutil.WaitForBlocks(ctx, 2, node); err != nil {
+		return "", err
+	}
 	return output.TxHash, nil
 }
 

@@ -469,7 +469,7 @@ func (node *Node) ExecTx(ctx context.Context, keyName string, command ...string)
 		return output.TxHash, nil
 	}
 
-	if err := testutil.WaitForBlocks(ctx, 2, node); err != nil {
+	if err := testutil.WaitForBlocks(ctx, 5, node); err != nil {
 		return "", err
 	}
 	return output.TxHash, nil

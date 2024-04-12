@@ -353,8 +353,8 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 				rp.Path, rp.Relayer, s.chains[c0], s.chains[c1], err,
 			)
 		}
-
-		time.Sleep(20 * time.Second)
+		// To do: Need wait until found channels
+		time.Sleep(30 * time.Second)
 	}
 
 	return eg.Wait()

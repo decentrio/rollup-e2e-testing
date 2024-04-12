@@ -136,14 +136,14 @@ func (commander) CreateChannel(pathName string, opts ibc.CreateChannelOptions, h
 		"--dst-port", opts.DestPortName,
 		"--order", opts.Order.String(),
 		"--version", opts.Version,
-
+		"--max-retries", "30", "--timeout", "40s",
 		"--home", homeDir,
 	}
 }
 
 func (commander) CreateClients(pathName string, opts ibc.CreateClientOptions, homeDir string) []string {
 	return []string{
-		"rly", "tx", "clients", pathName, "--client-tp", opts.TrustingPeriod,
+		"rly", "tx", "clients", pathName,
 		"--home", homeDir,
 	}
 }
@@ -151,14 +151,14 @@ func (commander) CreateClients(pathName string, opts ibc.CreateClientOptions, ho
 // passing a value of 0 for customeClientTrustingPeriod will use default
 func (commander) CreateClient(pathName, homeDir, customeClientTrustingPeriod string) []string {
 	return []string{
-		"rly", "tx", "client", pathName, "--client-tp", customeClientTrustingPeriod,
+		"rly", "tx", "client", pathName,
 		"--home", homeDir,
 	}
 }
 
 func (commander) CreateConnections(pathName string, homeDir string) []string {
 	return []string{
-		"rly", "tx", "connection", pathName,
+		"rly", "tx", "connection", pathName, "--max-retries", "30", "--timeout", "40s",
 		"--home", homeDir,
 	}
 }

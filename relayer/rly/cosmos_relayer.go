@@ -136,7 +136,7 @@ func (commander) CreateChannel(pathName string, opts ibc.CreateChannelOptions, h
 		"--dst-port", opts.DestPortName,
 		"--order", opts.Order.String(),
 		"--version", opts.Version,
-		"--max-retries", "30", "--timeout", "40s",
+		"--max-retries", "30", "--timeout", "40s", "--debug",
 		"--home", homeDir,
 	}
 }
@@ -158,7 +158,7 @@ func (commander) CreateClient(pathName, homeDir, customeClientTrustingPeriod str
 
 func (commander) CreateConnections(pathName string, homeDir string) []string {
 	return []string{
-		"rly", "tx", "connection", pathName, "--max-retries", "30", "--timeout", "40s",
+		"rly", "tx", "connection", pathName, "--max-retries", "30", "--timeout", "40s", "--debug",
 		"--home", homeDir,
 	}
 }

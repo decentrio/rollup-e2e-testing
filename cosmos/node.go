@@ -1055,7 +1055,7 @@ func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamC
 	return &param, nil
 }
 
-func (node *Node) ExportState(ctx context.Context, height int64) (string, error) {
+func (node *Node) ExportState(ctx context.Context, height uint64) (string, error) {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 

@@ -427,7 +427,7 @@ func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
 
 // ExportState exports the chain state at specific height.
 // Implements Chain interface
-func (c *CosmosChain) ExportState(ctx context.Context, height int64) (string, error) {
+func (c *CosmosChain) ExportState(ctx context.Context, height uint64) (string, error) {
 	return c.getFullNode().ExportState(ctx, height)
 }
 

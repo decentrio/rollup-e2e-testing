@@ -1097,7 +1097,7 @@ func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error) {
 	return &param, nil
 }
 
-func (node *Node) ExportState(ctx context.Context, height int64) (string, error) {
+func (node *Node) ExportState(ctx context.Context, height uint64) (string, error) {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 

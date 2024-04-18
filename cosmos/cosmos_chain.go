@@ -312,7 +312,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}
-	testutil.WaitForBlocks(ctx, 5, c)
+	testutil.WaitForBlocks(ctx, 20, c)
 
 	txResp, err := c.GetTransaction(txHash)
 	if err != nil {

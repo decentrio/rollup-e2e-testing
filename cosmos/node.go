@@ -854,7 +854,7 @@ func (node *Node) getTransaction(clientCtx client.Context, txHash string) (*type
 		return err
 	},
 		// retry for total of 3 seconds
-		retry.Attempts(15),
+		retry.Attempts(0),
 		retry.Delay(200*time.Millisecond),
 		retry.DelayType(retry.FixedDelay),
 		retry.LastErrorOnly(true),

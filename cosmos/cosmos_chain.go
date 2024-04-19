@@ -165,7 +165,10 @@ func (c *CosmosChain) getFullNode() *Node {
 }
 
 func (c *CosmosChain) GetNode() *Node {
-	return c.Validators[0]
+	if len(c.FullNodes) == 0 {
+		return c.Validators[0]
+	}
+	return c.FullNodes[0]
 }
 
 // Exec implements ibc.Chain.

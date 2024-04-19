@@ -398,13 +398,13 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 		"eibc",
 		"fulfill-order", id,
 	}
-	return c.FullNodes[0].ExecTx(ctx, keyName, command...)
+	return c.GetNode().ExecTx(ctx, keyName, command...)
 }
 
 func (c *DymHub) QueryRollappParams(ctx context.Context,
 	rollappName string,
 ) (*dymension.QueryGetRollappResponse, error) {
-	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "rollapp", "show", rollappName)
+	stdout, _, err := c.GetNode().ExecQuery(ctx, "rollapp", "show", rollappName)
 	if err != nil {
 		return nil, err
 	}
@@ -428,7 +428,7 @@ func (c *DymHub) QueryRollappState(ctx context.Context,
 		command = append(command, "--finalized")
 	}
 
-	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, command...)
+	stdout, _, err := c.GetNode().ExecQuery(ctx, command...)
 	if err != nil {
 		return nil, err
 	}

@@ -28,6 +28,8 @@ func ModifyGenesis(genesisKV []GenesisKV) func(ibc.ChainConfig, []byte) ([]byte,
 		if err := json.Unmarshal(genbz, &g); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
+		fmt.Println(genbz)
+		fmt.Println(g)
 
 		for idx, values := range genesisKV {
 			splitPath := strings.Split(values.Key, ".")

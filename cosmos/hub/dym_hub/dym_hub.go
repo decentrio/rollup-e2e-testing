@@ -558,3 +558,18 @@ func (c *DymHub) AssertFinalization(t *testing.T, ctx context.Context, rollappNa
 	require.NoError(t, err)
 	require.Equal(t, latestFinalizedIndex > minIndex, true, fmt.Sprintf("%s did not have the latest finalized state greater than %d", rollappName, latestFinalizedIndex))
 }
+
+func (c *DymHub) QueryEIBCDemandOrders(ctx context.Context,
+	status string,
+) (*dymension.QueryDemandOrdersByStatusResponse, error) {
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, "eibc", "list-demand-orders", status)
+	if err != nil {
+		return nil, err
+	}
+	var resp dymension.QueryDemandOrdersByStatusResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}

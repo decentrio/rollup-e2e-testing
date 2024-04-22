@@ -964,6 +964,22 @@ func (node *Node) QueryEscrowAddress(ctx context.Context, portID, channelID stri
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
+func (node *Node) QueryPacketCommitments(ctx context.Context,
+	portID string,
+	channelID string,
+) (*QueryPacketCommitmentsResponse, error) {
+	stdout, _, err := node.ExecQuery(ctx, "ibc", "channel", "packet-commitments", portID, channelID)
+	if err != nil {
+		return nil, err
+	}
+	var resp QueryPacketCommitmentsResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // SubmitFraudProposal a fraud proposal to the chain.
 
 func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {

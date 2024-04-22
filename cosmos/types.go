@@ -170,3 +170,30 @@ type Params struct {
 	// chain.
 	ReceiveEnabled bool `protobuf:"varint,2,opt,name=receive_enabled,json=receiveEnabled,proto3" json:"receive_enabled,omitempty"`
 }
+
+type QueryPacketCommitmentsResponse struct {
+	Commitments []*PacketState `json:"commitments"`
+	Pagination  *PageResponse  `json:"pagination"`
+	Height      Height         `json:"height"`
+}
+
+type PacketState struct {
+	// channel port identifier.
+	PortId string `yaml:"port_id"`
+	// channel unique identifier.
+	ChannelId string `yaml:"channel_id"`
+	// packet sequence.
+	Sequence string `json:"sequence"`
+	// embedded data that represents packet state.
+	Data string `json:"data"`
+}
+
+type PageResponse struct {
+	NextKey string `json:"next_key"`
+	Total   string `json:"total"`
+}
+
+type Height struct {
+	RevisionNumber string `yaml:"revision_number"`
+	RevisionHeight string `yaml:"revision_height"`
+}

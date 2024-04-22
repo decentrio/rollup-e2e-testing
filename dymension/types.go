@@ -103,3 +103,19 @@ type BlockDescriptor struct {
 	StateRoot              string `json:"stateRoot"`
 	IntermediateStatesRoot string `json:"intermediateStatesRoot"`
 }
+
+type QueryDemandOrdersByStatusResponse struct {
+	DemandOrders []*DemandOrder `json:"demand_orders"`
+}
+
+type DemandOrder struct {
+	Id                   string `json:"id"`
+	TrackingPacketKey    string `json:"tracking_packet_key"`
+	Price                Coins  `json:"price"`
+	Fee                  Coins  `json:"fee"`
+	Recipient            string `json:"recipient"`
+	IsFullfilled         string `json:"is_fullfilled"`
+	TrackingPacketStatus string `json:"tracking_packet_status"`
+}
+
+type Coins []Coin

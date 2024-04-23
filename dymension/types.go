@@ -114,7 +114,7 @@ type DemandOrder struct {
 	Price                Coins  `json:"price"`
 	Fee                  Coins  `json:"fee"`
 	Recipient            string `json:"recipient"`
-	IsFullfilled         string `json:"is_fullfilled"`
+	IsFullfilled         bool   `json:"is_fullfilled"`
 	TrackingPacketStatus string `json:"tracking_packet_status"`
 }
 

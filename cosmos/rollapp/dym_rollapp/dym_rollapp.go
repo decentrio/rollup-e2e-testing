@@ -189,6 +189,11 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
 	validator0 := c.Validators[0]
+	genbzz, err := validator0.GenesisFileContent(ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(genbzz))
 	for i := 1; i < len(c.Validators); i++ {
 		validatorN := c.Validators[i]
 

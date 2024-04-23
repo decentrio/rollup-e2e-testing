@@ -197,30 +197,14 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		if err != nil {
 			return err
 		}
-		genbz, err := validator0.GenesisFileContent(ctx)
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(genbz))
 		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 			return err
 		}
-
-		genbz1, err := validator0.GenesisFileContent(ctx)
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(genbz1))
 		if !c.Config().SkipGenTx {
 			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
 				return err
 			}
 		}
-		genbz2, err := validator0.GenesisFileContent(ctx)
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(genbz2))
 	}
 
 	for _, wallet := range additionalGenesisWallets {
@@ -233,6 +217,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	if err != nil {
 		return err
 	}
+	fmt.Println("3333")
 	fmt.Println(string(genbz3))
 
 	if !c.Config().SkipGenTx {
@@ -245,6 +230,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	if err != nil {
 		return err
 	}
+	fmt.Println("44444")
 	fmt.Println(string(genbz))
 
 	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))

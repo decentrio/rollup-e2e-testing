@@ -733,9 +733,6 @@ func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChain
 // CollectGentxs runs collect gentxs on the node's home folders
 func (node *Node) CollectGentxs(ctx context.Context) error {
 	command := []string{node.Chain.Config().Bin}
-	if node.IsAboveSDK47(ctx) {
-		command = append(command, "genesis")
-	}
 
 	command = append(command, "collect-gentxs", "--home", node.HomeDir())
 

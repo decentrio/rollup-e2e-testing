@@ -224,6 +224,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	if err != nil {
 		return err
 	}
+	fmt.Println(string(genbz))
 
 	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
 

@@ -3,7 +3,6 @@ package dym_rollapp
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/icza/dyno"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -235,7 +235,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	}
 
 	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
+	if err := tmjson.Unmarshal(genbz, &g); err != nil {
 		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 	}
 
@@ -275,7 +275,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		}
 	}
 
-	outGenBz, err := json.Marshal(g)
+	outGenBz, err := tmjson.Marshal(g)
 	if err != nil {
 		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}
@@ -350,7 +350,7 @@ func (c *DymRollApp) InitValidatorGenTx(
 		}
 
 		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
+		if err := tmjson.Unmarshal(genbz, &g); err != nil {
 			return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
 
@@ -360,7 +360,7 @@ func (c *DymRollApp) InitValidatorGenTx(
 
 		fmt.Println("genesis_operator_address", valBech32)
 
-		outGenBz, err := json.Marshal(g)
+		outGenBz, err := tmjson.Marshal(g)
 		if err != nil {
 			return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 		}

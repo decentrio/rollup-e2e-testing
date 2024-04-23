@@ -24,10 +24,14 @@ func NewGenesisKV(key string, value interface{}) GenesisKV {
 
 func ModifyGenesis(genesisKV []GenesisKV) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
+		fmt.Println("genbzzzz")
+		fmt.Println(string(genbz))
 		g := make(map[string]interface{})
 		if err := json.Unmarshal(genbz, &g); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
+		fmt.Println("ggggg")
+		fmt.Println(g)
 
 		for idx, values := range genesisKV {
 			splitPath := strings.Split(values.Key, ".")
@@ -47,6 +51,8 @@ func ModifyGenesis(genesisKV []GenesisKV) func(ibc.ChainConfig, []byte) ([]byte,
 		}
 
 		out, err := json.Marshal(g)
+		fmt.Println("outttt")
+		fmt.Println(string(out))
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 		}

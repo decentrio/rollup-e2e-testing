@@ -189,11 +189,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
 	validator0 := c.Validators[0]
-	genbzz, err := validator0.GenesisFileContent(ctx)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(genbzz))
+
 	for i := 1; i < len(c.Validators); i++ {
 		validatorN := c.Validators[i]
 
@@ -201,15 +197,30 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		if err != nil {
 			return err
 		}
+		genbz, err := validator0.GenesisFileContent(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(genbz))
 		if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
 			return err
 		}
 
+		genbz1, err := validator0.GenesisFileContent(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(genbz1))
 		if !c.Config().SkipGenTx {
 			if err := validatorN.CopyGentx(ctx, validator0); err != nil {
 				return err
 			}
 		}
+		genbz2, err := validator0.GenesisFileContent(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(genbz2))
 	}
 
 	for _, wallet := range additionalGenesisWallets {
@@ -218,6 +229,11 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			return err
 		}
 	}
+	genbz3, err := validator0.GenesisFileContent(ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(genbz3))
 
 	if !c.Config().SkipGenTx {
 		if err := validator0.CollectGentxs(ctx); err != nil {

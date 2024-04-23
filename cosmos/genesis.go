@@ -1,13 +1,13 @@
 package cosmos
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/icza/dyno"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
 type GenesisKV struct {
@@ -27,7 +27,7 @@ func ModifyGenesis(genesisKV []GenesisKV) func(ibc.ChainConfig, []byte) ([]byte,
 		fmt.Println("genbzzzz")
 		fmt.Println(string(genbz))
 		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
+		if err := tmjson.Unmarshal(genbz, &g); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
 		fmt.Println("ggggg")
@@ -50,7 +50,7 @@ func ModifyGenesis(genesisKV []GenesisKV) func(ibc.ChainConfig, []byte) ([]byte,
 			}
 		}
 
-		out, err := json.Marshal(g)
+		out, err := tmjson.Marshal(g)
 		fmt.Println("outttt")
 		fmt.Println(string(out))
 		if err != nil {

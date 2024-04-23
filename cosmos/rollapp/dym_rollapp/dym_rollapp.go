@@ -3,9 +3,11 @@ package dym_rollapp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +16,10 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/icza/dyno"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -28,6 +33,17 @@ type DymRollApp struct {
 	sequencerKeyDir string
 	sequencerKey    string
 	extraFlags      map[string]interface{}
+}
+
+type CustomGenesisDoc struct {
+	GenesisTime     time.Time                  `json:"genesis_time"`
+	ChainID         string                     `json:"chain_id"`
+	Bech32Prefix    string                     `json:"bech32_prefix"`
+	InitialHeight   int64                      `json:"initial_height"`
+	ConsensusParams *tmproto.ConsensusParams   `json:"consensus_params,omitempty"`
+	Validators      []tmtypes.GenesisValidator `json:"validators,omitempty"`
+	AppHash         tmbytes.HexBytes           `json:"app_hash"`
+	AppState        json.RawMessage            `json:"app_state,omitempty"`
 }
 
 var _ ibc.Chain = (*DymRollApp)(nil)
@@ -234,7 +250,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		}
 	}
 
-	g := make(map[string]interface{})
+	g := CustomGenesisDoc{}
 	if err := tmjson.Unmarshal(genbz, &g); err != nil {
 		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 	}
@@ -349,7 +365,7 @@ func (c *DymRollApp) InitValidatorGenTx(
 			return fmt.Errorf("failed to retrieve val bech32: %w", err)
 		}
 
-		g := make(map[string]interface{})
+		g := CustomGenesisDoc{}
 		if err := tmjson.Unmarshal(genbz, &g); err != nil {
 			return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}

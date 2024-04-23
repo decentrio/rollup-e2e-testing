@@ -239,6 +239,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 	}
 
+	fmt.Println(string(genbz))
 	if c.CosmosChain.Config().Bech32Prefix == "ethm" {
 		// Add balance to hub genesis module account
 		bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
@@ -276,6 +277,8 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	}
 
 	outGenBz, err := json.Marshal(g)
+	fmt.Println(g)
+	fmt.Println(string(outGenBz))
 	if err != nil {
 		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}

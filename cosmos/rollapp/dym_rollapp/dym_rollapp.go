@@ -221,14 +221,20 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	}
 
 	genbz, err := validator0.GenesisFileContent(ctx)
+	fmt.Println("gen111")
+	fmt.Println(string(genbz))
 	if err != nil {
 		return err
 	}
 
 	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
 
+	fmt.Println(string(genbz))
+	fmt.Println("gen222")
 	if c.Config().ModifyGenesis != nil {
 		genbz, err = c.Config().ModifyGenesis(chainCfg, genbz)
+		fmt.Println("gen333")
+		fmt.Println(string(genbz))
 		if err != nil {
 			return err
 		}
@@ -238,6 +244,8 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	if err := json.Unmarshal(genbz, &g); err != nil {
 		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 	}
+	fmt.Println("ggggggggg")
+	fmt.Println(g)
 
 	if c.CosmosChain.Config().Bech32Prefix == "ethm" {
 		// Add balance to hub genesis module account
@@ -276,6 +284,8 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	}
 
 	outGenBz, err := json.Marshal(g)
+	fmt.Println("outtttt")
+	fmt.Println(outGenBz)
 	if err != nil {
 		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}

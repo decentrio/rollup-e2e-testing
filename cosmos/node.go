@@ -161,7 +161,6 @@ func (node *Node) GenesisFileContent(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting genesis.json content: %w", err)
 	}
-	fmt.Println(string(gen))
 
 	return gen, nil
 }

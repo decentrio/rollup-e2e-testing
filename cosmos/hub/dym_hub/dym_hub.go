@@ -440,6 +440,23 @@ func (c *DymHub) QueryRollappState(ctx context.Context,
 	return &rollappState, nil
 }
 
+func (c *DymHub) QueryEpochInfos(ctx context.Context) (*dymension.QueryEpochsInfoResponse, error) {
+
+	var command []string
+	command = append(command, "epochs", "epoch-infos")
+
+	stdout, _, err := c.GetNode().ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+	var epochInfos dymension.QueryEpochsInfoResponse
+	err = json.Unmarshal(stdout, &epochInfos)
+	if err != nil {
+		return nil, err
+	}
+	return &epochInfos, nil
+}
+
 func (c *DymHub) QueryLatestStateIndex(ctx context.Context,
 	rollappName string,
 	onlyFinalized bool,
@@ -548,6 +565,55 @@ func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappC
 				time.Sleep(2 * time.Second)
 			} else {
 				return false, fmt.Errorf("specified rollapp height %d not found within the timeout", targetHeight)
+			}
+		}
+	}
+}
+
+func (c *DymHub) WaitUntilEpochEnds(ctx context.Context, identifier string, timeoutSecs int) (bool, error) {
+	startTime := time.Now()
+	timeout := time.Duration(timeoutSecs) * time.Second
+
+	epochInfos, err := c.QueryEpochInfos(ctx)
+	if err != nil {
+		return false, fmt.Errorf("error querying epoch infos: %v", err)
+	}
+	var baseEpoch string
+	for _, epoch := range epochInfos.Epochs {
+		if epoch.Identifier == identifier {
+			baseEpoch = epoch.CurrentEpoch
+		}
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case <-time.After(timeout):
+			return false, fmt.Errorf("specified epochs %s not change within the timeout", identifier)
+		default:
+			epochInfos, err := c.QueryEpochInfos(ctx)
+			if err != nil {
+				if time.Since(startTime) < timeout {
+					time.Sleep(2 * time.Second)
+					continue
+				} else {
+					return false, fmt.Errorf("error querying epoch infos: %v", err)
+				}
+			}
+
+			for _, epoch := range epochInfos.Epochs {
+				if epoch.Identifier == identifier {
+					if epoch.CurrentEpoch != baseEpoch {
+						return true, nil
+					}
+				}
+			}
+
+			if time.Since(startTime)+2*time.Second < timeout {
+				time.Sleep(2 * time.Second)
+			} else {
+				return false, fmt.Errorf("specified epochs %s not change within the timeout", identifier)
 			}
 		}
 	}

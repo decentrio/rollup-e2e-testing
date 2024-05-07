@@ -981,7 +981,6 @@ func (node *Node) QueryPacketCommitments(ctx context.Context,
 }
 
 // SubmitFraudProposal a fraud proposal to the chain.
-
 func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {
 	var command []string
 	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
@@ -1082,6 +1081,15 @@ func (node *Node) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, de
 		"--gas=auto",
 	}
 
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+// CrisisInvariant run crisis module invariant-broken command
+func (node *Node) CrisisInvariant(ctx context.Context, keyName string, module, invariant string) (string, error) {
+	command := []string{
+		"crisis", "invariant-broken",
+		module, invariant,
+	}
 	return node.ExecTx(ctx, keyName, command...)
 }
 

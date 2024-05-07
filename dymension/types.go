@@ -2,6 +2,7 @@ package dymension
 
 import (
 	"math"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 )
@@ -119,3 +120,17 @@ type DemandOrder struct {
 }
 
 type Coins []Coin
+
+type QueryEpochsInfoResponse struct {
+	Epochs []EpochInfo `json:"epochs"`
+}
+
+type EpochInfo struct {
+	Identifier              string        `json:"identifier"`
+	StartTime               time.Time     `json:"start_time"`
+	Duration               string `json:"duration"`
+	CurrentEpoch            string        `json:"current_epoch"`
+	CurrentEpochStartTime   time.Time     `json:"current_epoch_start_time"`
+	EpochCountingStarted    bool          `json:"epoch_counting_started"`
+	CurrentEpochStartHeight string        `json:"current_epoch_start_height"`
+}

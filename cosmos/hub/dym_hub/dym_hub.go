@@ -354,7 +354,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
-		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, maxSequencers, seq, keyDir); err != nil {
+		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 	}
@@ -363,8 +363,8 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 }
 
 // RegisterSequencerToHub register sequencer for rollapp on settlement.
-func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
-	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq, keyDir)
+func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
+	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, seq, keyDir)
 }
 
 // RegisterRollAppToHub register rollapp on settlement.

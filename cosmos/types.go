@@ -104,7 +104,7 @@ type ProposalDeposit struct {
 type ParamChange struct {
 	Subspace string `json:"subspace"`
 	Key      string `json:"key"`
-	Value    any    `json:"value"`
+	Value    string `json:"value"`
 }
 
 type ContractStateModels struct {

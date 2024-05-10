@@ -354,7 +354,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
-		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, maxSequencers, seq, keyDir); err != nil {
+		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 	}
@@ -363,8 +363,8 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 }
 
 // RegisterSequencerToHub register sequencer for rollapp on settlement.
-func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
-	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, maxSequencers, seq, keyDir)
+func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
+	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, seq, keyDir)
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
@@ -375,6 +375,11 @@ func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChain
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.
 func (c *DymHub) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
 	return c.GetNode().TriggerGenesisEvent(ctx, keyName, rollappChainID, channelId, keyDir)
+}
+
+// Unbond is a method for removing coins from sequencer's bond.
+func (c *DymHub) Unbond(ctx context.Context, keyName, keyDir string) error {
+	return c.GetNode().Unbond(ctx, keyName, keyDir)
 }
 
 // QueryLatestIndex returns the latest state index of a rollapp based on rollapp id.
@@ -479,6 +484,40 @@ func (c *DymHub) QueryLatestStateIndex(ctx context.Context,
 		return nil, err
 	}
 	return &queryGetLatestStateIndexResponse, nil
+}
+
+func (c *DymHub) QueryShowSequencerByRollapp(ctx context.Context, rollappName string) (*dymension.QueryGetSequencersByRollappResponse, error) {
+	var command []string
+	command = append(command, "sequencer", "show-sequencers-by-rollapp", rollappName)
+
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var queryGetSequencersByRollappResponse dymension.QueryGetSequencersByRollappResponse
+	err = json.Unmarshal(stdout, &queryGetSequencersByRollappResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &queryGetSequencersByRollappResponse, nil
+}
+
+func (c *DymHub) QueryShowSequencer(ctx context.Context, sequencerAddr string) (*dymension.QueryGetSequencerResponse, error) {
+	var command []string
+	command = append(command, "sequencer", "show-sequencer", sequencerAddr)
+
+	stdout, _, err := c.FullNodes[0].ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var queryGetSequencerResponse dymension.QueryGetSequencerResponse
+	err = json.Unmarshal(stdout, &queryGetSequencerResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &queryGetSequencerResponse, nil
 }
 
 func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (uint64, error) {

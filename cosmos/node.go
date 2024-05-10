@@ -526,6 +526,13 @@ func (node *Node) ExecQuery(ctx context.Context, command ...string) ([]byte, []b
 	return node.Exec(ctx, node.QueryCommand(command...), nil)
 }
 
+// ExecInit with custom home. This is a helper function to create new sequencer pubkey
+func (node *Node) ExecInit(ctx context.Context, name, home string) ([]byte, []byte, error) {
+	command := []string{}
+	command = append(command, node.Chain.Config().Bin, "init", name, "--home", home)
+	return node.Exec(ctx, command, nil)
+}
+
 // CondenseMoniker fits a moniker into the cosmos character limit for monikers.
 // If the moniker already fits, it is returned unmodified.
 // Otherwise, the middle is truncated, and a hash is appended to the end
@@ -710,7 +717,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	return err
 }
 
-func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, seq, keyDir string) error {
+func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
@@ -725,6 +732,20 @@ func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChain
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(command, "rollapp", "genesis-event", rollappChainID, channelId,
 		"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
+func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
+	var command []string
+	if keyDir != "" {
+		keyPath := keyDir + "/sequencer_keys"
+		command = append(command, "sequencer", "unbond",
+			"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
+	}
+	command = append(command, "sequencer", "unbond",
+		"--broadcast-mode", "block", "--gas", "auto")
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err

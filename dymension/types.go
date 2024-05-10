@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/gogo/protobuf/types"
 )
 
 var GenesisEventAmount = sdkmath.NewInt(100_000_000_000_000).MulRaw(int64(math.Pow10(6)))
@@ -126,11 +127,39 @@ type QueryEpochsInfoResponse struct {
 }
 
 type EpochInfo struct {
-	Identifier              string        `json:"identifier"`
-	StartTime               time.Time     `json:"start_time"`
-	Duration               string `json:"duration"`
-	CurrentEpoch            string        `json:"current_epoch"`
-	CurrentEpochStartTime   time.Time     `json:"current_epoch_start_time"`
-	EpochCountingStarted    bool          `json:"epoch_counting_started"`
-	CurrentEpochStartHeight string        `json:"current_epoch_start_height"`
+	Identifier              string    `json:"identifier"`
+	StartTime               time.Time `json:"start_time"`
+	Duration                string    `json:"duration"`
+	CurrentEpoch            string    `json:"current_epoch"`
+	CurrentEpochStartTime   time.Time `json:"current_epoch_start_time"`
+	EpochCountingStarted    bool      `json:"epoch_counting_started"`
+	CurrentEpochStartHeight string    `json:"current_epoch_start_height"`
+}
+
+type QueryGetSequencersByRollappResponse struct {
+	Sequencers []Sequencer `json:"sequencers"`
+}
+
+type Sequencer struct {
+	SequencerAddress string      `json:"sequencerAddress"`
+	DymintPubKey     *types.Any  `json:"dymintPubKey"`
+	RollappId        string      `json:"rollappId"`
+	Description      Description `json:"description"`
+	Jailed           bool        `json:"jailed"`
+	Proposer         bool        `json:"proposer"`
+	Status           string      `json:"status"`
+	Tokens           []Coin      `json:"tokens"`
+	UnbondingHeight  string      `json:"unbonding_height"`
+	UnbondTime       time.Time   `json:"unbond_time"`
+}
+type Description struct {
+	Moniker         string `json:"moniker,omitempty"`
+	Identity        string `json:"identity,omitempty"`
+	Website         string `json:"website,omitempty"`
+	SecurityContact string `json:"securityContact,omitempty"`
+	Details         string `json:"details,omitempty"`
+}
+
+type QueryGetSequencerResponse struct {
+	Sequencer Sequencer `json:"sequencer"`
 }

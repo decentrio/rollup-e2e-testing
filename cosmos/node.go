@@ -1041,6 +1041,7 @@ func (node *Node) UpgradeLegacyProposal(ctx context.Context, keyName string, pro
 		"--description", prop.Description,
 		"--deposit", prop.Deposit,
 		"--gas=auto",
+		"--no-validate",
 	}
 
 	if prop.Info != "" {

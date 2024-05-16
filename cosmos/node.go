@@ -985,6 +985,22 @@ func (node *Node) QueryEscrowAddress(ctx context.Context, portID, channelID stri
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
+// QueryHubGenesisState query hub genesis state
+func (node *Node) QueryHubGenesisState(ctx context.Context) (HubGenesisState, error){
+	stdout, _, err := node.ExecQuery(ctx, "hubgenesis", "state")
+	if err != nil {
+		return HubGenesisState{}, err
+	}
+
+	var hubGenesisState HubGenesisState
+	err = json.Unmarshal(stdout, &hubGenesisState)
+	if err != nil {
+		return HubGenesisState{}, err
+	}
+
+	return hubGenesisState, nil
+}
+
 func (node *Node) QueryPacketCommitments(ctx context.Context,
 	portID string,
 	channelID string,

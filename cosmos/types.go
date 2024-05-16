@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -196,4 +197,11 @@ type PageResponse struct {
 type Height struct {
 	RevisionNumber string `yaml:"revision_number"`
 	RevisionHeight string `yaml:"revision_height"`
+}
+
+type HubGenesisState struct {
+	// is_locked is a boolean that indicates if the genesis event has occured
+	IsLocked bool `protobuf:"varint,1,opt,name=is_locked,json=isLocked,proto3" json:"is_locked,omitempty"`
+	// genesis_tokens is the list of tokens that are expected to be locked on genesis event
+	GenesisTokens types.Coins `protobuf:"bytes,2,rep,name=genesis_tokens,json=genesisTokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"genesis_tokens"`
 }

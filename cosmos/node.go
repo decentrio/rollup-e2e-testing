@@ -798,7 +798,7 @@ func (node *Node) SendIBCTransfer(
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) GetTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {
+func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {
 	txResp, err := node.getTransaction(node.CliContext(), txHash)
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)

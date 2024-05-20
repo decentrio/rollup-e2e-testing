@@ -798,6 +798,54 @@ func (node *Node) SendIBCTransfer(
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) GetTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {
+	txResp, err := node.getTransaction(node.CliContext(), txHash)
+	if err != nil {
+		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
+	}
+	if txResp.Code != 0 {
+		return tx, fmt.Errorf("error in transaction (code: %d): %s", txResp.Code, txResp.RawLog)
+	}
+	tx.Height = uint64(txResp.Height)
+	tx.TxHash = txHash
+	// In cosmos, user is charged for entire gas requested, not the actual gas used.
+	tx.GasSpent = txResp.GasWanted
+
+	const evType = "send_packet"
+	events := txResp.Events
+
+	var (
+		seq, _           = AttributeValue(events, evType, "packet_sequence")
+		srcPort, _       = AttributeValue(events, evType, "packet_src_port")
+		srcChan, _       = AttributeValue(events, evType, "packet_src_channel")
+		dstPort, _       = AttributeValue(events, evType, "packet_dst_port")
+		dstChan, _       = AttributeValue(events, evType, "packet_dst_channel")
+		timeoutHeight, _ = AttributeValue(events, evType, "packet_timeout_height")
+		timeoutTs, _     = AttributeValue(events, evType, "packet_timeout_timestamp")
+		data, _          = AttributeValue(events, evType, "packet_data")
+	)
+	tx.Packet.SourcePort = srcPort
+	tx.Packet.SourceChannel = srcChan
+	tx.Packet.DestPort = dstPort
+	tx.Packet.DestChannel = dstChan
+	tx.Packet.TimeoutHeight = timeoutHeight
+	tx.Packet.Data = []byte(data)
+
+	seqNum, err := strconv.Atoi(seq)
+	if err != nil {
+		return tx, fmt.Errorf("invalid packet sequence from events %s: %w", seq, err)
+	}
+	tx.Packet.Sequence = uint64(seqNum)
+
+	timeoutNano, err := strconv.ParseUint(timeoutTs, 10, 64)
+	if err != nil {
+		return tx, fmt.Errorf("invalid packet timestamp timeout %s: %w", timeoutTs, err)
+	}
+	tx.Packet.TimeoutTimestamp = ibc.Nanoseconds(timeoutNano)
+
+	return tx, nil
+}
+
 func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.WalletData) error {
 	_, err := node.ExecTx(ctx,
 		keyName, "bank", "send", keyName,

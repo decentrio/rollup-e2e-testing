@@ -268,7 +268,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return fmt.Errorf("failed to configuration chains: %w", err)
 	}
 
-	if err := s.cs.Start(ctx, opts.TestName, walletAmounts); err != nil {
+	if err := s.cs.Start(ctx, opts.TestName, walletAmounts, redundant); err != nil {
 		return fmt.Errorf("failed to start chains: %w", err)
 	}
 

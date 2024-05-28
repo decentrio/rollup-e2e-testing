@@ -121,9 +121,14 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string, red
 }
 
 // Start concurrently calls Start against each chain in the set.
-func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
+func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, redundant ibc.Chain) error {
 	// Start Hub chain first
 	for c := range cs.chains {
+		if redundant != nil {
+			if c.Config().Name == redundant.Config().Name {
+				continue
+			}
+		}
 		c := c
 		if _, ok := c.(ibc.Hub); ok {
 			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {

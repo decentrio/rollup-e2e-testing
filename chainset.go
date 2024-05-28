@@ -93,8 +93,10 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string, red
 	eg, egCtx := errgroup.WithContext(ctx)
 
 	for c := range cs.chains {
-		if c.Config().Name == redundant.Config().Name {
-			continue
+		if redundant != nil {
+			if c.Config().Name == redundant.Config().Name {
+				continue
+			}
 		}
 		c := c
 		eg.Go(func() error {

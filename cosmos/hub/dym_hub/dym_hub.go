@@ -368,6 +368,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 	validator0 := c.Validators[0]
 	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
 	if err != nil {
+		println("go to AccountKeyBech32")
 		return err
 	}
 	for _, r := range c.rollApps {
@@ -385,11 +386,13 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 
 		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
 		if err != nil {
+			println("go to MarshalIndent")
 			return err
 		}
 
 		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
 		if err != nil {
+			println("go to WriteFile")
 			return err
 		}
 		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
@@ -409,10 +412,12 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		seq := r.GetSequencer()
 
 		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
+			println("go to CreateKeyWithKeyDir")
 			return err
 		}
 		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
 		if err != nil {
+			println("go to AccountKeyBech32WithKeyDir")
 			return err
 		}
 		amount := sdkmath.NewInt(10_000_000_000_000)
@@ -422,6 +427,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 			Amount:  amount,
 		}
 		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+			println("go to SendFunds")
 			return err
 		}
 
@@ -464,10 +470,12 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
 		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+			println("go to RegisterRollAppToHub")
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
 		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
+			println("go to RegisterSequencerToHub")
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 	}

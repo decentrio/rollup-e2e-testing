@@ -513,14 +513,12 @@ func (c *DymHub) GetRollApps() []ibc.RollApp {
 	return c.rollApps
 }
 
-func (c *DymHub) RemoveRollApp(rollApp ibc.RollApp) []ibc.RollApp {
+func (c *DymHub) RemoveRollApp(rollApp ibc.RollApp) {
 	for id, ra := range c.rollApps {
 		if ra.(ibc.Chain).Config().ChainID == rollApp.(ibc.Chain).Config().ChainID {
-			return  append(c.rollApps[:id], c.rollApps[id+1:]...)
+			c.rollApps = append(c.rollApps[:id], c.rollApps[id+1:]...)
 		}
 	}
-
-	return c.rollApps
 }
 
 func (c *DymHub) FullfillDemandOrder(ctx context.Context,

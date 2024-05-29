@@ -411,10 +411,6 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
 
-		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
-			println("go to CreateKeyWithKeyDir")
-			return err
-		}
 		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
 		if err != nil {
 			println("go to AccountKeyBech32WithKeyDir")

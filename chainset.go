@@ -124,13 +124,13 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string, red
 func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, redundant ibc.Chain) error {
 	// Start Hub chain first
 	for c := range cs.chains {
-		// if redundant != nil {
-		// 	if c.Config().Name == redundant.Config().Name {
-		// 		continue
-		// 	}
-		// }
 		c := c
 		if _, ok := c.(ibc.Hub); ok {
+			if redundant != nil && c.Config().Name == redundant.Config().Name{
+				if err := c.SetupRollAppWithExitsHub(ctx); err != nil {
+					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+				}
+			}
 			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}

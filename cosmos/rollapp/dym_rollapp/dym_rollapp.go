@@ -371,3 +371,7 @@ func (c *DymRollApp) InitValidatorGenTx(
 	}
 	return validator.Gentx(ctx, valKey, genesisSelfDelegation)
 }
+
+func (c *DymRollApp) StartRollAppWithExitsHub(ctx context.Context) error {
+	return fmt.Errorf("not implemented")
+}

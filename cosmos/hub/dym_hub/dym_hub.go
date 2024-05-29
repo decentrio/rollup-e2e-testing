@@ -294,6 +294,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		rollAppChainID := r.(ibc.Chain).GetChainID()
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
+		println("check keydir Start: ", keyDir)
 
 		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 			return err
@@ -411,7 +412,11 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		println("check rollAppChainID SetupRollAppWithExitsHub: ", rollAppChainID)
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
+		println("check keydir SetupRollAppWithExitsHub: ", keyDir)
 
+		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
+			return err
+		}
 		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
 		if err != nil {
 			println("go to AccountKeyBech32WithKeyDir")

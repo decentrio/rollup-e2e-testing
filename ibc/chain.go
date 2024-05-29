@@ -25,7 +25,7 @@ type Chain interface {
 	Exec(ctx context.Context, cmd []string, env []string) (stdout, stderr []byte, err error)
 
 	// ExportState exports the chain state at specific height.
-	ExportState(ctx context.Context, height int64) (string, error)
+	ExportState(ctx context.Context, height uint64) (string, error)
 
 	// GetRPCAddress retrieves the rpc address that can be reached by other containers in the docker network.
 	GetRPCAddress() string

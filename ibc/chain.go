@@ -106,7 +106,7 @@ type Hub interface {
 	// Get RollApp chain
 	GetRollApps() []RollApp
 	// Remove RollApp  chain
-	RemoveRollApp(rollApp RollApp) []RollApp
+	RemoveRollApp(rollApp RollApp)
 }
 
 type RollApp interface {

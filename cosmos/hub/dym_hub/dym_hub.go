@@ -408,6 +408,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 	for _, r := range rollApps {
 		r := r
 		rollAppChainID := r.(ibc.Chain).GetChainID()
+		println("check rollAppChainID SetupRollAppWithExitsHub: ", rollAppChainID)
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
 

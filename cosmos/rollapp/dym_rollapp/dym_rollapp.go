@@ -316,6 +316,8 @@ func (c *DymRollApp) GetSequencer() string {
 }
 
 func (c *DymRollApp) GetSequencerKeyDir() string {
+	fmt.Println("rollapp: ", c.GetChainID())
+	fmt.Println("sequencerKeyDir: ", c.sequencerKey)
 	return c.sequencerKeyDir
 }
 

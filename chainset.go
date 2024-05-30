@@ -126,9 +126,8 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 	for c := range cs.chains {
 		c := c
 		if _, ok := c.(ibc.Hub); ok {
-			if redundant != nil && c.Config().Name == redundant.Config().Name{
+			if redundant != nil && c.Config().Name == redundant.Config().Name {
 				if err := c.SetupRollAppWithExitsHub(ctx); err != nil {
-					println("go to SetupRollAppWithExitsHub")
 					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 				}
 				break
@@ -143,7 +142,6 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 	for c := range cs.chains {
 		c := c
 		if _, ok := c.(ibc.Hub); !ok {
-			println("check name of chain: ", c.Config().Name)
 			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}

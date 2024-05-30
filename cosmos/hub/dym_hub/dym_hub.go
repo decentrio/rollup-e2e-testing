@@ -351,6 +351,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
+		println("flags before: ", flags)
 		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
@@ -398,6 +399,24 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		}
 		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
 	}
+
+	// for i := 1; i < len(c.Validators); i++ {
+	// 	validatorN := c.Validators[i]
+
+	// 	bech32, err := validatorN.AccountKeyBech32(ctx, valKey)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if err := validator0.AddGenesisAccount(ctx, bech32, genesisAmounts); err != nil {
+	// 		return err
+	// 	}
+
+	// 	if !chainCfg.SkipGenTx {
+	// 		if err := validatorN.CopyGentx(ctx, validator0); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
 
 	// Wait for 5 blocks before considering the chains "started"
 	testutil.WaitForBlocks(ctx, 5, c.GetNode())
@@ -472,6 +491,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
+		println("flags after: ", flags)
 		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			println("go to RegisterRollAppToHub")
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)

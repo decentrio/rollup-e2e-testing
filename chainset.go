@@ -131,6 +131,7 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 					println("go to SetupRollAppWithExitsHub")
 					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 				}
+				break
 			}
 			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)

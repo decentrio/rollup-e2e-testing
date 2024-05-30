@@ -351,7 +351,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		println("flags before: ", flags)
+		println("flags before: ", flags["genesis-accounts-path"])
 		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
@@ -491,7 +491,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		println("flags after: ", flags)
+		println("flags after: ", flags["genesis-accounts-path"])
 		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			println("go to RegisterRollAppToHub")
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)

@@ -295,6 +295,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
 		println("check sequence: ",seq)
+		println("check key dir: ",keyDir)
 		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 			return err
 		}

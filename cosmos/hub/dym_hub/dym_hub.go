@@ -294,7 +294,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		rollAppChainID := r.(ibc.Chain).GetChainID()
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
-
+		println("check sequence: ",seq)
 		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 			return err
 		}

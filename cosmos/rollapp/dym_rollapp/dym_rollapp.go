@@ -43,7 +43,6 @@ func NewDymRollApp(testName string, chainConfig ibc.ChainConfig, numValidators i
 
 	return c
 }
-
 func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
 	nodes := c.Nodes()
 
@@ -51,13 +50,27 @@ func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenes
 		return err
 	}
 
+	// Separate validator nodes from full nodes
+	validatorNodes := c.Validators
+	fullNodes := c.FullNodes
+
+	// Create all node containers (validators first, then full nodes)
 	eg, egCtx := errgroup.WithContext(ctx)
-	for _, n := range nodes {
+
+	for _, n := range validatorNodes {
 		n := n
 		eg.Go(func() error {
-			return n.CreateNodeContainer(egCtx)
+			return n.CreateNodeContainer(egCtx, "--dymint.aggregator", "true")
 		})
 	}
+
+	for _, n := range fullNodes {
+		n := n
+		eg.Go(func() error {
+			return n.CreateNodeContainer(egCtx, "--dymint.aggregator", "false")
+		})
+	}
+
 	if err := eg.Wait(); err != nil {
 		return err
 	}
@@ -65,7 +78,8 @@ func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenes
 	peers := nodes.PeerString(ctx)
 
 	eg, egCtx = errgroup.WithContext(ctx)
-	for _, n := range nodes {
+
+	for _, n := range validatorNodes {
 		n := n
 		c.Logger().Info("Starting container", zap.String("container", n.Name()))
 		eg.Go(func() error {
@@ -75,6 +89,18 @@ func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenes
 			return n.StartContainer(egCtx)
 		})
 	}
+
+	for _, n := range fullNodes {
+		n := n
+		c.Logger().Info("Starting container", zap.String("container", n.Name()))
+		eg.Go(func() error {
+			if err := n.SetPeers(egCtx, peers); err != nil {
+				return err
+			}
+			return n.StartContainer(egCtx)
+		})
+	}
+
 	if err := eg.Wait(); err != nil {
 		return err
 	}
@@ -137,6 +163,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 				}
 			}
 			if !c.Config().SkipGenTx {
+				fmt.Println("bay vao dayy")
 				return c.InitValidatorGenTx(ctx, v, i, &chainCfg, genesisAmounts, genesisSelfDelegation)
 			}
 			return nil
@@ -173,7 +200,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			return nil
 		})
 	}
-
+	fmt.Println("bay ra ngoai dayy1")
 	// wait for this to finish
 	if err := eg.Wait(); err != nil {
 		return err
@@ -366,7 +393,7 @@ func (c *DymRollApp) InitValidatorGenTx(
 		}
 
 		if err := validator.OverwriteGenesisFile(ctx, outGenBz); err != nil {
-			return err
+			return fmt.Errorf("failed to write genesis bytes to json: %w", err)
 		}
 	}
 	return validator.Gentx(ctx, valKey, genesisSelfDelegation)

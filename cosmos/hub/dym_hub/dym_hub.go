@@ -363,12 +363,12 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
-func (c *DymHub) SetUpNewRollAppToHub(ctx context.Context, chainId, keyName, maxSequencers, seq, keyDir string, flags map[string]string) error {
+func (c *DymHub) SetUpNewRollAppToHub(ctx context.Context, chainId, keyName, maxSequencers, keyDir string, flags map[string]string) error {
 	// Write denommetadata file
 	denommetadata := []banktypes.Metadata{
 		{
 			Description: fmt.Sprintf("rollapp %s native token", chainId),
-			Base:        rollapp.Config().Denom,
+			Base:        "urax",
 			DenomUnits: []*banktypes.DenomUnit{
 				{
 					Denom:    "urax",

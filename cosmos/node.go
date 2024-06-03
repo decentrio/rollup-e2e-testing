@@ -883,42 +883,41 @@ type CodeInfosResponse struct {
 
 // QuerySequencerStatus queries the status of a given sequencer address, returns all sequencers if sequencerAddress is empty.
 func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress string) (*QuerySequencersResponse, error) {
-    var command []string
-    command = append(command, "sequencer", "list-sequencer")
+	var command []string
+	command = append(command, "sequencer", "list-sequencer")
 
-    stdout, _, err := node.ExecQuery(ctx, command...)
-    if err != nil {
-        return nil, err
-    }
-    fmt.Println(string(stdout) + " sequencerAddress111: " + sequencerAddress)
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
 
-    // Unmarshal the response
-    var sqcStatuses QuerySequencersResponse
-    err = json.Unmarshal(stdout, &sqcStatuses)
-    fmt.Println(sqcStatuses)
-    if err != nil {
-        fmt.Println("Error on unmarshal stdout: ", err)
-        return nil, err
-    }
+	// Unmarshal the response
+	var sqcStatuses QuerySequencersResponse
+	err = json.Unmarshal(stdout, &sqcStatuses)
+	fmt.Println(sqcStatuses)
+	if err != nil {
+		fmt.Println("Error on unmarshal stdout: ", err)
+		return nil, err
+	}
 
-    // If sequencerAddress is empty, return all sequencers
-    if sequencerAddress == "" {
-        return &sqcStatuses, nil
-    }
+	// If sequencerAddress is empty, return all sequencers
+	if sequencerAddress == "" {
+		return &sqcStatuses, nil
+	}
 
-    // Filter sequencers by the given sequencerAddress
-    filteredSequencers := []Sequencer{}
-    for _, sequencer := range sqcStatuses.Sequencers {
-        if sequencer.SequencerAddress == sequencerAddress {
-            filteredSequencers = append(filteredSequencers, sequencer)
-        }
-    }
+	// Filter sequencers by the given sequencerAddress
+	filteredSequencers := []Sequencer{}
+	for _, sequencer := range sqcStatuses.Sequencers {
+		if sequencer.SequencerAddress == sequencerAddress {
+			filteredSequencers = append(filteredSequencers, sequencer)
+		}
+	}
 
-    // Return the filtered result
-    return &QuerySequencersResponse{
-        Sequencers: filteredSequencers,
-        Pagination: sqcStatuses.Pagination,
-    }, nil
+	// Return the filtered result
+	return &QuerySequencersResponse{
+		Sequencers: filteredSequencers,
+		Pagination: sqcStatuses.Pagination,
+	}, nil
 }
 
 // StoreContract takes a file path to smart contract and stores it on-chain. Returns the contracts code id.
@@ -1074,7 +1073,7 @@ func (node *Node) QueryEscrowAddress(ctx context.Context, portID, channelID stri
 }
 
 // QueryHubGenesisState query hub genesis state
-func (node *Node) QueryHubGenesisState(ctx context.Context) (HubGenesisState, error){
+func (node *Node) QueryHubGenesisState(ctx context.Context) (HubGenesisState, error) {
 	stdout, _, err := node.ExecQuery(ctx, "hubgenesis", "state")
 	if err != nil {
 		return HubGenesisState{}, err
@@ -1267,19 +1266,34 @@ func (node *Node) UnsafeResetAll(ctx context.Context) error {
 	return err
 }
 
-func (node *Node) CreateNodeContainer(ctx context.Context) error {
+func (node *Node) CreateNodeContainer(ctx context.Context, extraFlags ...string) error {
 	chainCfg := node.Chain.Config()
 
 	var cmd []string
 	if chainCfg.NoHostMount {
-		cmd = []string{"sh", "-c", fmt.Sprintf("cp -r %s %s_nomnt && %s start --home %s_nomnt --x-crisis-skip-assert-invariants", node.HomeDir(), node.HomeDir(), chainCfg.Bin, node.HomeDir())}
+		cmd = []string{
+			"sh", "-c", fmt.Sprintf(
+				"cp -r %s %s_nomnt && %s start --home %s_nomnt --x-crisis-skip-assert-invariants",
+				node.HomeDir(), node.HomeDir(), chainCfg.Bin, node.HomeDir(),
+			),
+		}
 	} else {
-		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants"}
+		cmd = []string{
+			chainCfg.Bin, "start", "--home", node.HomeDir(), "--x-crisis-skip-assert-invariants",
+		}
 	}
 	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
 	}
-	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd)
+
+	// Append any extra flags provided
+	if len(extraFlags) > 0 {
+		cmd = append(cmd, extraFlags...)
+	}
+
+	return node.containerLifecycle.CreateContainer(
+		ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd,
+	)
 }
 
 func (node *Node) StartContainer(ctx context.Context) error {

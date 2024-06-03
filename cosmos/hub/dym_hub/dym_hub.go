@@ -363,6 +363,51 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
+func (c *DymHub) SetUpNewRollAppToHub(ctx context.Context, rollapp ibc.Chain, keyName, maxSequencers, seq, keyDir string, flags map[string]string) error {
+	// Write denommetadata file
+	denommetadata := []banktypes.Metadata{
+		{
+			Description: fmt.Sprintf("rollapp %s native token", rollapp.Config().ChainID),
+			Base:        rollapp.Config().Denom,
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    rollapp.Config().Denom,
+					Exponent: 0,
+				},
+				{
+					Denom:    "rax",
+					Exponent: 6,
+				},
+			},
+			Name:    fmt.Sprintf("%s %s", rollapp.Config().ChainID, rollapp.Config().Denom),
+			Symbol:  "URAX",
+			Display: "rax",
+		},
+	}
+
+	validator0 := c.Validators[0]
+	fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	err = validator0.WriteFile(ctx, fileBz, "new_denommetadata.json")
+	if err != nil {
+		return err
+	}
+	metadataFileDir := validator0.HomeDir() + "/new_denommetadata.json"
+
+	if err := c.RegisterRollAppToHub(ctx, sequencerName, rollapp.Config().ChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+	}
+
+	// if err := c.RegisterSequencerToHub(ctx, sequencerName, rollapp.Config().ChainID, seq, keyDir); err != nil {
+	// 	return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+	// }
+
+	return nil
+}
+
 // RegisterSequencerToHub register sequencer for rollapp on settlement.
 func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, seq, keyDir)

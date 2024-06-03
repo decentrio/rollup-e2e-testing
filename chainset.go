@@ -72,7 +72,7 @@ func (cs *chainSet) Configuration(ctx context.Context, testName string, addition
 		if rollApp, ok := c.(ibc.RollApp); ok {
 			err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
 			if err != nil {
-				return fmt.Errorf("failed to configuration chain %s: %w", c.Config().Name, err)
+				return fmt.Errorf("failed to config chain %s: %w", c.Config().Name, err)
 			}
 		}
 	}

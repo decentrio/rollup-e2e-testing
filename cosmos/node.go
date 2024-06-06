@@ -807,13 +807,17 @@ func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver strin
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, amount, receiver string) (string, error) {
+func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sender, receiver string) (error) {
 	command := []string{
 		"erc20", "convert-erc20", contractAddress, amount, receiver,
-		"--gas", "auto",
+		"--gas", "auto", "--from", sender,
 	}
 
-	return node.ExecTx(ctx, keyName, command...)
+	node.lock.Lock()
+	defer node.lock.Unlock()
+
+	_, _, err := node.Exec(ctx, command, nil)
+	return err
 }
 
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {

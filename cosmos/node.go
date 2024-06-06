@@ -798,6 +798,24 @@ func (node *Node) SendIBCTransfer(
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver string) (string, error) {
+	command := []string{
+		"erc20", "convert-coin", coin, receiver,
+		"--gas", "auto",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, amount, receiver string) (string, error) {
+	command := []string{
+		"erc20", "convert-erc20", contractAddress, amount, receiver,
+		"--gas", "auto",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {
 	txResp, err := node.getTransaction(node.CliContext(), txHash)
 	if err != nil {

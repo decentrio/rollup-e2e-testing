@@ -812,7 +812,7 @@ func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sen
 		"erc20", "convert-erc20", contractAddress, amount, receiver,
 		"--gas", "auto", "--from", sender,
 	}
-	_, _, err := node.ExecBin(ctx, command...)
+	_, _, err := node.Exec(ctx, node.TxCommand(sender, command...), nil)
 
 	return err
 }

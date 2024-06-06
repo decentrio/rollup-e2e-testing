@@ -812,11 +812,8 @@ func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sen
 		"erc20", "convert-erc20", contractAddress, amount, receiver,
 		"--gas", "auto", "--from", sender,
 	}
-
-	node.lock.Lock()
-	defer node.lock.Unlock()
-
 	_, _, err := node.Exec(ctx, command, nil)
+
 	return err
 }
 

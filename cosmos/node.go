@@ -808,9 +808,9 @@ func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver strin
 }
 
 func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sender, receiver string) (error) {
-	command := []string{
-		"rollappd", "tx","erc20", "convert-erc20", contractAddress, amount, receiver,
-		"--gas", "auto", "--from", sender,
+	command := []string{node.Chain.Config().Bin, "tx","erc20", "convert-erc20", contractAddress, amount, receiver,
+		"--gas", "auto", "--from", sender, "--home", node.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
 	}
 	_, _, err := node.Exec(ctx, command, nil)
 

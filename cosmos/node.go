@@ -808,7 +808,7 @@ func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver strin
 }
 
 func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, amount, sender, receiver, chainId string) (string, error) {
-	command := []string{"erc20", "convert-erc20", contractAddress, amount, receiver,
+	command := []string{"erc20", "convert-erc20", contractAddress, amount, receiver, "--gas", "auto",
 	}
 	return node.ExecTx(ctx, keyName, command...)
 }

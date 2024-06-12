@@ -807,14 +807,12 @@ func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver strin
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sender, receiver, chainId string) error {
+func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, amount, sender, receiver, chainId string) (string, error) {
 	command := []string{node.Chain.Config().Bin, "tx", "erc20", "convert-erc20", contractAddress, amount, receiver,
 		"--gas", "auto", "--from", sender, "--home", node.HomeDir(),
 		"--keyring-backend", keyring.BackendTest, "--chain-id", chainId,
 	}
-	_, _, err := node.Exec(ctx, command, nil)
-
-	return err
+	return node.ExecTx(ctx, keyName, command...)
 }
 
 func (node *Node) QueryErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {

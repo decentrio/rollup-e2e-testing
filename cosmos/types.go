@@ -254,6 +254,15 @@ type Description struct {
 // Owner enumerates the ownership of a ERC20 contract.
 type Owner int32
 
+const (
+	// OWNER_UNSPECIFIED defines an invalid/undefined owner.
+	OWNER_UNSPECIFIED Owner = 0
+	// OWNER_MODULE - erc20 is owned by the erc20 module account.
+	OWNER_MODULE Owner = 1
+	// OWNER_EXTERNAL - erc20 is owned by an external account.
+	OWNER_EXTERNAL Owner = 2
+)
+
 type TokenPair struct {
     // erc20_address is the hex address of ERC20 contract token
     Erc20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`

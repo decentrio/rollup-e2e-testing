@@ -817,19 +817,21 @@ func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sen
 	return err
 }
 
-func (node *Node) GetErc20TokenPair(ctx context.Context, token string) (*TokenPair, error) {
-	stdout, _, err := node.ExecQuery(ctx, "erc20", "token-pair", token)
+func (node *Node) GetErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
+	stdout, stderr, err := node.ExecQuery(ctx, "erc20", "token-pair", token)
 	if err != nil {
-		return nil, err
+		return TokenPair{}, err
 	}
-
+	println("check stdout: ", string(stdout))
+	println("check stderr: ", string(stderr))
 	var tokenPair GetErc20TokenPairResponse
 	err = json.Unmarshal(stdout, &tokenPair)
 	if err != nil {
-		return nil, err
+		println("dm go to this?")
+		return TokenPair{}, err
 	}
 
-	return &tokenPair.TokenPair, nil
+	return tokenPair.TokenPair, nil
 }
 
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {

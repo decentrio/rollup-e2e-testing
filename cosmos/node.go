@@ -817,17 +817,16 @@ func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sen
 	return err
 }
 
-func (node *Node) GetErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
-	stdout, stderr, err := node.ExecQuery(ctx, "erc20", "token-pair", token)
+func (node *Node) QueryErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
+	command := []string{"erc20", "token-pair", token}
+	stdout, _, err := node.ExecQuery(ctx, command...)
 	if err != nil {
 		return TokenPair{}, err
 	}
-	println("check stdout: ", string(stdout))
-	println("check stderr: ", string(stderr))
-	var tokenPair GetErc20TokenPairResponse
+
+	var tokenPair Erc20TokenPairResponse
 	err = json.Unmarshal(stdout, &tokenPair)
 	if err != nil {
-		println("dm go to this?")
 		return TokenPair{}, err
 	}
 

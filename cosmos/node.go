@@ -824,12 +824,11 @@ func (node *Node) GetErc20TokenPair(ctx context.Context, token string) (TokenPai
 	}
 
 	var tokenPair GetErc20TokenPairResponse
-	println("check stdout: ", string(stdout))
 	err = json.Unmarshal(stdout, &tokenPair)
 	if err != nil {
 		return TokenPair{}, err
 	}
-
+	println("check result:", tokenPair.TokenPair.Erc20Address)
 	return tokenPair.TokenPair, nil
 }
 

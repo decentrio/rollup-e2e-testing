@@ -251,3 +251,16 @@ type Description struct {
 	// details define other optional details.
 	Details string `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
 }
+// Owner enumerates the ownership of a ERC20 contract.
+type Owner int32
+
+type TokenPair struct {
+    // erc20_address is the hex address of ERC20 contract token
+    Erc20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`
+    // denom defines the cosmos base denomination to be mapped to
+    Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+    // enabled defines the token mapping enable status
+    Enabled bool `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+    // contract_owner is the an ENUM specifying the type of ERC20 owner (0 invalid, 1 ModuleAccount, 2 external address)
+    ContractOwner Owner `protobuf:"varint,4,opt,name=contract_owner,json=contractOwner,proto3,enum=evmos.erc20.v1.Owner" json:"contract_owner,omitempty"`
+}

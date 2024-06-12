@@ -807,14 +807,29 @@ func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver strin
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sender, receiver string) (error) {
+func (node *Node) ConvertErc20(ctx context.Context, contractAddress, amount, sender, receiver, chainId string) (error) {
 	command := []string{node.Chain.Config().Bin, "tx","erc20", "convert-erc20", contractAddress, amount, receiver,
 		"--gas", "auto", "--from", sender, "--home", node.HomeDir(),
-		"--keyring-backend", keyring.BackendTest,
+		"--keyring-backend", keyring.BackendTest, "--chain-id", chainId,
 	}
 	_, _, err := node.Exec(ctx, command, nil)
 
 	return err
+}
+
+func (node *Node) GetErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
+	stdout, _, err := node.ExecQuery(ctx, "erc20", "token-pair", token)
+	if err != nil {
+		return TokenPair{}, err
+	}
+
+	var tokenPair TokenPair
+	err = json.Unmarshal(stdout, &tokenPair)
+	if err != nil {
+		return TokenPair{}, err
+	}
+
+	return tokenPair, nil
 }
 
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {

@@ -264,3 +264,6 @@ type TokenPair struct {
     // contract_owner is the an ENUM specifying the type of ERC20 owner (0 invalid, 1 ModuleAccount, 2 external address)
     ContractOwner Owner `protobuf:"varint,4,opt,name=contract_owner,json=contractOwner,proto3,enum=evmos.erc20.v1.Owner" json:"contract_owner,omitempty"`
 }
+type GetErc20TokenPairResponse struct {
+	TokenPair TokenPair
+}

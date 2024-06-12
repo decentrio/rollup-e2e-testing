@@ -823,14 +823,14 @@ func (node *Node) GetErc20TokenPair(ctx context.Context, token string) (TokenPai
 		return TokenPair{}, err
 	}
 
-	var tokenPair TokenPair
+	var tokenPair GetErc20TokenPairResponse
 	println("check stdout: ", string(stdout))
 	err = json.Unmarshal(stdout, &tokenPair)
 	if err != nil {
 		return TokenPair{}, err
 	}
 
-	return tokenPair, nil
+	return tokenPair.TokenPair, nil
 }
 
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {

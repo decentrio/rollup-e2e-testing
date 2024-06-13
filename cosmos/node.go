@@ -1279,10 +1279,7 @@ func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error) {
 }
 
 func (node *Node) QueryDelayedACKParams(ctx context.Context) (*DelayedACKParams, error) {
-	command := []string{node.Chain.Config().Bin, "query", "delayedack", "params", 
-		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
-		"--chain-id", node.Chain.Config().ChainID, "--home", node.HomeDir(),}
-	stdout, _, err := node.Exec(ctx, command, nil)
+	stdout, _, err := node.ExecQuery(ctx, "delayedack", "params")
 	if err != nil {
 		return nil, err
 	}

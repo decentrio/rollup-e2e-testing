@@ -251,17 +251,6 @@ type Description struct {
 	// details define other optional details.
 	Details string `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
 }
-// Owner enumerates the ownership of a ERC20 contract.
-type Owner int32
-
-const (
-	// OWNER_UNSPECIFIED defines an invalid/undefined owner.
-	OWNER_UNSPECIFIED Owner = 0
-	// OWNER_MODULE - erc20 is owned by the erc20 module account.
-	OWNER_MODULE Owner = 1
-	// OWNER_EXTERNAL - erc20 is owned by an external account.
-	OWNER_EXTERNAL Owner = 2
-)
 
 type TokenPair struct {
     // erc20_address is the hex address of ERC20 contract token
@@ -276,4 +265,9 @@ type TokenPair struct {
 type Erc20TokenPairResponse struct {
 	// token_pairs returns the info about a registered token pair for the erc20 module
 	TokenPair TokenPair `protobuf:"bytes,1,opt,name=token_pair,json=tokenPair,proto3" json:"token_pair"`
+}
+
+type DelayedACKParams struct {
+	EpochIdentifier string                                 `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
+	BridgingFee     types.Dec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"bridging_fee" yaml:"bridging_fee"`
 }

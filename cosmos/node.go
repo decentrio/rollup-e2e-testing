@@ -1278,18 +1278,18 @@ func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error) {
 	return &param, nil
 }
 
-func (node *Node) QueryDelayedACKParams(ctx context.Context) (*DelayedACKParams, error) {
+func (node *Node) QueryDelayedACKParams(ctx context.Context) (DelayedACKParams, error) {
 	stdout, _, err := node.ExecQuery(ctx, "delayedack", "params")
 	if err != nil {
-		return nil, err
+		return DelayedACKParams{}, err
 	}
 
 	var param DelayedACKParams
 	err = json.Unmarshal(stdout, &param)
 	if err != nil {
-		return nil, err
+		return DelayedACKParams{}, err
 	}
-	return &param, nil
+	return param, nil
 }
 
 func (node *Node) ExportState(ctx context.Context, height int64) (string, error) {

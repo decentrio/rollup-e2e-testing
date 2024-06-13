@@ -798,6 +798,37 @@ func (node *Node) SendIBCTransfer(
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver string) (string, error) {
+	command := []string{
+		"erc20", "convert-coin", coin, receiver,
+		"--gas", "auto",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, amount, sender, receiver, chainId string) (string, error) {
+	command := []string{"erc20", "convert-erc20", contractAddress, amount, receiver, "--gas", "auto",
+	}
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) QueryErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
+	command := []string{"erc20", "token-pair", token}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return TokenPair{}, err
+	}
+
+	var tokenPair Erc20TokenPairResponse
+	err = json.Unmarshal(stdout, &tokenPair)
+	if err != nil {
+		return TokenPair{}, err
+	}
+
+	return tokenPair.TokenPair, nil
+}
+
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {
 	txResp, err := node.getTransaction(node.CliContext(), txHash)
 	if err != nil {
@@ -1244,6 +1275,20 @@ func (node *Node) QueryIbcTransferParams(ctx context.Context) (*Params, error) {
 		return nil, err
 	}
 	return &param, nil
+}
+
+func (node *Node) QueryDelayedACKParams(ctx context.Context) (DelayedACKParams, error) {
+	stdout, _, err := node.ExecQuery(ctx, "delayedack", "params")
+	if err != nil {
+		return DelayedACKParams{}, err
+	}
+
+	var param DelayedACKParams
+	err = json.Unmarshal(stdout, &param)
+	if err != nil {
+		return DelayedACKParams{}, err
+	}
+	return param, nil
 }
 
 func (node *Node) ExportState(ctx context.Context, height int64) (string, error) {

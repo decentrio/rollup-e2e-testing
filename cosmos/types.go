@@ -251,3 +251,23 @@ type Description struct {
 	// details define other optional details.
 	Details string `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
 }
+
+type TokenPair struct {
+    // erc20_address is the hex address of ERC20 contract token
+    Erc20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`
+    // denom defines the cosmos base denomination to be mapped to
+    Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+    // enabled defines the token mapping enable status
+    Enabled bool `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+    // contract_owner is the an ENUM specifying the type of ERC20 owner (0 invalid, 1 ModuleAccount, 2 external address)
+    ContractOwner string `protobuf:"varint,4,opt,name=contract_owner,json=contractOwner,proto3,enum=evmos.erc20.v1.Owner" json:"contract_owner,omitempty"`
+}
+type Erc20TokenPairResponse struct {
+	// token_pairs returns the info about a registered token pair for the erc20 module
+	TokenPair TokenPair `protobuf:"bytes,1,opt,name=token_pair,json=tokenPair,proto3" json:"token_pair"`
+}
+
+type DelayedACKParams struct {
+	EpochIdentifier string                                 `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
+	BridgingFee     types.Dec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"bridging_fee" yaml:"bridging_fee"`
+}

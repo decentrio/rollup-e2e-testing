@@ -296,7 +296,13 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 			return err
 		}
 	}
-	c.sequencerKey, err = c.ShowSequencer(ctx)
+
+	// Use validator to show sequencer key, so that it gets regconized as sequencer
+	var command []string
+	command = append(command, "dymint", "show-sequencer")
+	seq, _, err := c.Validators[0].ExecBin(ctx, command...)
+	c.sequencerKey = string(bytes.TrimSuffix(seq, []byte("\n")))
+
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
 	}

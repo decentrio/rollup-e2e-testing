@@ -921,7 +921,6 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(stdout) + " sequencerAddress111: " + sequencerAddress)
 
 	// Unmarshal the response
 	var sqcStatuses QuerySequencersResponse

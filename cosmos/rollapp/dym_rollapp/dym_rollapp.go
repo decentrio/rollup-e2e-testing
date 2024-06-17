@@ -303,6 +303,17 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 	return nil
 }
 
+func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.Context, genesisContent []byte) error {
+	nodes := c.Nodes()
+	for _, node := range nodes {
+		if err := node.OverwriteGenesisFile(ctx, genesisContent); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *DymRollApp) ShowSequencer(ctx context.Context) (string, error) {
 	var command []string
 	command = append(command, "dymint", "show-sequencer")

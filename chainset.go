@@ -66,10 +66,20 @@ func (cs *chainSet) Initialize(ctx context.Context, testName string, cli *client
 }
 
 // Configuration concurrently calls Configuration against each rollapp chain in the set.
-func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
+func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, forkRollAppId string, gensisContent []byte) error {
 	for c := range cs.chains {
 		c := c
 		if rollApp, ok := c.(ibc.RollApp); ok {
+			if c.GetChainID() == forkRollAppId {
+				if gensisContent == nil {
+					return fmt.Errorf("failed to configuration chain %s, want to fork configuration but didn't put genesis", c.Config().Name)
+				}
+				err := rollApp.ConfigurationWithGenesisFile(testName, ctx, gensisContent)
+				if err != nil {
+					return fmt.Errorf("failed to configuration chain %s with based genesis: %w", c.Config().Name, err)
+				}
+				continue
+			}
 			err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
 			if err != nil {
 				return fmt.Errorf("failed to configuration chain %s: %w", c.Config().Name, err)

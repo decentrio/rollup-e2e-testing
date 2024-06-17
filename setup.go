@@ -241,7 +241,7 @@ type InterchainBuildOptions struct {
 // It is the caller's responsibility to directly call StartRelayer on the relayer implementations.
 //
 // Calling Build more than once will cause a panic.
-func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain) error {
+func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain, forkRollAppId string, gensisContent []byte) error {
 	chains := make([]ibc.Chain, 0, len(s.chains))
 	for chain := range s.chains {
 		chains = append(chains, chain)
@@ -264,7 +264,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return err
 	}
 
-	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts); err != nil {
+	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts, forkRollAppId ,gensisContent); err != nil {
 		return fmt.Errorf("failed to configuration chains: %w", err)
 	}
 

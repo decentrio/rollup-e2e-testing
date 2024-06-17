@@ -112,6 +112,8 @@ type Hub interface {
 type RollApp interface {
 	// Configuration sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Rollapp from genesis.
 	Configuration(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
+	// Configuration sets up incase we want to set up a roll app with an existing genesis
+	ConfigurationWithGenesisFile(testName string, ctx context.Context, genesisContent []byte) error
 	// Get key sequencer location
 	GetSequencerKeyDir() string
 	// Show Sequencer Key

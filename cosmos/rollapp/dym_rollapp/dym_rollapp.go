@@ -305,11 +305,15 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 
 func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.Context, genesisContent []byte) error {
 	nodes := c.Nodes()
-	for _, v := range c.Validators {
+
+	for i, v := range c.Validators {
 		v := v
 		c.sequencerKeyDir = v.HomeDir()
 		v.Chain = c
 		v.Validator = true
+		if i == 0 {
+			v.ExecInit(ctx, "sequencer", c.sequencerKeyDir)
+		}
 	}
 
 	for _, node := range nodes {

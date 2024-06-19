@@ -322,6 +322,12 @@ func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.C
 		}
 	}
 
+	sequencerKey, err := c.ShowSequencer(ctx)
+	c.sequencerKey = sequencerKey
+	if err != nil {
+		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
+	}
+
 	return nil
 }
 

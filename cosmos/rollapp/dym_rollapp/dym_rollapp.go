@@ -305,6 +305,13 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 
 func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.Context, genesisContent []byte) error {
 	nodes := c.Nodes()
+	for _, v := range c.Validators {
+		v := v
+		c.sequencerKeyDir = v.HomeDir()
+		v.Chain = c
+		v.Validator = true
+	}
+
 	for _, node := range nodes {
 		if err := node.OverwriteGenesisFile(ctx, genesisContent); err != nil {
 			return err

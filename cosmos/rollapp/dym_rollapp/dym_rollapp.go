@@ -304,13 +304,41 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, additio
 }
 
 func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.Context, genesisContent []byte) error {
+	chainCfg := c.Config()
 	nodes := c.Nodes()
+	configFileOverrides := chainCfg.ConfigFileOverrides
 
+	eg := new(errgroup.Group)
 	for i, v := range c.Validators {
 		v := v
 		c.sequencerKeyDir = v.HomeDir()
 		v.Chain = c
 		v.Validator = true
+		eg.Go(func() error {
+			if err := v.InitFullNodeFiles(ctx); err != nil {
+				return err
+			}
+			for configFile, modifiedConfig := range configFileOverrides {
+				modifiedToml, ok := modifiedConfig.(testutil.Toml)
+				if !ok {
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+				}
+				if err := testutil.ModifyTomlConfigFile(
+					ctx,
+					v.Logger(),
+					v.DockerClient,
+					v.TestName,
+					v.VolumeName,
+					v.Chain.Config().Name,
+					configFile,
+					modifiedToml,
+				); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+
 		if i == 0 {
 			v.ExecInit(ctx, "sequencer", c.sequencerKeyDir)
 		}

@@ -308,6 +308,7 @@ func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.C
 	nodes := c.Nodes()
 	configFileOverrides := chainCfg.ConfigFileOverrides
 
+	// Initialize config and sign gentx for each validator.
 	eg := new(errgroup.Group)
 	for i, v := range c.Validators {
 		v := v
@@ -342,6 +343,42 @@ func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.C
 		if i == 0 {
 			v.ExecInit(ctx, "sequencer", c.sequencerKeyDir)
 		}
+	}
+
+	// Initialize config for each full node.
+	for _, n := range c.FullNodes {
+		n := n
+		n.Validator = false
+		n.Chain = c
+		eg.Go(func() error {
+			if err := n.InitFullNodeFiles(ctx); err != nil {
+				return err
+			}
+			for configFile, modifiedConfig := range configFileOverrides {
+				modifiedToml, ok := modifiedConfig.(testutil.Toml)
+				if !ok {
+					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+				}
+				if err := testutil.ModifyTomlConfigFile(
+					ctx,
+					n.Logger(),
+					n.DockerClient,
+					n.TestName,
+					n.VolumeName,
+					n.Chain.Config().Name,
+					configFile,
+					modifiedToml,
+				); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+
+	// wait for this to finish
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	for _, node := range nodes {

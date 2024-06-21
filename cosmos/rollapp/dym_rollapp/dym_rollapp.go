@@ -206,20 +206,21 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 			}
 		}
 	}
+	if gensisContent == nil {
+		for _, wallet := range additionalGenesisWallets {
 
-	for _, wallet := range additionalGenesisWallets {
-
-		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-			return err
+			if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+				return err
+			}
 		}
 	}
-
+	
 	if !c.Config().SkipGenTx {
 		if err := validator0.CollectGentxs(ctx); err != nil {
 			return err
 		}
 	}
-	outGenBz := []byte{}
+	var outGenBz []byte
 	if gensisContent != nil {
 		outGenBz = gensisContent
 	} else {

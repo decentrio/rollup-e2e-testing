@@ -205,3 +205,7 @@ type HubGenesisState struct {
 	// genesis_tokens is the list of tokens that are expected to be locked on genesis event
 	GenesisTokens types.Coins `protobuf:"bytes,2,rep,name=genesis_tokens,json=genesisTokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"genesis_tokens"`
 }
+
+type QueryClientStatusResponse struct {
+	Status string `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+}

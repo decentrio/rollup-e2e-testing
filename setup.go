@@ -386,6 +386,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context, redundant ibc.Chain) (
 
 	// Add faucet for each chain first.
 	for c := range s.chains {
+		println("check faucet address :", faucetAddresses[c])
 		// The values are nil at this point, so it is safe to directly assign the slice.
 		walletAmounts[c] = []ibc.WalletData{
 			{

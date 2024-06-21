@@ -206,14 +206,14 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 			}
 		}
 	}
-	if gensisContent == nil {
-		for _, wallet := range additionalGenesisWallets {
-			println("check genesis account: ", wallet.Address)
-			if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-				return err
-			}
-		}
-	}
+
+	// for _, wallet := range additionalGenesisWallets {
+	// 	println("check genesis account: ", wallet.Address)
+	// 	if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+	// 		return err
+	// 	}
+	// }
+
 
 	if !c.Config().SkipGenTx {
 		if err := validator0.CollectGentxs(ctx); err != nil {
@@ -301,6 +301,14 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 			return err
 		}
 	}
+
+	for _, wallet := range additionalGenesisWallets {
+		println("check genesis account: ", wallet.Address)
+		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+			return err
+		}
+	}
+
 	sequencerKey, err := c.ShowSequencer(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)

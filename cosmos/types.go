@@ -2,6 +2,8 @@ package cosmos
 
 import (
 	"encoding/json"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -206,6 +208,66 @@ type HubGenesisState struct {
 	GenesisTokens types.Coins `protobuf:"bytes,2,rep,name=genesis_tokens,json=genesisTokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"genesis_tokens"`
 }
 
-type QueryClientStatusResponse struct {
-	Status string `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+type QuerySequencersResponse struct {
+	Sequencers []Sequencer   `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+// Sequencer defines a sequencer identified by its' address (sequencerAddress).
+// The sequencer could be attached to only one rollapp (rollappId).
+type Sequencer struct {
+	// sequencerAddress is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	SequencerAddress string `protobuf:"bytes,1,opt,name=sequencerAddress,proto3" json:"sequencerAddress,omitempty"`
+	// pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
+	DymintPubKey *codectypes.Any `protobuf:"bytes,2,opt,name=dymintPubKey,proto3" json:"dymintPubKey,omitempty"`
+	// rollappId defines the rollapp to which the sequencer belongs.
+	RollappId string `protobuf:"bytes,3,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	// description defines the descriptive terms for the sequencer.
+	Description Description `protobuf:"bytes,4,opt,name=description,proto3" json:"description"`
+	// jailed defined whether the sequencer has been jailed from bonded status or not.
+	Jailed bool `protobuf:"varint,5,opt,name=jailed,proto3" json:"jailed,omitempty"`
+	// proposer defines whether the sequencer is a proposer or not.
+	Proposer bool `protobuf:"varint,6,opt,name=proposer,proto3" json:"proposer,omitempty"`
+	// status is the sequencer status (bonded/unbonding/unbonded).
+	Status string `protobuf:"varint,7,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
+	// tokens define the delegated tokens (incl. self-delegation).
+	Tokens types.Coins `protobuf:"bytes,8,rep,name=tokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens"`
+	// unbonding_height defines, if unbonding, the height at which this sequencer has begun unbonding.
+	UnbondingHeight string `protobuf:"varint,9,opt,name=unbonding_height,json=unbondingHeight,proto3" json:"unbonding_height,omitempty"`
+	// unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
+	UnbondTime string `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime" json:"unbond_time"`
+}
+
+// Description defines a sequencer description.
+type Description struct {
+	// moniker defines a human-readable name for the sequencer.
+	Moniker string `protobuf:"bytes,1,opt,name=moniker,proto3" json:"moniker,omitempty"`
+	// identity defines an optional identity signature (ex. UPort or Keybase).
+	Identity string `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+	// website defines an optional website link.
+	Website string `protobuf:"bytes,3,opt,name=website,proto3" json:"website,omitempty"`
+	// securityContact defines an optional email for security contact.
+	SecurityContact string `protobuf:"bytes,4,opt,name=securityContact,proto3" json:"securityContact,omitempty"`
+	// details define other optional details.
+	Details string `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
+}
+
+type TokenPair struct {
+    // erc20_address is the hex address of ERC20 contract token
+    Erc20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`
+    // denom defines the cosmos base denomination to be mapped to
+    Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+    // enabled defines the token mapping enable status
+    Enabled bool `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+    // contract_owner is the an ENUM specifying the type of ERC20 owner (0 invalid, 1 ModuleAccount, 2 external address)
+    ContractOwner string `protobuf:"varint,4,opt,name=contract_owner,json=contractOwner,proto3,enum=evmos.erc20.v1.Owner" json:"contract_owner,omitempty"`
+}
+type Erc20TokenPairResponse struct {
+	// token_pairs returns the info about a registered token pair for the erc20 module
+	TokenPair TokenPair `protobuf:"bytes,1,opt,name=token_pair,json=tokenPair,proto3" json:"token_pair"`
+}
+
+type DelayedACKParams struct {
+	EpochIdentifier string                                 `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
+	BridgingFee     types.Dec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"bridging_fee" yaml:"bridging_fee"`
 }

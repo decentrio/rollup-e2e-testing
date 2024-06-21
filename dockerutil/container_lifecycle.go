@@ -78,6 +78,7 @@ func (c *ContainerLifecycle) CreateContainer(
 			PublishAllPorts: true,
 			AutoRemove:      false,
 			DNS:             []string{},
+			ExtraHosts:      []string{"host.docker.internal:host-gateway"},
 		},
 		&network.NetworkingConfig{
 			EndpointsConfig: map[string]*network.EndpointSettings{

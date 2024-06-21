@@ -3,6 +3,7 @@ package cosmos
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -10,9 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"encoding/json"	
 
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -21,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	chanTypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -375,7 +375,7 @@ func (c *CosmosChain) GovQueryProposalV1(ctx context.Context, proposalID uint64)
 		return &govv1.Proposal{}, err
 	}
 	defer conn.Close()
-	
+
 	res, err := govv1.NewQueryClient(conn).Proposal(ctx, &govv1.QueryProposalRequest{ProposalId: proposalID})
 	if err != nil {
 		return nil, err
@@ -394,7 +394,7 @@ func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string,
 }
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
-func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) (error) {
+func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) error {
 	_, err := c.getFullNode().RegisterIBCTokenDenomProposal(ctx, keyName, deposit, proposalPath)
 	if err != nil {
 		return fmt.Errorf("failed to submit upgrade proposal: %w", err)
@@ -540,6 +540,7 @@ func (c *CosmosChain) GetGasFeesInNativeDenom(gasPaid int64) int64 {
 
 func (c *CosmosChain) UpgradeVersion(ctx context.Context, cli *client.Client, containerRepo, version string) {
 	c.cfg.Images[0].Version = version
+	c.cfg.Images[0].Repository = containerRepo
 	for _, n := range c.Validators {
 		n.Image.Version = version
 		n.Image.Repository = containerRepo

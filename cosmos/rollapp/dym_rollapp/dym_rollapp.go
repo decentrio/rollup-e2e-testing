@@ -207,14 +207,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 		}
 	}
 
-	// for _, wallet := range additionalGenesisWallets {
-	// 	println("check genesis account: ", wallet.Address)
-	// 	if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-
 	if !c.Config().SkipGenTx {
 		if err := validator0.CollectGentxs(ctx); err != nil {
 			return err
@@ -303,17 +295,19 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 	}
 
 	for _, wallet := range additionalGenesisWallets {
-		println("check genesis account: ", wallet.Address)
 		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
 			return err
 		}
 	}
+	// Use validator to show sequencer key, so that it gets regconized as sequencer
+	var command []string
+	command = append(command, "dymint", "show-sequencer")
+	seq, _, err := c.Validators[0].ExecBin(ctx, command...)
+	c.sequencerKey = string(bytes.TrimSuffix(seq, []byte("\n")))
 
-	sequencerKey, err := c.ShowSequencer(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
 	}
-	c.sequencerKey = sequencerKey
 
 	return nil
 }

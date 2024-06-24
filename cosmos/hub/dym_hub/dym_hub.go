@@ -362,6 +362,122 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
+func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
+	// for the validators we need to collect the gentxs and the accounts
+	// to the first node's genesis file
+	validator0 := c.Validators[0]
+	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	if err != nil {
+		return err
+	}
+	for _, r := range c.rollApps {
+		r := r
+		rollAppChainID := r.(ibc.Chain).GetChainID()
+		genesisAccounts := []GenesisAccount{
+			{
+				Amount: types.Coin{
+					Amount: dymension.GenesisEventAmount,
+					Denom:  r.(ibc.Chain).Config().Denom,
+				},
+				Address: bech32,
+			},
+		}
+
+		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
+		if err != nil {
+			println("go to MarshalIndent")
+			return err
+		}
+
+		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
+		if err != nil {
+			println("go to WriteFile")
+			return err
+		}
+		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
+	}
+
+	// Wait for 5 blocks before considering the chains "started"
+	testutil.WaitForBlocks(ctx, 5, c.GetNode())
+	// if not have rollApp, we just return the function
+	if len(c.rollApps) == 0 {
+		return nil
+	}
+	rollApps := c.rollApps
+	for _, r := range rollApps {
+		r := r
+		rollAppChainID := r.(ibc.Chain).GetChainID()
+		keyDir := r.GetSequencerKeyDir()
+		seq := r.GetSequencer()
+
+		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
+			return err
+		}
+	
+		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
+		if err != nil {
+			return err
+		}
+		amount := sdkmath.NewInt(10_000_000_000_000)
+		fund := ibc.WalletData{
+			Address: sequencer,
+			Denom:   c.Config().Denom,
+			Amount:  amount,
+		}
+		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+			return err
+		}
+
+		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+		flags := map[string]string{}
+		if hasFlagGenesisPath && ok {
+			flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
+		}
+
+		// Write denommetadata file
+		denommetadata := []banktypes.Metadata{
+			{
+				Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
+				Base:        r.(ibc.Chain).Config().Denom,
+				DenomUnits: []*banktypes.DenomUnit{
+					{
+						Denom:    r.(ibc.Chain).Config().Denom,
+						Exponent: 0,
+					},
+					{
+						Denom:    "rax",
+						Exponent: 6,
+					},
+				},
+				Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
+				Symbol:  "URAX",
+				Display: "rax",
+			},
+		}
+
+		fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
+		if err != nil {
+			return err
+		}
+
+		err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
+		if err != nil {
+			return err
+		}
+		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
+
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
+
+		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
+			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+		}
+	}
+
+	return nil
+}
+
 // RegisterSequencerToHub register sequencer for rollapp on settlement.
 func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	return c.GetNode().RegisterSequencerToHub(ctx, keyName, rollappChainID, seq, keyDir)
@@ -393,6 +509,14 @@ func (c *DymHub) SetRollApp(rollApp ibc.RollApp) {
 
 func (c *DymHub) GetRollApps() []ibc.RollApp {
 	return c.rollApps
+}
+
+func (c *DymHub) RemoveRollApp(rollApp ibc.RollApp) {
+	for id, ra := range c.rollApps {
+		if ra.(ibc.Chain).Config().ChainID == rollApp.(ibc.Chain).Config().ChainID {
+			c.rollApps = append(c.rollApps[:id], c.rollApps[id+1:]...)
+		}
+	}
 }
 
 func (c *DymHub) FullfillDemandOrder(ctx context.Context,

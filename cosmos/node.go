@@ -1135,6 +1135,19 @@ func (node *Node) QueryPacketCommitments(ctx context.Context,
 	return &resp, nil
 }
 
+func (node *Node) QueryClientStatus(ctx context.Context, clientId string) (*QueryClientStatusResponse, error) {
+	stdout, _, err := node.ExecQuery(ctx, "ibc", "client", "status", clientId)
+	if err != nil {
+		return nil, err
+	}
+	var resp QueryClientStatusResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // SubmitFraudProposal a fraud proposal to the chain.
 func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {
 	var command []string

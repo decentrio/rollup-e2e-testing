@@ -66,11 +66,11 @@ func (cs *chainSet) Initialize(ctx context.Context, testName string, cli *client
 }
 
 // Configuration concurrently calls Configuration against each rollapp chain in the set.
-func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
+func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, forkRollAppId string, gensisContent []byte) error {
 	for c := range cs.chains {
 		c := c
 		if rollApp, ok := c.(ibc.RollApp); ok {
-			err := rollApp.Configuration(testName, ctx, additionalGenesisWallets[c]...)
+			err := rollApp.Configuration(testName, ctx, forkRollAppId, gensisContent, additionalGenesisWallets[c]...)
 			if err != nil {
 				return fmt.Errorf("failed to configuration chain %s: %w", c.Config().Name, err)
 			}
@@ -86,13 +86,18 @@ func (cs *chainSet) Configuration(ctx context.Context, testName string, addition
 //
 // The keys are created concurrently because creating keys on one chain
 // should have no effect on any other chain.
-func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string) (faucetAddresses map[ibc.Chain]string, err error) {
+func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string, redundant ibc.Chain) (faucetAddresses map[ibc.Chain]string, err error) {
 	var mu sync.Mutex
 	faucetAddresses = make(map[ibc.Chain]string, len(cs.chains))
 
 	eg, egCtx := errgroup.WithContext(ctx)
 
 	for c := range cs.chains {
+		if redundant != nil {
+			if c.Config().Name == redundant.Config().Name {
+				continue
+			}
+		}
 		c := c
 		eg.Go(func() error {
 			wallet, err := c.BuildWallet(egCtx, keyName, "")
@@ -116,11 +121,17 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string) (fa
 }
 
 // Start concurrently calls Start against each chain in the set.
-func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData) error {
+func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, redundant ibc.Chain) error {
 	// Start Hub chain first
 	for c := range cs.chains {
 		c := c
 		if _, ok := c.(ibc.Hub); ok {
+			if redundant != nil && c.Config().Name == redundant.Config().Name {
+				if err := c.SetupRollAppWithExitsHub(ctx); err != nil {
+					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+				}
+				break
+			}
 			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
 				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 			}

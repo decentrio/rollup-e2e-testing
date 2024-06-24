@@ -241,7 +241,7 @@ type InterchainBuildOptions struct {
 // It is the caller's responsibility to directly call StartRelayer on the relayer implementations.
 //
 // Calling Build more than once will cause a panic.
-func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions) error {
+func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain, forkRollAppId string, gensisContent []byte) error {
 	chains := make([]ibc.Chain, 0, len(s.chains))
 	for chain := range s.chains {
 		chains = append(chains, chain)
@@ -258,17 +258,17 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return err
 	}
 
-	walletAmounts, err := s.genesisWalletAmounts(ctx)
+	walletAmounts, err := s.genesisWalletAmounts(ctx, redundant)
 	if err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
 	}
 
-	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts); err != nil {
+	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts, forkRollAppId ,gensisContent); err != nil {
 		return fmt.Errorf("failed to configuration chains: %w", err)
 	}
 
-	if err := s.cs.Start(ctx, opts.TestName, walletAmounts); err != nil {
+	if err := s.cs.Start(ctx, opts.TestName, walletAmounts, redundant); err != nil {
 		return fmt.Errorf("failed to start chains: %w", err)
 	}
 
@@ -374,9 +374,9 @@ func (s *Setup) Close() error {
 	return s.cs.Close()
 }
 
-func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.WalletData, error) {
+func (s *Setup) genesisWalletAmounts(ctx context.Context, redundant ibc.Chain) (map[ibc.Chain][]ibc.WalletData, error) {
 	// Faucet addresses are created separately because they need to be explicitly added to the chains.
-	faucetAddresses, err := s.cs.CreateCommonAccount(ctx, FaucetAccountKeyName)
+	faucetAddresses, err := s.cs.CreateCommonAccount(ctx, FaucetAccountKeyName, redundant)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create faucet accounts: %w", err)
 	}
@@ -386,6 +386,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context) (map[ibc.Chain][]ibc.W
 
 	// Add faucet for each chain first.
 	for c := range s.chains {
+		println("check faucet address :", faucetAddresses[c])
 		// The values are nil at this point, so it is safe to directly assign the slice.
 		walletAmounts[c] = []ibc.WalletData{
 			{

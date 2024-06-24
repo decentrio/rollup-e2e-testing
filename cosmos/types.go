@@ -208,6 +208,9 @@ type HubGenesisState struct {
 	GenesisTokens types.Coins `protobuf:"bytes,2,rep,name=genesis_tokens,json=genesisTokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"genesis_tokens"`
 }
 
+type QueryClientStatusResponse struct {
+	Status string `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+}
 type QuerySequencersResponse struct {
 	Sequencers []Sequencer   `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`

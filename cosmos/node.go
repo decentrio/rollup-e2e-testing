@@ -1157,6 +1157,16 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rolla
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+// SubmitUpdateClientProposal a update client proposal to the chain.
+func (node *Node) SubmitUpdateClientProposal(ctx context.Context, keyName, subjectClientId, substituteClientId, deposit string) (string, error) {
+	var command []string
+	command = append(command, "gov", "submit-legacy-proposal", "update-client", subjectClientId, substituteClientId,
+		"--title=update client", "--description=update client",
+		"--gas", "auto", "--broadcast-mode", "block", "--deposit", deposit)
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 // SubmitProposal submits a gov v1 proposal to the chain.
 func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxProposalv1) (string, error) {
 	// Write msg to container

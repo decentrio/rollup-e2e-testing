@@ -431,6 +431,16 @@ func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName, rollappC
 	return c.txProposal(txHash)
 }
 
+// SubmitUpdateClientProposal submit a update client proposal.
+func (c *CosmosChain) SubmitUpdateClientProposal(ctx context.Context, keyName, subjectClientId, substituteClientId, deposit string) (tx TxProposal, _ error) {
+	txHash, err := c.getFullNode().SubmitUpdateClientProposal(ctx, keyName, subjectClientId, substituteClientId, deposit)
+	if err != nil {
+		return tx, fmt.Errorf("failed to submit update client proposal: %w", err)
+	}
+
+	return c.txProposal(txHash)
+}
+
 // Build a gov v1 proposal type.
 func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, metadata, depositStr, proposer string, expedited bool) (TxProposalv1, error) {
 	var propType TxProposalv1

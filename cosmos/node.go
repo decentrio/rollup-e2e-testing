@@ -1161,7 +1161,7 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rolla
 func (node *Node) SubmitUpdateClientProposal(ctx context.Context, keyName, subjectClientId, substituteClientId, deposit string) (string, error) {
 	var command []string
 	command = append(command, "gov", "submit-legacy-proposal", "update-client", subjectClientId, substituteClientId,
-		"--title=update client", "--description=update client",
+		"--title=update_client", "--description=update_client",
 		"--gas", "auto", "--broadcast-mode", "block", "--deposit", deposit)
 
 	return node.ExecTx(ctx, keyName, command...)

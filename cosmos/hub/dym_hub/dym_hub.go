@@ -390,13 +390,11 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context, additionalGenesis
 
 		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
 		if err != nil {
-			println("go to MarshalIndent")
 			return err
 		}
 
 		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
 		if err != nil {
-			println("go to WriteFile")
 			return err
 		}
 		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")

@@ -362,10 +362,15 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
-func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
+func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+	validator0 := c.Validators[0]
+	for _, wallet := range additionalGenesisWallets {
+		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []types.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+			return err
+		}
+	}
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
-	validator0 := c.Validators[0]
 	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
 	if err != nil {
 		return err

@@ -414,20 +414,6 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 			return err
 		}
 	
-		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
-		if err != nil {
-			return err
-		}
-		amount := sdkmath.NewInt(10_000_000_000_000)
-		fund := ibc.WalletData{
-			Address: sequencer,
-			Denom:   c.Config().Denom,
-			Amount:  amount,
-		}
-		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
-			return err
-		}
-
 		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
 		if hasFlagGenesisPath && ok {

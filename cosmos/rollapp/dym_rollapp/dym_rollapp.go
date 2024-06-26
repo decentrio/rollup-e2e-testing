@@ -285,6 +285,12 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 			)
 			_ = os.WriteFile(exportGenesis, outGenBz, 0600)
 		}
+
+		for _, wallet := range additionalGenesisWallets {
+			if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+				return err
+			}
+		}
 	}
 	nodes := c.Nodes()
 
@@ -294,110 +300,12 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 		}
 	}
 
-	for _, wallet := range additionalGenesisWallets {
-		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-			return err
-		}
-	}
-	// Use validator to show sequencer key, so that it gets regconized as sequencer
+	// Use validator to show sequencer key, so that it gets recognized as sequencer
 	var command []string
 	command = append(command, "dymint", "show-sequencer")
 	seq, _, err := c.Validators[0].ExecBin(ctx, command...)
 	c.sequencerKey = string(bytes.TrimSuffix(seq, []byte("\n")))
 
-	if err != nil {
-		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
-	}
-
-	return nil
-}
-
-func (c *DymRollApp) ConfigurationWithGenesisFile(testName string, ctx context.Context, genesisContent []byte) error {
-	chainCfg := c.Config()
-	nodes := c.Nodes()
-	configFileOverrides := chainCfg.ConfigFileOverrides
-
-	// Initialize config and sign gentx for each validator.
-	eg := new(errgroup.Group)
-	for i, v := range c.Validators {
-		v := v
-		c.sequencerKeyDir = v.HomeDir()
-		v.Chain = c
-		v.Validator = true
-		eg.Go(func() error {
-			if err := v.InitFullNodeFiles(ctx); err != nil {
-				return err
-			}
-			for configFile, modifiedConfig := range configFileOverrides {
-				modifiedToml, ok := modifiedConfig.(testutil.Toml)
-				if !ok {
-					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
-				}
-				if err := testutil.ModifyTomlConfigFile(
-					ctx,
-					v.Logger(),
-					v.DockerClient,
-					v.TestName,
-					v.VolumeName,
-					v.Chain.Config().Name,
-					configFile,
-					modifiedToml,
-				); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-
-		if i == 0 {
-			v.ExecInit(ctx, "sequencer", c.sequencerKeyDir)
-		}
-	}
-
-	// Initialize config for each full node.
-	for _, n := range c.FullNodes {
-		n := n
-		n.Validator = false
-		n.Chain = c
-		eg.Go(func() error {
-			if err := n.InitFullNodeFiles(ctx); err != nil {
-				return err
-			}
-			for configFile, modifiedConfig := range configFileOverrides {
-				modifiedToml, ok := modifiedConfig.(testutil.Toml)
-				if !ok {
-					return fmt.Errorf("provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
-				}
-				if err := testutil.ModifyTomlConfigFile(
-					ctx,
-					n.Logger(),
-					n.DockerClient,
-					n.TestName,
-					n.VolumeName,
-					n.Chain.Config().Name,
-					configFile,
-					modifiedToml,
-				); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-	}
-
-	// wait for this to finish
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-
-	for _, node := range nodes {
-		if err := node.OverwriteGenesisFile(ctx, genesisContent); err != nil {
-			return err
-		}
-	}
-
-	sequencerKey, err := c.ShowSequencer(ctx)
-	c.sequencerKey = sequencerKey
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
 	}

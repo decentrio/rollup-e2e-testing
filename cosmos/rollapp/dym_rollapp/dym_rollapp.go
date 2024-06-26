@@ -216,6 +216,12 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 	if gensisContent != nil {
 		outGenBz = gensisContent
 	} else {
+		for _, wallet := range additionalGenesisWallets {
+			if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+				return err
+			}
+		}
+
 		genbz, err := validator0.GenesisFileContent(ctx)
 		if err != nil {
 			return err
@@ -284,12 +290,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 				zap.String("path", exportGenesis),
 			)
 			_ = os.WriteFile(exportGenesis, outGenBz, 0600)
-		}
-
-		for _, wallet := range additionalGenesisWallets {
-			if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-				return err
-			}
 		}
 	}
 	nodes := c.Nodes()

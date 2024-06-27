@@ -413,24 +413,10 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context, additionalGenesis
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
 
-		if err := c.GetNode().CreateKeyWithKeyDir(ctx, "sequencerName", keyDir); err != nil {
-			return err
-		}
-		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, "sequencerName", keyDir)
-		if err != nil {
-			return err
-		}
-		amount := sdkmath.NewInt(10_000_000_000_000)
-		fund := ibc.WalletData{
-			Address: sequencer,
-			Denom:   c.Config().Denom,
-			Amount:  amount,
-		}
-		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+		if err := c.GetNode().CreateKeyWithKeyDir(ctx, "newSequencer", keyDir); err != nil {
 			return err
 		}
 
-	
 		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
 		if hasFlagGenesisPath && ok {
@@ -469,11 +455,11 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context, additionalGenesis
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, "sequencerName", rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, "newSequencer", rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
-		if err := c.RegisterSequencerToHub(ctx, "sequencerName", rollAppChainID, seq, keyDir); err != nil {
+		if err := c.RegisterSequencerToHub(ctx, "newSequencer", rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 	}

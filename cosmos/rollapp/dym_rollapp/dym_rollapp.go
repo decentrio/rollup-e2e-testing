@@ -288,19 +288,18 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 	}
 	nodes := c.Nodes()
 
-	for _, wallet := range additionalGenesisWallets {
-		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
-			return err
-		}
-	}
-
 	for _, node := range nodes {
 		if err := node.OverwriteGenesisFile(ctx, outGenBz); err != nil {
 			return err
 		}
 	}
 
-	// Use validator to show sequencer key, so that it gets recognized as sequencer
+	for _, wallet := range additionalGenesisWallets {
+		if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+			return err
+		}
+	}
+	// Use validator to show sequencer key, so that it gets regconized as sequencer
 	var command []string
 	command = append(command, "dymint", "show-sequencer")
 	seq, _, err := c.Validators[0].ExecBin(ctx, command...)

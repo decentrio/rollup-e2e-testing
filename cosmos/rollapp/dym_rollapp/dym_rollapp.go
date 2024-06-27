@@ -217,7 +217,6 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 		outGenBz = gensisContent
 	} else {
 		for _, wallet := range additionalGenesisWallets {
-			println("check wallet: ", wallet.Address)
 			if err := validator0.AddGenesisAccount(ctx, wallet.Address, []sdk.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
 				return err
 			}

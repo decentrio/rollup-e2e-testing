@@ -295,10 +295,10 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
 
-		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
+		if err := c.GetNode().CreateKeyWithKeyDir(ctx, "sequencerName", keyDir); err != nil {
 			return err
 		}
-		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
+		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, "sequencerName", keyDir)
 		if err != nil {
 			return err
 		}
@@ -350,11 +350,11 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, "sequencerName", rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
-		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
+		if err := c.RegisterSequencerToHub(ctx, "sequencerName", rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 	}

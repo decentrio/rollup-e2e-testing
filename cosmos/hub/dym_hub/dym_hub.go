@@ -362,10 +362,15 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
-func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
+func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+	validator0 := c.Validators[0]
+	// for _, wallet := range additionalGenesisWallets {
+	// 	if err := validator0.AddGenesisAccount(ctx, wallet.Address, []types.Coin{{Denom: wallet.Denom, Amount: wallet.Amount}}); err != nil {
+	// 		return err
+	// 	}
+	// }
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
-	validator0 := c.Validators[0]
 	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
 	if err != nil {
 		return err
@@ -385,13 +390,11 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 
 		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
 		if err != nil {
-			println("go to MarshalIndent")
 			return err
 		}
 
 		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
 		if err != nil {
-			println("go to WriteFile")
 			return err
 		}
 		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
@@ -410,11 +413,10 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		keyDir := r.GetSequencerKeyDir()
 		seq := r.GetSequencer()
 
-		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
+		if err := c.GetNode().CreateKeyWithKeyDir(ctx, "newSequencer", keyDir); err != nil {
 			return err
 		}
-	
-		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
+		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, "newSequencer", keyDir)
 		if err != nil {
 			return err
 		}
@@ -466,11 +468,11 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		}
 		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, "newSequencer", rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
-		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
+		if err := c.RegisterSequencerToHub(ctx, "newSequencer", rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 	}

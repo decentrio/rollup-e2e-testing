@@ -127,7 +127,7 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 		c := c
 		if _, ok := c.(ibc.Hub); ok {
 			if redundant != nil && c.Config().Name == redundant.Config().Name {
-				if err := c.SetupRollAppWithExitsHub(ctx); err != nil {
+				if err := c.SetupRollAppWithExitsHub(ctx, additionalGenesisWallets[c]...); err != nil {
 					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 				}
 				break

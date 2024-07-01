@@ -313,6 +313,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 
 		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
+		flags["transfers-enabled"] = "true"
 		// if hasFlagGenesisPath && ok {
 		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
 		// }
@@ -429,6 +430,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 
 		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
+		flags["transfers-enabled"] = "true"
 		// if hasFlagGenesisPath && ok {
 		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
 		// }

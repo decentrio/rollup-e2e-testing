@@ -311,11 +311,11 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 			return err
 		}
 
-		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
-		if hasFlagGenesisPath && ok {
-			flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
-		}
+		// if hasFlagGenesisPath && ok {
+		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
+		// }
 
 		// Write denommetadata file
 		// denommetadata := []banktypes.Metadata{
@@ -427,11 +427,11 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 			return err
 		}
 
-		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
-		if hasFlagGenesisPath && ok {
-			flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
-		}
+		// if hasFlagGenesisPath && ok {
+		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
+		// }
 
 		// Write denommetadata file
 		// denommetadata := []banktypes.Metadata{

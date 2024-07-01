@@ -13,7 +13,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -319,38 +318,38 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 
 		// Write denommetadata file
-		denommetadata := []banktypes.Metadata{
-			{
-				Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
-				Base:        r.(ibc.Chain).Config().Denom,
-				DenomUnits: []*banktypes.DenomUnit{
-					{
-						Denom:    r.(ibc.Chain).Config().Denom,
-						Exponent: 0,
-					},
-					{
-						Denom:    "rax",
-						Exponent: 6,
-					},
-				},
-				Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
-				Symbol:  "URAX",
-				Display: "rax",
-			},
-		}
+		// denommetadata := []banktypes.Metadata{
+		// 	{
+		// 		Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
+		// 		Base:        r.(ibc.Chain).Config().Denom,
+		// 		DenomUnits: []*banktypes.DenomUnit{
+		// 			{
+		// 				Denom:    r.(ibc.Chain).Config().Denom,
+		// 				Exponent: 0,
+		// 			},
+		// 			{
+		// 				Denom:    "rax",
+		// 				Exponent: 6,
+		// 			},
+		// 		},
+		// 		Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
+		// 		Symbol:  "URAX",
+		// 		Display: "rax",
+		// 	},
+		// }
 
-		fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
-		if err != nil {
-			return err
-		}
+		// fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
+		// if err != nil {
+		// 	return err
+		// }
 
-		err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
-		if err != nil {
-			return err
-		}
-		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
+		// err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
+		// if err != nil {
+		// 	return err
+		// }
+		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -413,7 +412,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 			return err
 		}
-	
+
 		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
 		if err != nil {
 			return err
@@ -435,38 +434,38 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		}
 
 		// Write denommetadata file
-		denommetadata := []banktypes.Metadata{
-			{
-				Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
-				Base:        r.(ibc.Chain).Config().Denom,
-				DenomUnits: []*banktypes.DenomUnit{
-					{
-						Denom:    r.(ibc.Chain).Config().Denom,
-						Exponent: 0,
-					},
-					{
-						Denom:    "rax",
-						Exponent: 6,
-					},
-				},
-				Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
-				Symbol:  "URAX",
-				Display: "rax",
-			},
-		}
+		// denommetadata := []banktypes.Metadata{
+		// 	{
+		// 		Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
+		// 		Base:        r.(ibc.Chain).Config().Denom,
+		// 		DenomUnits: []*banktypes.DenomUnit{
+		// 			{
+		// 				Denom:    r.(ibc.Chain).Config().Denom,
+		// 				Exponent: 0,
+		// 			},
+		// 			{
+		// 				Denom:    "rax",
+		// 				Exponent: 6,
+		// 			},
+		// 		},
+		// 		Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
+		// 		Symbol:  "URAX",
+		// 		Display: "rax",
+		// 	},
+		// }
 
-		fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
-		if err != nil {
-			return err
-		}
+		// fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
+		// if err != nil {
+		// 	return err
+		// }
 
-		err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
-		if err != nil {
-			return err
-		}
-		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
+		// err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
+		// if err != nil {
+		// 	return err
+		// }
+		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -484,8 +483,8 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir, metadataFileDir string, flags map[string]string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, metadataFileDir, flags)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.

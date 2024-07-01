@@ -488,9 +488,9 @@ func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChain
 }
 
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.
-func (c *DymHub) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
-	return c.GetNode().TriggerGenesisEvent(ctx, keyName, rollappChainID, channelId, keyDir)
-}
+// func (c *DymHub) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
+// 	return c.GetNode().TriggerGenesisEvent(ctx, keyName, rollappChainID, channelId, keyDir)
+// }
 
 // Unbond is a method for removing coins from sequencer's bond.
 func (c *DymHub) Unbond(ctx context.Context, keyName, keyDir string) error {

@@ -727,15 +727,15 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	return err
 }
 
-func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
-	var command []string
-	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "rollapp", "genesis-event", rollappChainID, channelId,
-		"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
+// func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
+// 	var command []string
+// 	keyPath := keyDir + "/sequencer_keys"
+// 	command = append(command, "rollapp", "genesis-event", rollappChainID, channelId,
+// 		"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
 
-	_, err := node.ExecTx(ctx, keyName, command...)
-	return err
-}
+// 	_, err := node.ExecTx(ctx, keyName, command...)
+// 	return err
+// }
 
 func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	var command []string

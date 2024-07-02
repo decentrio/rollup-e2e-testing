@@ -232,7 +232,6 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	}
 	for _, r := range c.rollApps {
 		r := r
-		fmt.Println("aaaa")
 		err := r.SetGenesisAccount(ctx, bech32)
 		if err != nil {
 			return err

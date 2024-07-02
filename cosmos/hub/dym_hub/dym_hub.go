@@ -158,34 +158,10 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
 	validator0 := c.Validators[0]
-	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
-	if err != nil {
-		return err
-	}
-	for _, r := range c.rollApps {
-		r := r
-		rollAppChainID := r.(ibc.Chain).GetChainID()
-		genesisAccounts := []GenesisAccount{
-			{
-				Amount: types.Coin{
-					Amount: dymension.GenesisEventAmount,
-					Denom:  r.(ibc.Chain).Config().Denom,
-				},
-				Address: bech32,
-			},
-		}
-
-		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
-		if err != nil {
-			return err
-		}
-
-		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
-		if err != nil {
-			return err
-		}
-		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
-	}
+	// bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	// if err != nil {
+	// 	return err
+	// }
 
 	for i := 1; i < len(c.Validators); i++ {
 		validatorN := c.Validators[i]
@@ -372,29 +348,10 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 	}
 	for _, r := range c.rollApps {
 		r := r
-		rollAppChainID := r.(ibc.Chain).GetChainID()
-		genesisAccounts := []GenesisAccount{
-			{
-				Amount: types.Coin{
-					Amount: dymension.GenesisEventAmount,
-					Denom:  r.(ibc.Chain).Config().Denom,
-				},
-				Address: bech32,
-			},
-		}
-
-		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
+		err := r.SetGenesisAccount(ctx, bech32)
 		if err != nil {
-			println("go to MarshalIndent")
 			return err
 		}
-
-		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
-		if err != nil {
-			println("go to WriteFile")
-			return err
-		}
-		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
 	}
 
 	// Wait for 5 blocks before considering the chains "started"
@@ -430,7 +387,6 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 
 		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
-		// flags["transfers-enabled"] = "true"
 		// if hasFlagGenesisPath && ok {
 		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
 		// }

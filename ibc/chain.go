@@ -118,6 +118,8 @@ type RollApp interface {
 	ShowSequencer(ctx context.Context) (string, error)
 	// Get Sequencer
 	GetSequencer() string
+
+	SetGenesisAccount(ctx context.Context, bech32 string) error
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

@@ -226,6 +226,18 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 	}
 
+	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	if err != nil {
+		return err
+	}
+	for _, r := range c.rollApps {
+		r := r
+		fmt.Println("aaaa")
+		err := r.SetGenesisAccount(ctx, bech32)
+		if err != nil {
+			return err
+		}
+	}
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
 		return err
 	}
@@ -341,19 +353,11 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
-	validator0 := c.Validators[0]
-	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
-	if err != nil {
-		return err
-	}
-	for _, r := range c.rollApps {
-		r := r
-		fmt.Println("aaaa")
-		err := r.SetGenesisAccount(ctx, bech32)
-		if err != nil {
-			return err
-		}
-	}
+	// validator0 := c.Validators[0]
+	// bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Wait for 5 blocks before considering the chains "started"
 	testutil.WaitForBlocks(ctx, 5, c.GetNode())

@@ -353,7 +353,7 @@ func (c *DymRollApp) SetGenesisAccount(ctx context.Context, bech32 string) error
 			},
 		},
 	}
-
+	fmt.Println("bbbb", genesisAccount)
 	newGenesisAccounts := append(genesisAccounts.([]interface{}), genesisAccount)
 	if err := dyno.Set(g, newGenesisAccounts, "app_state", "hubgenesis", "state", "genesis_accounts"); err != nil {
 		return fmt.Errorf("failed to set genesis_accountss in genesis json: %w", err)

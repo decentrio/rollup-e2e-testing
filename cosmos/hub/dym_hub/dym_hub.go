@@ -348,6 +348,7 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 	}
 	for _, r := range c.rollApps {
 		r := r
+		fmt.Println("aaaa")
 		err := r.SetGenesisAccount(ctx, bech32)
 		if err != nil {
 			return err

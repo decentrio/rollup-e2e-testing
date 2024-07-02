@@ -1092,6 +1092,6 @@ func (c *CosmosChain) IBCTransfer(ctx context.Context, chainA, chainB ibc.Chain,
 	return nil
 }
 
-func (c *CosmosChain) SetupRollAppWithExitsHub(ctx context.Context) error {
+func (c *CosmosChain) SetupRollAppWithExistHub(ctx context.Context) error {
 	return fmt.Errorf("not implemented")
 }

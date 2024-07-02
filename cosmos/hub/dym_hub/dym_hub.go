@@ -362,7 +362,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
-func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
+func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
 	validator0 := c.Validators[0]

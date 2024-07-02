@@ -17,7 +17,7 @@ type Chain interface {
 	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Chain to start from genesis.
 	Start(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 
-	SetupRollAppWithExitsHub(ctx context.Context) error
+	SetupRollAppWithExistHub(ctx context.Context) error
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
 	// is up to the chain implementation.

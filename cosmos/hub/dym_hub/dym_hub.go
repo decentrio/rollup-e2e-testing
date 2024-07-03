@@ -483,10 +483,11 @@ func (c *DymHub) RemoveRollApp(rollApp ibc.RollApp) {
 func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 	id string,
 	keyName string,
+	expFee sdkmath.Int,
 ) (txhash string, _ error) {
 	command := []string{
 		"eibc",
-		"fulfill-order", id,
+		"fulfill-order", id, expFee.String(),
 	}
 	return c.GetNode().ExecTx(ctx, keyName, command...)
 }

@@ -163,6 +163,13 @@ func (commander) CreateConnections(pathName string, homeDir string) []string {
 	}
 }
 
+func (commander) CreateConnectionsWithNumberOfRetries(pathName string, homeDir string, retries string) []string {
+	return []string{
+		"rly", "tx", "connection", pathName, "--max-retries", retries, "--timeout", "40s", "--debug",
+		"--home", homeDir,
+	}
+}
+
 func (commander) Flush(pathName, channelID, homeDir string) []string {
 	cmd := []string{"rly", "tx", "flush"}
 	if pathName != "" {

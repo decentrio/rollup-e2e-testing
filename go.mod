@@ -26,6 +26,7 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/evmos/ethermint v0.0.0-00010101000000-000000000000
 	github.com/gdamore/tcell/v2 v2.7.0
+	github.com/gogo/protobuf v1.3.3
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
 	github.com/rivo/tview v0.0.0-20240116070845-bf8f1c43e46c
 	github.com/stretchr/testify v1.8.4
@@ -86,7 +87,6 @@ require (
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/gateway v1.1.0 // indirect
-	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/glog v1.1.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

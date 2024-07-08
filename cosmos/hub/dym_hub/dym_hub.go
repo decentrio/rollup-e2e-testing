@@ -13,7 +13,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -159,34 +158,10 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
 	validator0 := c.Validators[0]
-	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
-	if err != nil {
-		return err
-	}
-	for _, r := range c.rollApps {
-		r := r
-		rollAppChainID := r.(ibc.Chain).GetChainID()
-		genesisAccounts := []GenesisAccount{
-			{
-				Amount: types.Coin{
-					Amount: dymension.GenesisEventAmount,
-					Denom:  r.(ibc.Chain).Config().Denom,
-				},
-				Address: bech32,
-			},
-		}
-
-		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
-		if err != nil {
-			return err
-		}
-
-		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
-		if err != nil {
-			return err
-		}
-		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
-	}
+	// bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	// if err != nil {
+	// 	return err
+	// }
 
 	for i := 1; i < len(c.Validators); i++ {
 		validatorN := c.Validators[i]
@@ -251,6 +226,17 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 	}
 
+	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	if err != nil {
+		return err
+	}
+	for _, r := range c.rollApps {
+		r := r
+		err := r.SetGenesisAccount(ctx, bech32)
+		if err != nil {
+			return err
+		}
+	}
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
 		return err
 	}
@@ -312,45 +298,46 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 			return err
 		}
 
-		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
-		if hasFlagGenesisPath && ok {
-			flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
-		}
+		// flags["transfers-enabled"] = "true"
+		// if hasFlagGenesisPath && ok {
+		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
+		// }
 
 		// Write denommetadata file
-		denommetadata := []banktypes.Metadata{
-			{
-				Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
-				Base:        r.(ibc.Chain).Config().Denom,
-				DenomUnits: []*banktypes.DenomUnit{
-					{
-						Denom:    r.(ibc.Chain).Config().Denom,
-						Exponent: 0,
-					},
-					{
-						Denom:    "rax",
-						Exponent: 6,
-					},
-				},
-				Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
-				Symbol:  "URAX",
-				Display: "rax",
-			},
-		}
+		// denommetadata := []banktypes.Metadata{
+		// 	{
+		// 		Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
+		// 		Base:        r.(ibc.Chain).Config().Denom,
+		// 		DenomUnits: []*banktypes.DenomUnit{
+		// 			{
+		// 				Denom:    r.(ibc.Chain).Config().Denom,
+		// 				Exponent: 0,
+		// 			},
+		// 			{
+		// 				Denom:    "rax",
+		// 				Exponent: 6,
+		// 			},
+		// 		},
+		// 		Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
+		// 		Symbol:  "URAX",
+		// 		Display: "rax",
+		// 	},
+		// }
 
-		fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
-		if err != nil {
-			return err
-		}
+		// fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
+		// if err != nil {
+		// 	return err
+		// }
 
-		err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
-		if err != nil {
-			return err
-		}
-		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
+		// err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
+		// if err != nil {
+		// 	return err
+		// }
+		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -362,40 +349,14 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	return nil
 }
 
-func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
+func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
-	validator0 := c.Validators[0]
-	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
-	if err != nil {
-		return err
-	}
-	for _, r := range c.rollApps {
-		r := r
-		rollAppChainID := r.(ibc.Chain).GetChainID()
-		genesisAccounts := []GenesisAccount{
-			{
-				Amount: types.Coin{
-					Amount: dymension.GenesisEventAmount,
-					Denom:  r.(ibc.Chain).Config().Denom,
-				},
-				Address: bech32,
-			},
-		}
-
-		fileBz, err := json.MarshalIndent(genesisAccounts, "", "    ")
-		if err != nil {
-			println("go to MarshalIndent")
-			return err
-		}
-
-		err = validator0.WriteFile(ctx, fileBz, rollAppChainID+"_genesis_accounts.json")
-		if err != nil {
-			println("go to WriteFile")
-			return err
-		}
-		c.Logger().Info("file saved to " + c.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json")
-	}
+	// validator0 := c.Validators[0]
+	// bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Wait for 5 blocks before considering the chains "started"
 	testutil.WaitForBlocks(ctx, 5, c.GetNode())
@@ -413,7 +374,7 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 		if err := c.GetNode().CreateKeyWithKeyDir(ctx, sequencerName, keyDir); err != nil {
 			return err
 		}
-	
+
 		sequencer, err := c.AccountKeyBech32WithKeyDir(ctx, sequencerName, keyDir)
 		if err != nil {
 			return err
@@ -428,45 +389,45 @@ func (c *DymHub) SetupRollAppWithExitsHub(ctx context.Context) error {
 			return err
 		}
 
-		hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
+		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
-		if hasFlagGenesisPath && ok {
-			flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
-		}
+		// if hasFlagGenesisPath && ok {
+		// 	flags["genesis-accounts-path"] = validator0.HomeDir() + "/" + rollAppChainID + "_genesis_accounts.json"
+		// }
 
 		// Write denommetadata file
-		denommetadata := []banktypes.Metadata{
-			{
-				Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
-				Base:        r.(ibc.Chain).Config().Denom,
-				DenomUnits: []*banktypes.DenomUnit{
-					{
-						Denom:    r.(ibc.Chain).Config().Denom,
-						Exponent: 0,
-					},
-					{
-						Denom:    "rax",
-						Exponent: 6,
-					},
-				},
-				Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
-				Symbol:  "URAX",
-				Display: "rax",
-			},
-		}
+		// denommetadata := []banktypes.Metadata{
+		// 	{
+		// 		Description: fmt.Sprintf("rollapp %s native token", rollAppChainID),
+		// 		Base:        r.(ibc.Chain).Config().Denom,
+		// 		DenomUnits: []*banktypes.DenomUnit{
+		// 			{
+		// 				Denom:    r.(ibc.Chain).Config().Denom,
+		// 				Exponent: 0,
+		// 			},
+		// 			{
+		// 				Denom:    "rax",
+		// 				Exponent: 6,
+		// 			},
+		// 		},
+		// 		Name:    fmt.Sprintf("%s %s", rollAppChainID, r.(ibc.Chain).Config().Denom),
+		// 		Symbol:  "URAX",
+		// 		Display: "rax",
+		// 	},
+		// }
 
-		fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
-		if err != nil {
-			return err
-		}
+		// fileBz, err := json.MarshalIndent(denommetadata, "", "    ")
+		// if err != nil {
+		// 	return err
+		// }
 
-		err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
-		if err != nil {
-			return err
-		}
-		metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
+		// err = validator0.WriteFile(ctx, fileBz, "denommetadata.json")
+		// if err != nil {
+		// 	return err
+		// }
+		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, metadataFileDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -484,14 +445,14 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir, metadataFileDir string, flags map[string]string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, metadataFileDir, flags)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
 }
 
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.
-func (c *DymHub) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
-	return c.GetNode().TriggerGenesisEvent(ctx, keyName, rollappChainID, channelId, keyDir)
-}
+// func (c *DymHub) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
+// 	return c.GetNode().TriggerGenesisEvent(ctx, keyName, rollappChainID, channelId, keyDir)
+// }
 
 // Unbond is a method for removing coins from sequencer's bond.
 func (c *DymHub) Unbond(ctx context.Context, keyName, keyDir string) error {
@@ -522,10 +483,11 @@ func (c *DymHub) RemoveRollApp(rollApp ibc.RollApp) {
 func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 	id string,
 	keyName string,
+	expFee sdkmath.Int,
 ) (txhash string, _ error) {
 	command := []string{
 		"eibc",
-		"fulfill-order", id,
+		"fulfill-order", id, expFee.String(),
 	}
 	return c.GetNode().ExecTx(ctx, keyName, command...)
 }

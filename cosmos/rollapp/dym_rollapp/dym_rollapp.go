@@ -324,6 +324,51 @@ func (c *DymRollApp) GetSequencer() string {
 	return c.sequencerKey
 }
 
+func (c *DymRollApp) SetGenesisAccount(ctx context.Context, bech32 string) error {
+	// for the validators we need to collect the gentxs and the accounts
+	// to the first node's genesis file
+	validator0 := c.Validators[0]
+
+	var outGenBz []byte
+	genbz, err := validator0.GenesisFileContent(ctx)
+	if err != nil {
+		return err
+	}
+
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	// Add balance to hub genesis module account
+	genesisAccounts, err := dyno.Get(g, "app_state", "hubgenesis", "state", "genesis_accounts")
+	if err != nil {
+		return fmt.Errorf("failed to retrieve genesis_accountss: %w", err)
+	}
+	genesisAccount := map[string]interface{}{
+		"address": bech32,
+		"amount": map[string]interface{}{
+			"denom":  c.Config().Denom,
+			"amount": dymension.GenesisEventAmount.String(),
+		},
+	}
+	newGenesisAccounts := append(genesisAccounts.([]interface{}), genesisAccount)
+	if err := dyno.Set(g, newGenesisAccounts, "app_state", "hubgenesis", "state", "genesis_accounts"); err != nil {
+		return fmt.Errorf("failed to set genesis_accountss in genesis json: %w", err)
+	}
+	outGenBz, err = json.Marshal(g)
+	if err != nil {
+		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+
+	nodes := c.Nodes()
+	for _, node := range nodes {
+		if err := node.OverwriteGenesisFile(ctx, outGenBz); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *DymRollApp) GetSequencerKeyDir() string {
 	fmt.Println("rollapp: ", c.GetChainID())
 	fmt.Println("sequencerKeyDir: ", c.sequencerKey)

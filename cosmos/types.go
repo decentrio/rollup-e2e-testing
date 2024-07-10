@@ -159,6 +159,13 @@ type DenomMetadata struct {
 	URIHash     string      `json:"uri_hash"`
 }
 
+type QueryDenomsMetadataResponse struct {
+	// metadata provides the client information for all the registered tokens.
+	Metadatas []DenomMetadata `protobuf:"bytes,1,rep,name=metadatas,proto3" json:"metadatas"`
+	// pagination defines the pagination in the response.
+	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
 type DenomUnit struct {
 	Denom    string   `json:"denom"`
 	Exponent uint32   `json:"exponent"`

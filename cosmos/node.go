@@ -1064,6 +1064,24 @@ func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomM
 	return &denomMetadata.Metadata, nil
 }
 
+// QueryAllDenomMetadata returns denom metadata of a given denom
+func (node *Node) QueryAllDenomMetadata(ctx context.Context) (*QueryDenomsMetadataResponse, error) {
+	var command []string
+	command = append(command, "bank", "denom-metadata")
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var denomMetadata QueryDenomsMetadataResponse
+	err = json.Unmarshal(stdout, &denomMetadata)
+	if err != nil {
+		return nil, err
+	}
+	return &denomMetadata, nil
+}
+
 // QueryProposal returns the state and details of a governance proposal.
 func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
 	stdout, _, err := node.ExecQuery(ctx, "gov", "proposal", proposalID)

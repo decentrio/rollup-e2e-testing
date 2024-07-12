@@ -5,6 +5,9 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 )
 
 const (
@@ -280,4 +283,13 @@ type Erc20TokenPairResponse struct {
 type DelayedACKParams struct {
 	EpochIdentifier string                                 `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
 	BridgingFee     types.Dec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"bridging_fee" yaml:"bridging_fee"`
+}
+
+type QueryConnectionsResponse struct {
+	// list of stored connections of the chain.
+	Connections []*connectiontypes.IdentifiedConnection `protobuf:"bytes,1,rep,name=connections,proto3" json:"connections,omitempty"`
+	// pagination response
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	// query block height
+	Height clienttypes.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height"`
 }

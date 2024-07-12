@@ -1064,7 +1064,7 @@ func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomM
 	return &denomMetadata.Metadata, nil
 }
 
-// QueryAllDenomMetadata returns denom metadata of a given denom
+// QueryAllDenomMetadata returns all denom metadata
 func (node *Node) QueryAllDenomMetadata(ctx context.Context) (*QueryDenomsMetadataResponse, error) {
 	var command []string
 	command = append(command, "bank", "denom-metadata")
@@ -1080,6 +1080,24 @@ func (node *Node) QueryAllDenomMetadata(ctx context.Context) (*QueryDenomsMetada
 		return nil, err
 	}
 	return &denomMetadata, nil
+}
+
+// QueryAllConnections returns all connectionst
+func (node *Node) QueryAllConnections(ctx context.Context) (*QueryConnectionsResponse, error) {
+	var command []string
+	command = append(command, "ibc", "connection", "connections")
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var connections QueryConnectionsResponse
+	err = json.Unmarshal(stdout, &connections)
+	if err != nil {
+		return nil, err
+	}
+	return &connections, nil
 }
 
 // QueryProposal returns the state and details of a governance proposal.

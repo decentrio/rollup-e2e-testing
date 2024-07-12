@@ -492,6 +492,18 @@ func (c *DymHub) FullfillDemandOrder(ctx context.Context,
 	return c.GetNode().ExecTx(ctx, keyName, command...)
 }
 
+func (c *DymHub) UpdateDemandOrder(ctx context.Context,
+	id string,
+	keyName string,
+	newFee sdkmath.Int,
+) (txhash string, _ error) {
+	command := []string{
+		"eibc",
+		"update-demand-order", id, newFee.String(),
+	}
+	return c.GetNode().ExecTx(ctx, keyName, command...)
+}
+
 func (c *DymHub) QueryRollappParams(ctx context.Context,
 	rollappName string,
 ) (*dymension.QueryGetRollappResponse, error) {

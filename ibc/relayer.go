@@ -75,6 +75,10 @@ type Relayer interface {
 	// between the src and dst chains.
 	CreateConnections(ctx context.Context, rep RelayerExecReporter, pathName string) error
 
+	// CreateConnectionsWithNumberOfRetries performs the connection handshake steps necessary for creating a connection with number of retries
+	// between the src and dst chains.
+	CreateConnectionsWithNumberOfRetries(ctx context.Context, rep RelayerExecReporter, pathName, retries string) error
+
 	// CreateChannel creates a channel on the given path with the provided options.
 	CreateChannel(ctx context.Context, rep RelayerExecReporter, pathName string, opts CreateChannelOptions) error
 

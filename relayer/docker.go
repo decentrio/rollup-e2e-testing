@@ -214,6 +214,12 @@ func (r *DockerRelayer) CreateConnections(ctx context.Context, rep ibc.RelayerEx
 	return res.Err
 }
 
+func (r *DockerRelayer) CreateConnectionsWithNumberOfRetries(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, retries string) error {
+	cmd := r.c.CreateConnectionsWithNumberOfRetries(pathName, r.HomeDir(), retries)
+	res := r.Exec(ctx, rep, cmd, nil)
+	return res.Err
+}
+
 func (r *DockerRelayer) Flush(ctx context.Context, rep ibc.RelayerExecReporter, pathName, channelID string) error {
 	cmd := r.c.Flush(pathName, channelID, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
@@ -521,6 +527,7 @@ type RelayerCommander interface {
 	CreateChannel(pathName string, opts ibc.CreateChannelOptions, homeDir string) []string
 	CreateClients(pathName string, opts ibc.CreateClientOptions, homeDir string) []string
 	CreateConnections(pathName, homeDir string) []string
+	CreateConnectionsWithNumberOfRetries(pathName, homeDir, retries string) []string
 	Flush(pathName, channelID, homeDir string) []string
 	GeneratePath(srcChainID, dstChainID, pathName, homeDir string) []string
 	UpdatePath(pathName, homeDir string, filter ibc.ChannelFilter) []string

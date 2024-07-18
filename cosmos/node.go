@@ -315,17 +315,17 @@ func (node *Node) SetPeers(ctx context.Context, peers string) error {
 	)
 }
 
-func (node *Node) Height(ctx context.Context) (uint64, error) {
+func (node *Node) Height(ctx context.Context) (int64, error) {
 	res, err := node.Client.Status(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("tendermint rpc client status: %w", err)
 	}
 	height := res.SyncInfo.LatestBlockHeight
-	return uint64(height), nil
+	return int64(height), nil
 }
 
 // FindTxs implements blockdb.BlockSaver.
-func (node *Node) FindTxs(ctx context.Context, height uint64) ([]blockdb.Tx, error) {
+func (node *Node) FindTxs(ctx context.Context, height int64) ([]blockdb.Tx, error) {
 	h := int64(height)
 	var eg errgroup.Group
 	var blockRes *coretypes.ResultBlockResults
@@ -349,12 +349,12 @@ func (node *Node) FindTxs(ctx context.Context, height uint64) ([]blockdb.Tx, err
 
 		sdkTx, err := decodeTX(interfaceRegistry, tx)
 		if err != nil {
-			node.logger().Info("Failed to decode tx", zap.Uint64("height", height), zap.Error(err))
+			node.logger().Info("Failed to decode tx", zap.Int64("height", height), zap.Error(err))
 			continue
 		}
 		b, err := encodeTxToJSON(interfaceRegistry, sdkTx)
 		if err != nil {
-			node.logger().Info("Failed to marshal tx to json", zap.Uint64("height", height), zap.Error(err))
+			node.logger().Info("Failed to marshal tx to json", zap.Int64("height", height), zap.Error(err))
 			continue
 		}
 		newTx.Data = b
@@ -549,7 +549,7 @@ func CondenseMoniker(m string) string {
 	// It's also non-cryptographic, not that this function will ever be a bottleneck in tests.
 	h := fnv.New32()
 	h.Write([]byte(m))
-	suffix := "-" + strconv.FormatUint(uint64(h.Sum32()), 36)
+	suffix := "-" + strconv.FormatInt(int64(h.Sum32()), 36)
 
 	wantLen := stakingtypes.MaxMonikerLength - len(suffix)
 
@@ -836,7 +836,7 @@ func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc
 	if txResp.Code != 0 {
 		return tx, fmt.Errorf("error in transaction (code: %d): %s", txResp.Code, txResp.RawLog)
 	}
-	tx.Height = uint64(txResp.Height)
+	tx.Height = int64(txResp.Height)
 	tx.TxHash = txHash
 	// In cosmos, user is charged for entire gas requested, not the actual gas used.
 	tx.GasSpent = txResp.GasWanted
@@ -1210,7 +1210,7 @@ func (node *Node) UpgradeLegacyProposal(ctx context.Context, keyName string, pro
 	command := []string{
 		"gov", "submit-legacy-proposal",
 		"software-upgrade", prop.Name,
-		"--upgrade-height", strconv.FormatUint(prop.Height, 10),
+		"--upgrade-height", strconv.FormatInt(prop.Height, 10),
 		"--title", prop.Title,
 		"--description", prop.Description,
 		"--deposit", prop.Deposit,

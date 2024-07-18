@@ -70,7 +70,6 @@ func PollForAck(ctx context.Context, chain ChainAcker, startHeight, maxHeight in
 		}
 		for _, ack := range acks {
 			pollError.PushSearched(ack)
-			fmt.Println(ack.Packet)
 			if ack.Packet.Equal(packet) {
 				return ack, nil
 			}

@@ -709,7 +709,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	command = append(
 		command, "rollapp", "create-rollapp",
 		rollappChainID, maxSequencers, detail,
-		"--keyring-dir", keyPath)
+		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
 	}
@@ -721,7 +721,7 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
-		"--broadcast-mode", "block", "--keyring-dir", keyPath)
+		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
@@ -742,10 +742,10 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	if keyDir != "" {
 		keyPath := keyDir + "/sequencer_keys"
 		command = append(command, "sequencer", "unbond",
-			"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
+			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
 	}
 	command = append(command, "sequencer", "unbond",
-		"--broadcast-mode", "block", "--gas", "auto")
+		"--broadcast-mode", "async", "--gas", "auto")
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
@@ -1170,7 +1170,7 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rolla
 	var command []string
 	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
 		rollappId, height, proposerAddr, clientId, "--title=fraud", "--description=fraud",
-		"--gas", "auto", "--broadcast-mode", "block", "--deposit", deposit)
+		"--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
 	return node.ExecTx(ctx, keyName, command...)
 }
 
@@ -1179,7 +1179,7 @@ func (node *Node) SubmitUpdateClientProposal(ctx context.Context, keyName, subje
 	var command []string
 	command = append(command, "gov", "submit-legacy-proposal", "update-client", subjectClientId, substituteClientId,
 		"--title=update_client", "--description=update_client",
-		"--gas", "auto", "--broadcast-mode", "block", "--deposit", deposit)
+		"--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
 
 	return node.ExecTx(ctx, keyName, command...)
 }

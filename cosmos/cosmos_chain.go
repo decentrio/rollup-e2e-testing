@@ -22,8 +22,8 @@ import (
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	chanTypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	chanTypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -274,7 +274,7 @@ func (c *CosmosChain) BuildWallet(ctx context.Context, keyName string, mnemonic 
 // be restored in the relayer node using the mnemonic. After it is built, that address is included in
 // genesis with some funds.
 func (c *CosmosChain) BuildRelayerWallet(ctx context.Context, keyName string) (ibc.Wallet, error) {
-	coinType, err := strconv.ParseUint(c.cfg.CoinType, 10, 32)
+	coinType, err := strconv.ParseInt(c.cfg.CoinType, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid coin type: %w", err)
 	}
@@ -322,7 +322,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	if txResp.Code != 0 {
 		return tx, fmt.Errorf("error in transaction (code: %d): %s", txResp.Code, txResp.RawLog)
 	}
-	tx.Height = uint64(txResp.Height)
+	tx.Height = int64(txResp.Height)
 	tx.TxHash = txHash
 	// In cosmos, user is charged for entire gas requested, not the actual gas used.
 	tx.GasSpent = txResp.GasWanted
@@ -353,7 +353,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	}
 	tx.Packet.Sequence = uint64(seqNum)
 
-	timeoutNano, err := strconv.ParseUint(timeoutTs, 10, 64)
+	timeoutNano, err := strconv.ParseInt(timeoutTs, 10, 64)
 	if err != nil {
 		return tx, fmt.Errorf("invalid packet timestamp timeout %s: %w", timeoutTs, err)
 	}
@@ -475,7 +475,7 @@ func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
 	if err != nil {
 		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
 	}
-	tx.Height = uint64(txResp.Height)
+	tx.Height = int64(txResp.Height)
 	tx.TxHash = txHash
 	// In cosmos, user is charged for entire gas requested, not the actual gas used.
 	tx.GasSpent = txResp.GasWanted
@@ -897,12 +897,12 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 }
 
 // Height implements ibc.Chain
-func (c *CosmosChain) Height(ctx context.Context) (uint64, error) {
+func (c *CosmosChain) Height(ctx context.Context) (int64, error) {
 	return c.getFullNode().Height(ctx)
 }
 
 // Acknowledgements implements ibc.Chain, returning all acknowledgments in block at height
-func (c *CosmosChain) Acknowledgements(ctx context.Context, height uint64) ([]ibc.PacketAcknowledgement, error) {
+func (c *CosmosChain) Acknowledgements(ctx context.Context, height int64) ([]ibc.PacketAcknowledgement, error) {
 	var acks []*chanTypes.MsgAcknowledgement
 	err := rangeBlockMessages(ctx, c.cfg.EncodingConfig.InterfaceRegistry, c.getFullNode().Client, height, func(msg types.Msg) bool {
 		found, ok := msg.(*chanTypes.MsgAcknowledgement)
@@ -935,7 +935,7 @@ func (c *CosmosChain) Acknowledgements(ctx context.Context, height uint64) ([]ib
 }
 
 // Timeouts implements ibc.Chain, returning all timeouts in block at height
-func (c *CosmosChain) Timeouts(ctx context.Context, height uint64) ([]ibc.PacketTimeout, error) {
+func (c *CosmosChain) Timeouts(ctx context.Context, height int64) ([]ibc.PacketTimeout, error) {
 	var timeouts []*chanTypes.MsgTimeout
 	err := rangeBlockMessages(ctx, c.cfg.EncodingConfig.InterfaceRegistry, c.getFullNode().Client, height, func(msg types.Msg) bool {
 		found, ok := msg.(*chanTypes.MsgTimeout)
@@ -967,7 +967,7 @@ func (c *CosmosChain) Timeouts(ctx context.Context, height uint64) ([]ibc.Packet
 }
 
 // FindTxs implements blockdb.BlockSaver.
-func (c *CosmosChain) FindTxs(ctx context.Context, height uint64) ([]blockdb.Tx, error) {
+func (c *CosmosChain) FindTxs(ctx context.Context, height int64) ([]blockdb.Tx, error) {
 	fn := c.getFullNode()
 	c.findTxMu.Lock()
 	defer c.findTxMu.Unlock()

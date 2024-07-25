@@ -618,7 +618,7 @@ func (c *DymHub) QueryShowSequencer(ctx context.Context, sequencerAddr string) (
 	return &queryGetSequencerResponse, nil
 }
 
-func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (uint64, error) {
+func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName string) (int64, error) {
 	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
 	if err != nil {
 		return 0, err
@@ -629,27 +629,27 @@ func (c *DymHub) FinalizedRollappStateHeight(ctx context.Context, rollappName st
 	}
 
 	lastBD := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1]
-	parsedHeight, err := strconv.ParseUint(lastBD.Height, 10, 64)
+	parsedHeight, err := strconv.ParseInt(lastBD.Height, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 	return parsedHeight, nil
 }
 
-func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName string) (uint64, error) {
+func (c *DymHub) FinalizedRollappDymHeight(ctx context.Context, rollappName string) (int64, error) {
 	rollappState, err := c.QueryRollappState(ctx, rollappName, true)
 	if err != nil {
 		return 0, err
 	}
 
-	parsedHeight, err := strconv.ParseUint(rollappState.StateInfo.CreationHeight, 10, 64)
+	parsedHeight, err := strconv.ParseInt(rollappState.StateInfo.CreationHeight, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 	return parsedHeight, nil
 }
 
-func (c *DymHub) FinalizedRollappStateIndex(ctx context.Context, rollappName string) (uint64, error) {
+func (c *DymHub) FinalizedRollappStateIndex(ctx context.Context, rollappName string) (int64, error) {
 	rollappState, err := c.QueryLatestStateIndex(ctx, rollappName, true)
 	if err != nil {
 		return 0, err
@@ -660,14 +660,14 @@ func (c *DymHub) FinalizedRollappStateIndex(ctx context.Context, rollappName str
 	}
 
 	latestIndex := rollappState.StateIndex.Index
-	parsedIndex, err := strconv.ParseUint(latestIndex, 10, 64)
+	parsedIndex, err := strconv.ParseInt(latestIndex, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 	return parsedIndex, nil
 }
 
-func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappChainID string, targetHeight uint64, timeoutSecs int) (bool, error) {
+func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappChainID string, targetHeight int64, timeoutSecs int) (bool, error) {
 	startTime := time.Now()
 	timeout := time.Duration(timeoutSecs) * time.Second
 
@@ -689,7 +689,7 @@ func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappC
 			}
 
 			for _, bd := range rollappState.StateInfo.BlockDescriptors.BD {
-				height, err := strconv.ParseUint(bd.Height, 10, 64)
+				height, err := strconv.ParseInt(bd.Height, 10, 64)
 				if err != nil {
 					continue
 				}
@@ -756,7 +756,7 @@ func (c *DymHub) WaitUntilEpochEnds(ctx context.Context, identifier string, time
 	}
 }
 
-func (c *DymHub) AssertFinalization(t *testing.T, ctx context.Context, rollappName string, minIndex uint64) {
+func (c *DymHub) AssertFinalization(t *testing.T, ctx context.Context, rollappName string, minIndex int64) {
 	latestFinalizedIndex, err := c.FinalizedRollappStateIndex(ctx, rollappName)
 	require.NoError(t, err)
 	require.Equal(t, latestFinalizedIndex > minIndex, true, fmt.Sprintf("%s did not have the latest finalized state greater than %d", rollappName, latestFinalizedIndex))

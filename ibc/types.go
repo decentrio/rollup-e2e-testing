@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 )
 
 // ChainConfig defines the chain parameters requires to run an testnet for a chain.
@@ -47,7 +47,7 @@ type ChainConfig struct {
 	// Override config parameters for files at filepath.
 	ConfigFileOverrides map[string]any
 	// Non-nil will override the encoding config, used for cosmos chains only.
-	EncodingConfig *simappparams.EncodingConfig
+	EncodingConfig *testutil.TestEncodingConfig
 	// Required when the chain requires the chain-id field to be populated for certain commands
 	UsingChainIDFlagCLI bool `yaml:"using-chain-id-flag-cli"`
 	// CoinDecimals for the chains base micro/nano/atto token configuration.
@@ -204,7 +204,7 @@ type WalletData struct {
 
 type IBCTimeout struct {
 	NanoSeconds uint64
-	Height      uint64
+	Height      int64
 }
 
 type ChannelCounterparty struct {

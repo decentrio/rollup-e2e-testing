@@ -281,3 +281,19 @@ type DelayedACKParams struct {
 	EpochIdentifier string    `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
 	BridgingFee     types.Dec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"bridging_fee" yaml:"bridging_fee"`
 }
+
+type CelestiaResponse struct {
+	Result CelestiaBlockResult `json:"result"`
+}
+
+type CelestiaBlockResult struct {
+	Block CelestiaBlock `json:"block"`
+}
+
+type CelestiaBlock struct {
+	Header CelestiaBlockHeader `json:"header"`
+}
+
+type CelestiaBlockHeader struct {
+	Height string `json:"height"`
+}

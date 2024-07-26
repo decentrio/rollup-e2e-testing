@@ -245,7 +245,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
-			return n.CreateNodeContainer(egCtx)
+			return n.CreateNodeContainer(egCtx, nil)
 		})
 	}
 	if err := eg.Wait(); err != nil {

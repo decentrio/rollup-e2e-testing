@@ -174,6 +174,21 @@ func (node *Node) OverwriteGenesisFile(ctx context.Context, content []byte) erro
 	return nil
 }
 
+func (node *Node) ExtractPrivateValKeyFile(ctx context.Context) (PrivValidatorKeyFile, error) {
+	contents, err := node.ReadFile(ctx, "config/priv_validator_key.json")
+	if err != nil {
+		return PrivValidatorKeyFile{}, fmt.Errorf("fail to getting priv_validator_key.json content: %w", err)
+	}
+
+	var privValidatorKeyFile PrivValidatorKeyFile
+	err = json.Unmarshal(contents, &privValidatorKeyFile)
+	if err != nil {
+		return PrivValidatorKeyFile{}, err
+	}
+
+	return privValidatorKeyFile, nil
+}
+
 func (node *Node) CopyGentx(ctx context.Context, destVal *Node) error {
 	return node.copyGentx(ctx, destVal)
 }
@@ -212,7 +227,7 @@ type PrivValidatorKeyFile struct {
 
 // Bind returns the home folder bind point for running the node
 func (node *Node) Bind() []string {
-	return []string{fmt.Sprintf("%s:%s", "/tmp", "/var/cosmos-chain")}
+	return []string{fmt.Sprintf("%s:%s", "/tmp", "/var/cosmos-chain"), fmt.Sprintf("%s:%s", "/tmp/celestia", "/home/celestia")}
 }
 
 func (node *Node) HomeDir() string {
@@ -270,7 +285,7 @@ func (node *Node) SetTestConfig(ctx context.Context) error {
 
 	// Enable public GRPC
 	grpc["address"] = "0.0.0.0:9090"
-
+	grpc["enable"] = true
 	a["grpc"] = grpc
 
 	api := make(testutil.Toml)
@@ -727,15 +742,18 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	return err
 }
 
-// func (node *Node) TriggerGenesisEvent(ctx context.Context, keyName, rollappChainID, channelId, keyDir string) error {
-// 	var command []string
-// 	keyPath := keyDir + "/sequencer_keys"
-// 	command = append(command, "rollapp", "genesis-event", rollappChainID, channelId,
-// 		"--broadcast-mode", "block", "--gas", "auto", "--keyring-dir", keyPath)
+func (node *Node) RegisterEVMValidatorToHub(ctx context.Context, keyName string) error {
+	var command []string
+	addr, err := node.KeyBech32(ctx, "validator", "val")
+	if err != nil {
+		return err
+	}
+	command = append(command, "qgb", "register", addr, "0x966e6f22781EF6a6A82BBB4DB3df8E225DfD9488",
+		"--broadcast-mode", "block")
+	_, err = node.ExecTx(ctx, keyName, command...)
 
-// 	_, err := node.ExecTx(ctx, keyName, command...)
-// 	return err
-// }
+	return err
+}
 
 func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	var command []string
@@ -1351,7 +1369,32 @@ func (node *Node) UnsafeResetAll(ctx context.Context) error {
 	return err
 }
 
-func (node *Node) CreateNodeContainer(ctx context.Context) error {
+func (node *Node) GetHashOfBlockHeight(ctx context.Context, height string) (string, error) {
+	command := []string{"celestia-appd", "query", "block", height, "--node", fmt.Sprintf("tcp://%s:26657", node.HostName())}
+
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	var jsonResult map[string]interface{}
+	if err := json.Unmarshal(stdout, &jsonResult); err != nil {
+		return "", err
+	}
+
+	blockId, ok := jsonResult["block_id"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("failed to parse block id")
+	}
+
+	hash, ok := blockId["hash"].(string)
+	if !ok {
+		return "", fmt.Errorf("failed to parse block hash from block id ")
+	}
+
+	return hash, nil
+}
+
+func (node *Node) CreateNodeContainer(ctx context.Context, command []string) error {
 	chainCfg := node.Chain.Config()
 
 	var cmd []string
@@ -1362,6 +1405,15 @@ func (node *Node) CreateNodeContainer(ctx context.Context) error {
 	}
 	if _, ok := node.Chain.(ibc.RollApp); ok {
 		cmd = []string{chainCfg.Bin, "start", "--home", node.HomeDir()}
+	}
+	chainType := strings.Split(chainCfg.Type, "-")
+
+	if chainType[0] == "rollapp" && chainType[1] == "gm" {
+		cmd = append(command, "--home", node.HomeDir())
+	}
+
+	if chainType[0] == "hub" && chainType[1] == "celes" {
+		cmd = []string{"/bin/bash", "/opt/start.sh", node.HomeDir()}
 	}
 	return node.containerLifecycle.CreateContainer(ctx, node.TestName, node.NetworkID, node.Image, sentryPorts, node.Bind(), node.HostName(), cmd)
 }
@@ -1562,4 +1614,105 @@ func (node *Node) logger() *zap.Logger {
 
 func (node *Node) Logger() *zap.Logger {
 	return node.logger()
+}
+
+// Celestia DA functions
+
+// InitCelestiaDaBridge init Celestia DA bridge
+func (node *Node) InitCelestiaDaBridge(ctx context.Context, nodeStore string, env []string) error {
+	command := []string{"celestia", "bridge", "init", "--node.store", nodeStore}
+
+	_, stderr, err := node.Exec(ctx, command, env)
+	if err != nil {
+		return fmt.Errorf("failed to init celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+	return nil
+}
+
+// StartCelestiaDaBridge start Celestia DA bridge
+func (node *Node) StartCelestiaDaBridge(ctx context.Context, nodeStore, coreIp, accName, gatewayAddr, rpcAddr string, env []string) error {
+	command := []string{"celestia", "bridge", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp,
+		"--keyring.accname", accName, "--gateway.addr", gatewayAddr, "--rpc.addr", rpcAddr}
+
+	_, stderr, err := node.Exec(ctx, command, env)
+	if err != nil {
+		return fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+	return nil
+}
+
+// GetAuthTokenCelestiaDaBridge get token auth of Celestia DA bridge
+func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore string) (token string, err error) {
+	command := []string{"celestia", "bridge", "auth", "admin", "--node.store", nodeStore}
+
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+
+	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
+}
+
+func (node *Node) GetDABlockHeight(ctx context.Context) (string, error) {
+	command := []string{"curl", fmt.Sprintf("http://%s:26657/block", node.HostName())}
+
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to start celesta DA bridge (stderr=%q): %w", stderr, err)
+	}
+
+	var celestiaResult CelestiaResponse
+	if err := json.Unmarshal(stdout, &celestiaResult); err != nil {
+		return "", fmt.Errorf("celestia block response unmarshal failed: %w", err)
+	}
+
+	return celestiaResult.Result.Block.Header.Height, nil
+}
+
+// Rollkit roll app functions
+func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
+	// get genesis file content
+	genbz, err := node.GenesisFileContent(ctx)
+	if err != nil {
+		return err
+	}
+
+	appGenesis := map[string]interface{}{}
+	err = json.Unmarshal(genbz, &appGenesis)
+	if err != nil {
+		return err
+	}
+
+	privateKeys, err := node.ExtractPrivateValKeyFile(ctx)
+	if err != nil {
+		return err
+	}
+
+	consensusGenesis := appGenesis["consensus"].(map[string]interface{})
+	consensusGenesis["validators"] = []map[string]interface{}{
+		{
+			"address": privateKeys.Address,
+			"pub_key": map[string]string{
+				"type":  privateKeys.PubKey.Type,
+				"value": privateKeys.PubKey.Value,
+			},
+
+			"power": "50000000000000",
+			"name":  "Rollkit Sequencer",
+		},
+	}
+
+	appGenesis["consensus"] = consensusGenesis
+
+	genbz, err = json.Marshal(appGenesis)
+	if err != nil {
+		return err
+	}
+
+	err = node.OverwriteGenesisFile(ctx, genbz)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

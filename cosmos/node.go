@@ -1653,6 +1653,18 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
+// GetAuthTokenCelestiaDaLight get token auth of Celestia DA Light client
+func (node *Node) GetAuthTokenCelestiaDaLight(ctx context.Context, p2pnetwork, nodeStore string) (token string, err error) {
+	command := []string{"celestia", "light", "auth", "admin", "--p2p.network", p2pnetwork,"--node.store", nodeStore}
+
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to start celesta DA light client (stderr=%q): %w", stderr, err)
+	}
+
+	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
+}
+
 func (node *Node) GetDABlockHeight(ctx context.Context) (string, error) {
 	command := []string{"curl", fmt.Sprintf("http://%s:26657/block", node.HostName())}
 

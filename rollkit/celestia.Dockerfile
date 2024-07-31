@@ -9,8 +9,8 @@ RUN apk --no-cache add \
         curl \
         jq \
         openssl \
-    && mkdir /bridge \
-    && chown celestia:celestia /bridge
+    && mkdir /light \
+    && chown celestia:celestia /light
 
 USER celestia
 

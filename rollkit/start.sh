@@ -14,8 +14,8 @@
     -y
 } &
 
-mkdir -p /home/celestia/bridge/keys
-cp -r $1/keyring-test/ /home/celestia/bridge/keys/keyring-test/
+mkdir -p /home/celestia/light/keys
+cp -r $1/keyring-test/ /home/celestia/light/keys/keyring-test/
 
 # Start the celestia-app
 celestia-appd start --home $1 &
@@ -34,9 +34,9 @@ echo $GENESIS
 export CELESTIA_CUSTOM=test:$GENESIS
 echo "$CELESTIA_CUSTOM"
 
-celestia bridge init --node.store /home/celestia/bridge
-celestia bridge start \
-  --node.store /home/celestia/bridge --gateway \
+celestia light init --node.store /home/celestia/light
+celestia light start \
+  --node.store /home/celestia/light --gateway \
   --core.ip 127.0.0.1 \
   --keyring.accname validator \
   --gateway.addr 0.0.0.0 \

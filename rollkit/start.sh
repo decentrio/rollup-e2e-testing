@@ -19,25 +19,20 @@ cp -r $1/keyring-test/ /home/celestia/light/keys/keyring-test/
 
 # Start the celestia-app
 celestia-appd start --home $1 &
-
+sleep 1000000000
 # Try to get the genesis hash. Usually first request returns an empty string (port is not open, curl fails), later attempts
 # returns "null" if block was not yet produced.
-GENESIS=
-CNT=0
-MAX=30
-while [ "${#GENESIS}" -le 4 -a $CNT -ne $MAX ]; do
-	GENESIS=$(curl -s http://127.0.0.1:26657/block?height=1 | jq '.result.block_id.hash' | tr -d '"')
-	((CNT++))
-	sleep 10
-done
-echo $GENESIS
-export CELESTIA_CUSTOM=test:$GENESIS
-echo "$CELESTIA_CUSTOM"
+# GENESIS=
+# CNT=0
+# MAX=30
+# while [ "${#GENESIS}" -le 4 -a $CNT -ne $MAX ]; do
+# 	GENESIS=$(curl -s http://127.0.0.1:26657/block?height=1 | jq '.result.block_id.hash' | tr -d '"')
+# 	((CNT++))
+# 	sleep 10
+# done
+# echo $GENESIS
+# export CELESTIA_CUSTOM=test:$GENESIS
+# echo "$CELESTIA_CUSTOM"
 
-celestia light init --node.store /home/celestia/light
-celestia light start \
-  --node.store /home/celestia/light --gateway \
-  --core.ip 127.0.0.1 \
-  --keyring.accname validator \
-  --gateway.addr 0.0.0.0 \
-  --rpc.addr 0.0.0.0 \
+# celestia light init --node.store /home/celestia/light
+celestia light start --node.store /home/celestia/light --gateway --core.ip public-celestia-mocha4-consensus.numia.xyz --keyring.accname validator --p2p.network mocha-4 --headers.trusted-hash 496BA2F12B9B64789DF8802FB75CB65161519F4FECC68774BCE0118FF2098322

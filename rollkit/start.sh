@@ -18,8 +18,7 @@ mkdir -p /home/celestia/light/keys
 cp -r $1/keyring-test/ /home/celestia/light/keys/keyring-test/
 
 # Start the celestia-app
-celestia-appd start --home $1 &
-sleep 1000000000
+celestia-appd start --home $1 
 # Try to get the genesis hash. Usually first request returns an empty string (port is not open, curl fails), later attempts
 # returns "null" if block was not yet produced.
 # GENESIS=
@@ -35,4 +34,4 @@ sleep 1000000000
 # echo "$CELESTIA_CUSTOM"
 
 # celestia light init --node.store /home/celestia/light
-celestia light start --node.store /home/celestia/light --gateway --core.ip public-celestia-mocha4-consensus.numia.xyz --keyring.accname validator --p2p.network mocha-4 --headers.trusted-hash 496BA2F12B9B64789DF8802FB75CB65161519F4FECC68774BCE0118FF2098322
+# celestia light start --node.store /home/celestia/light --gateway --core.ip public-celestia-mocha4-consensus.numia.xyz --keyring.accname validator --p2p.network mocha-4 --headers.trusted-hash 496BA2F12B9B64789DF8802FB75CB65161519F4FECC68774BCE0118FF2098322

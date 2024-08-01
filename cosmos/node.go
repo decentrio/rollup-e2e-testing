@@ -1653,8 +1653,8 @@ func (node *Node) GetAuthTokenCelestiaDaBridge(ctx context.Context, nodeStore st
 	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
 }
 
-func (node *Node) InitCelestiaDaLightNode(ctx context.Context, nodeStore string, env []string) error {
-	command := []string{"celestia", "light", "init", "--node.store", nodeStore}
+func (node *Node) InitCelestiaDaLightNode(ctx context.Context, nodeStore, p2pNetwork string, env []string) error {
+	command := []string{"celestia", "light", "init", "--node.store", nodeStore, "--p2p.network", p2pNetwork}
 
 	_, stderr, err := node.Exec(ctx, command, env)
 	if err != nil {
@@ -1664,9 +1664,8 @@ func (node *Node) InitCelestiaDaLightNode(ctx context.Context, nodeStore string,
 }
 
 // StartCelestiaDaBridge start Celestia DA bridge
-func (node *Node) StartCelestiaDaLightNode(ctx context.Context, nodeStore, coreIp, accName, p2pNetwork, trustedHash string, env []string) error {
-	command := []string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp,
-		"--keyring.accname", accName, "--p2p.network", p2pNetwork, "--headers.trusted-hash", trustedHash}
+func (node *Node) StartCelestiaDaLightNode(ctx context.Context, nodeStore, coreIp, p2pNetwork string, env []string) error {
+	command := []string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork}
 
 	_, stderr, err := node.Exec(ctx, command, env)
 	if err != nil {
@@ -1677,7 +1676,7 @@ func (node *Node) StartCelestiaDaLightNode(ctx context.Context, nodeStore, coreI
 
 // GetAuthTokenCelestiaDaLight get token auth of Celestia DA Light client
 func (node *Node) GetAuthTokenCelestiaDaLight(ctx context.Context, p2pnetwork, nodeStore string) (token string, err error) {
-	command := []string{"celestia", "light", "auth", "admin", "--p2p.network", p2pnetwork,"--node.store", nodeStore}
+	command := []string{"celestia", "light", "auth", "admin", "--p2p.network", p2pnetwork, "--node.store", nodeStore}
 
 	stdout, stderr, err := node.Exec(ctx, command, nil)
 	if err != nil {

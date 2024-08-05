@@ -709,7 +709,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(
 		command, "rollapp", "create-rollapp",
-		rollappChainID, rollappChainID[:10], bech32Prefix, sequencerAddr, checksum, keyDir+"/metadata.json",
+		rollappChainID, rollappChainID+"alias", bech32Prefix, sequencerAddr, checksum, keyDir+"/metadata.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])

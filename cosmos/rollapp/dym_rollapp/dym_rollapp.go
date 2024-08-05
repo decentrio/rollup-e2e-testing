@@ -30,6 +30,16 @@ type DymRollApp struct {
 	extraFlags      map[string]interface{}
 }
 
+// Metadata
+type Metadata struct {
+	Website     string `json:"website"`
+	Description string `json:"description"`
+	LogoData    string `json:"logo_data_uri"`
+	TokenLogo   string `json:"token_logo_uri"`
+	Telegram    string `json:"telegram"`
+	X           string `json:"x"`
+}
+
 var _ ibc.Chain = (*DymRollApp)(nil)
 var _ ibc.RollApp = (*DymRollApp)(nil)
 
@@ -307,6 +317,32 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
+	}
+
+	metadata := Metadata{
+		Website:     "https://dymension.xyz/",
+		Description: "This is a description of the Rollapp.",
+		LogoData:    "data:image/jpeg;base64,/000",
+		TokenLogo:   "data:image/jpeg;base64,/000",
+		Telegram:    "https://t.me/example",
+		X:           "https://x.com/dymension",
+	}
+
+	jsonData, err := json.MarshalIndent(metadata, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(c.sequencerKeyDir + "/metadata.json")
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(jsonData)
+	if err != nil {
+		return err
 	}
 
 	return nil

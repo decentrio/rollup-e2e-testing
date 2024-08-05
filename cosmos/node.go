@@ -709,7 +709,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(
 		command, "rollapp", "create-rollapp",
-		rollappChainID, rollappChainID[:10], bech32Prefix, sequencerAddr, checksum,
+		rollappChainID, rollappChainID[:10], bech32Prefix, sequencerAddr, checksum, keyDir+"/metadata.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
@@ -721,7 +721,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, keyDir+"/metadata.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)

@@ -36,6 +36,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"go.uber.org/zap"
+	"golang.org/x/exp/rand"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -717,13 +718,20 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
-	detail := "{\"Addresses\":[]}"
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	seededRand := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
+	alias := make([]byte, 5)
+	for i := range alias {
+		alias[i] = charset[seededRand.Intn(len(charset))]
+	}
+
+	checksum := "aaa"
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(
 		command, "rollapp", "create-rollapp",
-		rollappChainID, maxSequencers, detail,
+		rollappChainID, string(alias), bech32Prefix, sequencerAddr, checksum, keyDir+"/metadata.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
@@ -735,7 +743,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, keyDir+"/metadata.json", "1000000000adym",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)
@@ -956,7 +964,7 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	// Filter sequencers by the given sequencerAddress
 	filteredSequencers := []Sequencer{}
 	for _, sequencer := range sqcStatuses.Sequencers {
-		if sequencer.SequencerAddress == sequencerAddress {
+		if sequencer.Address == sequencerAddress {
 			filteredSequencers = append(filteredSequencers, sequencer)
 		}
 	}

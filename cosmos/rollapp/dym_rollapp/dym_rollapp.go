@@ -319,7 +319,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
 	}
 
-	if err = c.GetNode().CopyFile(ctx, "metadata.json", c.sequencerKeyDir); err != nil {
+	if err = c.GetNode().CopyFile(ctx, "data/metadata.json", c.sequencerKeyDir); err != nil {
 		return err
 	}
 

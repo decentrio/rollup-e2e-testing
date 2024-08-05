@@ -946,7 +946,7 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	// Filter sequencers by the given sequencerAddress
 	filteredSequencers := []Sequencer{}
 	for _, sequencer := range sqcStatuses.Sequencers {
-		if sequencer.SequencerAddress == sequencerAddress {
+		if sequencer.Address == sequencerAddress {
 			filteredSequencers = append(filteredSequencers, sequencer)
 		}
 	}

@@ -1664,8 +1664,8 @@ func (node *Node) InitCelestiaDaLightNode(ctx context.Context, nodeStore, p2pNet
 }
 
 // StartCelestiaDaBridge start Celestia DA bridge
-func (node *Node) StartCelestiaDaLightNode(ctx context.Context, nodeStore, coreIp, p2pNetwork string, env []string) error {
-	command := []string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork}
+func (node *Node) StartCelestiaDaLightNode(ctx context.Context, nodeStore, coreIp, p2pNetwork, accName string, env []string) error {
+	command := []string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", accName}
 
 	_, stderr, err := node.Exec(ctx, command, env)
 	if err != nil {

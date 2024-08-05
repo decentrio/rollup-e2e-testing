@@ -2,7 +2,6 @@ package cosmos
 
 import (
 	"encoding/json"
-	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -244,9 +243,9 @@ type Sequencer struct {
 	// tokens define the delegated tokens (incl. self-delegation).
 	Tokens types.Coins `protobuf:"bytes,8,rep,name=tokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens"`
 	// unbonding_height defines, if unbonding, the height at which this sequencer has begun unbonding.
-	UnbondingHeight int64 `protobuf:"varint,9,opt,name=unbonding_height,json=unbondingHeight,proto3" json:"unbonding_height,omitempty"`
+	UnbondingHeight string `protobuf:"varint,9,opt,name=unbonding_height,json=unbondingHeight,proto3" json:"unbonding_height,omitempty"`
 	// unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
-	UnbondTime time.Time `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime" json:"unbond_time"`
+	UnbondTime string `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime" json:"unbond_time"`
 }
 
 // Metadata defines rollapp/sequencer extra information.

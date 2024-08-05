@@ -36,6 +36,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"go.uber.org/zap"
+	"golang.org/x/exp/rand"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -704,12 +705,18 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 
 func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	seededRand := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
+	alias := make([]byte, 5)
+	for i := range alias {
+		alias[i] = charset[seededRand.Intn(len(charset))]
+	}
 
 	checksum := "aaa"
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(
 		command, "rollapp", "create-rollapp",
-		rollappChainID, rollappChainID+"alias", bech32Prefix, sequencerAddr, checksum, keyDir+"/metadata.json",
+		rollappChainID, string(alias), bech32Prefix, sequencerAddr, checksum, keyDir+"/metadata.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])

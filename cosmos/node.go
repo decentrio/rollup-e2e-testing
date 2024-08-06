@@ -1394,6 +1394,31 @@ func (node *Node) GetHashOfBlockHeight(ctx context.Context, height string) (stri
 	return hash, nil
 }
 
+func (node *Node) GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx context.Context, height, rpcEndpoint string) (string, error) {
+	command := []string{"celestia-appd", "query", "block", height, "--node", rpcEndpoint}
+
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	var jsonResult map[string]interface{}
+	if err := json.Unmarshal(stdout, &jsonResult); err != nil {
+		return "", err
+	}
+
+	blockId, ok := jsonResult["block_id"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("failed to parse block id")
+	}
+
+	hash, ok := blockId["hash"].(string)
+	if !ok {
+		return "", fmt.Errorf("failed to parse block hash from block id ")
+	}
+
+	return hash, nil
+}
+
 func (node *Node) CreateNodeContainer(ctx context.Context, command []string) error {
 	chainCfg := node.Chain.Config()
 

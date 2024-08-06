@@ -337,7 +337,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -427,7 +427,7 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, maxSequencers, keyDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -445,8 +445,8 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, maxSequencers, keyDir string, flags map[string]string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, maxSequencers, keyDir, flags)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir, flags)
 }
 
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.

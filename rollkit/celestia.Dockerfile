@@ -1,6 +1,6 @@
 FROM ghcr.io/celestiaorg/celestia-app:v1.7.0 AS celestia-app
 
-FROM ghcr.io/celestiaorg/celestia-node:v0.13.1
+FROM ghcr.io/celestiaorg/celestia-node:v0.14.0
 
 USER root
 
@@ -9,8 +9,8 @@ RUN apk --no-cache add \
         curl \
         jq \
         openssl \
-    && mkdir /bridge \
-    && chown celestia:celestia /bridge
+    && mkdir /light \
+    && chown celestia:celestia /light
 
 USER celestia
 

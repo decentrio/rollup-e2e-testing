@@ -30,6 +30,16 @@ type DymRollApp struct {
 	extraFlags      map[string]interface{}
 }
 
+// Metadata
+type Metadata struct {
+	Website     string `json:"website"`
+	Description string `json:"description"`
+	LogoData    string `json:"logo_data_uri"`
+	TokenLogo   string `json:"token_logo_uri"`
+	Telegram    string `json:"telegram"`
+	X           string `json:"x"`
+}
+
 var _ ibc.Chain = (*DymRollApp)(nil)
 var _ ibc.RollApp = (*DymRollApp)(nil)
 
@@ -307,6 +317,10 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
+	}
+
+	if err = c.GetNode().CopyFile(ctx, "data/metadata.json", "metadata.json"); err != nil {
+		return err
 	}
 
 	return nil

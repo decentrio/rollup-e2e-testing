@@ -9,8 +9,7 @@ RUN apk --no-cache add \
         curl \
         jq \
         openssl \
-    && mkdir /light \
-    && chown celestia:celestia /light
+    && mkdir /light 
 
 COPY --from=celestia-app /bin/celestia-appd /bin/
 

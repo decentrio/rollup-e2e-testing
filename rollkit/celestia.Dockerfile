@@ -12,8 +12,6 @@ RUN apk --no-cache add \
     && mkdir /light \
     && chown celestia:celestia /light
 
-USER celestia
-
 COPY --from=celestia-app /bin/celestia-appd /bin/
 
 COPY start.sh /opt/start.sh

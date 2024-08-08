@@ -8,37 +8,81 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 )
 
-func decodeBase64OrFallback(value string) string {
-	decodedValue, err := base64.StdEncoding.DecodeString(value)
-	// Return the original value if decoding fails
-	if err != nil {
-		return value
-	}
-	return string(decodedValue)
+func isBase64(s string) bool {
+	_, err := base64.StdEncoding.DecodeString(s)
+	return err == nil
 }
 
 func MapToEibcEvent(event blockdb.Event) (EibcEvent, error) {
+	// Check if attributes are not empty to avoid out-of-bounds error
+	if len(event.Attributes) == 0 {
+		return EibcEvent{}, fmt.Errorf("no attributes in event")
+	}
+
+	// Determine if attributes are base64 encoded
+	isBase64Encoded := isBase64(event.Attributes[0].Key)
+
+	if isBase64Encoded {
+		return MapToEibcEventBase64(event)
+	}
+
+	return MapToEibcEventPlainStr(event)
+}
+
+func MapToEibcEventPlainStr(event blockdb.Event) (EibcEvent, error) {
 	var eibcEvent EibcEvent
 
 	for _, attr := range event.Attributes {
-		decodedKey := decodeBase64OrFallback(attr.Key)
-		decodedValue := decodeBase64OrFallback(attr.Value)
-
-		switch decodedKey {
+		switch attr.Key {
 		case "id":
-			eibcEvent.ID = decodedValue
+			eibcEvent.ID = attr.Value
 		case "price":
-			eibcEvent.Price = decodedValue
+			eibcEvent.Price = attr.Value
 		case "fee":
-			eibcEvent.Fee = decodedValue
+			eibcEvent.Fee = attr.Value
 		case "is_fulfilled":
-			isFulfilled, err := strconv.ParseBool(decodedValue)
+			isFulfilled, err := strconv.ParseBool(attr.Value)
+			if err != nil {
+				return EibcEvent{}, err
+			}
+			eibcEvent.IsFulfilled = isFulfilled
+		case "packet_status":
+			eibcEvent.PacketStatus = attr.Value
+		}
+	}
+
+	return eibcEvent, nil
+}
+
+func MapToEibcEventBase64(event blockdb.Event) (EibcEvent, error) {
+	var eibcEvent EibcEvent
+
+	for _, attr := range event.Attributes {
+		decodedKey, err := base64.StdEncoding.DecodeString(attr.Key)
+		if err != nil {
+			return EibcEvent{}, fmt.Errorf("error decoding key: %w", err)
+		}
+
+		decodedValue, err := base64.StdEncoding.DecodeString(attr.Value)
+		if err != nil {
+			return EibcEvent{}, fmt.Errorf("error decoding value: %w", err)
+		}
+
+		switch string(decodedKey) {
+		case "id":
+			eibcEvent.ID = string(decodedValue)
+		case "price":
+			eibcEvent.Price = string(decodedValue)
+		case "fee":
+			eibcEvent.Fee = string(decodedValue)
+		case "is_fulfilled":
+			isFulfilled, err := strconv.ParseBool(string(decodedValue))
 			if err != nil {
 				return EibcEvent{}, fmt.Errorf("error parsing boolean: %w", err)
 			}
 			eibcEvent.IsFulfilled = isFulfilled
 		case "packet_status":
-			eibcEvent.PacketStatus = decodedValue
+			eibcEvent.PacketStatus = string(decodedValue)
 		}
 	}
 

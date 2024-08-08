@@ -749,7 +749,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, keyDir+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, keyDir+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 
 	_, err := node.ExecTx(ctx, keyName, command...)

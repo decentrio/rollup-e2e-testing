@@ -720,18 +720,24 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 
 func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
+	var vmtype string
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	seededRand := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
 	alias := make([]byte, 5)
 	for i := range alias {
 		alias[i] = charset[seededRand.Intn(len(charset))]
 	}
-
+	lastThree := node.TestName[len(node.TestName)-3:]
+	if lastThree == "EVM" {
+		vmtype = "EVM"
+	} else {
+		vmtype = "WASM"
+	}
 	checksum := "aaa"
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(
 		command, "rollapp", "create-rollapp",
-		rollappChainID, string(alias), bech32Prefix, "EVM", sequencerAddr, checksum, keyDir+"/metadata.json",
+		rollappChainID, string(alias), bech32Prefix, vmtype, sequencerAddr, checksum, keyDir+"/metadata.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])

@@ -8,35 +8,37 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 )
 
+func decodeBase64OrFallback(value string) string {
+	decodedValue, err := base64.StdEncoding.DecodeString(value)
+	// Return the original value if decoding fails
+	if err != nil {
+		return value
+	}
+	return string(decodedValue)
+}
+
 func MapToEibcEvent(event blockdb.Event) (EibcEvent, error) {
 	var eibcEvent EibcEvent
 
 	for _, attr := range event.Attributes {
-		decodedKey, err := base64.StdEncoding.DecodeString(attr.Key)
-		if err != nil {
-			return EibcEvent{}, fmt.Errorf("error decoding key: %w", err)
-		}
+		decodedKey := decodeBase64OrFallback(attr.Key)
+		decodedValue := decodeBase64OrFallback(attr.Value)
 
-		decodedValue, err := base64.StdEncoding.DecodeString(attr.Value)
-		if err != nil {
-			return EibcEvent{}, fmt.Errorf("error decoding value: %w", err)
-		}
-
-		switch string(decodedKey) {
+		switch decodedKey {
 		case "id":
-			eibcEvent.ID = string(decodedValue)
+			eibcEvent.ID = decodedValue
 		case "price":
-			eibcEvent.Price = string(decodedValue)
+			eibcEvent.Price = decodedValue
 		case "fee":
-			eibcEvent.Fee = string(decodedValue)
+			eibcEvent.Fee = decodedValue
 		case "is_fulfilled":
-			isFulfilled, err := strconv.ParseBool(string(decodedValue))
+			isFulfilled, err := strconv.ParseBool(decodedValue)
 			if err != nil {
 				return EibcEvent{}, fmt.Errorf("error parsing boolean: %w", err)
 			}
 			eibcEvent.IsFulfilled = isFulfilled
 		case "packet_status":
-			eibcEvent.PacketStatus = string(decodedValue)
+			eibcEvent.PacketStatus = decodedValue
 		}
 	}
 

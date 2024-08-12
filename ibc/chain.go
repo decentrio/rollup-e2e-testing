@@ -120,6 +120,15 @@ type RollApp interface {
 	GetSequencer() string
 
 	SetGenesisAccount(ctx context.Context, bech32 string) error
+
+	// Get Auth Token
+	GetAuthToken() string
+	// Set Auth Token
+	SetAuthToken(string)
+	// Get DABlockHeight
+	GetDABlockHeight() string
+	// Set DABlockHeight
+	SetDABlockHeight(string)
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

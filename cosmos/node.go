@@ -1716,3 +1716,36 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 
 	return nil
 }
+
+func (node *Node) InitCelestiaDaLightNode(ctx context.Context, nodeStore, p2pNetwork string, env []string) error {
+	command := []string{"celestia", "light", "init", "--node.store", nodeStore, "--p2p.network", p2pNetwork}
+
+	_, stderr, err := node.Exec(ctx, command, env)
+	if err != nil {
+		return fmt.Errorf("failed to init celesta DA light node (stderr=%q): %w", stderr, err)
+	}
+	return nil
+}
+
+// StartCelestiaDaBridge start Celestia DA bridge
+func (node *Node) StartCelestiaDaLightNode(ctx context.Context, nodeStore, coreIp, p2pNetwork, accName string, env []string) error {
+	command := []string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", accName}
+
+	_, stderr, err := node.Exec(ctx, command, env)
+	if err != nil {
+		return fmt.Errorf("failed to start celesta DA light node (stderr=%q): %w", stderr, err)
+	}
+	return nil
+}
+
+// GetAuthTokenCelestiaDaLight get token auth of Celestia DA Light client
+func (node *Node) GetAuthTokenCelestiaDaLight(ctx context.Context, p2pnetwork, nodeStore string) (token string, err error) {
+	command := []string{"celestia", "light", "auth", "admin", "--p2p.network", p2pnetwork, "--node.store", nodeStore}
+
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to start celesta DA light client (stderr=%q): %w", stderr, err)
+	}
+
+	return string(bytes.TrimSuffix(stdout, []byte("\n"))), nil
+}

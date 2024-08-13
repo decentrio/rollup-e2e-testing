@@ -1717,6 +1717,31 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 	return nil
 }
 
+func (node *Node) GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx context.Context, height, rpcEndpoint string) (string, error) {
+	command := []string{"celestia-appd", "query", "block", height, "--node", rpcEndpoint}
+
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	var jsonResult map[string]interface{}
+	if err := json.Unmarshal(stdout, &jsonResult); err != nil {
+		return "", err
+	}
+
+	blockId, ok := jsonResult["block_id"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("failed to parse block id")
+	}
+
+	hash, ok := blockId["hash"].(string)
+	if !ok {
+		return "", fmt.Errorf("failed to parse block hash from block id ")
+	}
+
+	return hash, nil
+}
+
 func (node *Node) InitCelestiaDaLightNode(ctx context.Context, nodeStore, p2pNetwork string, env []string) error {
 	command := []string{"celestia", "light", "init", "--node.store", nodeStore, "--p2p.network", p2pNetwork}
 

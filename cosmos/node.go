@@ -1505,12 +1505,17 @@ func (node *Node) NodeID(ctx context.Context) (string, error) {
 }
 
 // GetNodeId gets the id of node
-func (node *Node) GetNodeId(ctx context.Context, keyName, homeDir string) (string, error) {
+func (node *Node) GetNodeId(ctx context.Context,homeDir string) (string, error) {
 	command := []string{
 		"dymint", "show-node-id", "--home", homeDir,
 	}
 
-	return node.ExecTx(ctx,keyName, command...)
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdout), nil
 }
 
 // KeyBech32 retrieves the named key's address in bech32 format from the node.

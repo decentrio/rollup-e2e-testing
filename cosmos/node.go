@@ -1504,6 +1504,15 @@ func (node *Node) NodeID(ctx context.Context) (string, error) {
 	return string(nk.ID()), nil
 }
 
+// GetNodeId gets the id of node
+func (node *Node) GetNodeId(ctx context.Context, keyName, homeDir string) (string, error) {
+	command := []string{
+		"dymint", "show-node-id", "--home", homeDir,
+	}
+
+	return node.ExecTx(ctx,keyName, command...)
+}
+
 // KeyBech32 retrieves the named key's address in bech32 format from the node.
 // bech is the bech32 prefix (acc|val|cons). If empty, defaults to the account key (same as "acc").
 func (node *Node) KeyBech32(ctx context.Context, name string, bech string) (string, error) {

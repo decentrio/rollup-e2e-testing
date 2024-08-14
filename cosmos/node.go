@@ -910,6 +910,15 @@ func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.Wa
 	return err
 }
 
+// GetNodeId gets the id of node
+func (node *Node) GetNodeId(ctx context.Context, keyName, homeDir string) (string, error) {
+	command := []string{
+		"dymint", "show-node-id", "--home", homeDir,
+	}
+
+	return node.ExecTx(ctx,keyName, command...)
+}
+
 type InstantiateContractAttribute struct {
 	Value string `json:"value"`
 }

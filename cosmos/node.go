@@ -1505,9 +1505,9 @@ func (node *Node) NodeID(ctx context.Context) (string, error) {
 }
 
 // GetNodeId gets the id of node
-func (node *Node) GetNodeId(ctx context.Context, homeDir string) (string, error) {
+func (node *Node) GetNodeId(ctx context.Context) (string, error) {
 	command := []string{
-		"rollappd","dymint", "show-node-id", "--home", homeDir,
+		"rollappd", "dymint", "show-node-id", "--home", node.HomeDir(),
 	}
 
 	stdout, _, err := node.Exec(ctx, command, nil)

@@ -916,9 +916,9 @@ func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.Wa
 	return err
 }
 
-func (node *Node) GetNodeId(ctx context.Context, homeDir string) (string, error) {
+func (node *Node) GetNodeId(ctx context.Context) (string, error) {
 	command := []string{
-		"rollappd","dymint", "show-node-id", "--home", homeDir,
+		"rollappd", "dymint", "show-node-id", "--home", node.HomeDir(),
 	}
 
 	stdout, _, err := node.Exec(ctx, command, nil)

@@ -916,6 +916,18 @@ func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.Wa
 	return err
 }
 
+func (node *Node) GetNodeId(ctx context.Context, homeDir string) (string, error) {
+	command := []string{
+		"rollappd","dymint", "show-node-id", "--home", homeDir,
+	}
+
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
+}
+
 type InstantiateContractAttribute struct {
 	Value string `json:"value"`
 }

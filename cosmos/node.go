@@ -721,7 +721,7 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
 	var vmtype string
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const charset = "abcdefghijklmnopqrstuvwxyz"
 	seededRand := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
 	alias := make([]byte, 5)
 	for i := range alias {

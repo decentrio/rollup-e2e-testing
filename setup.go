@@ -264,7 +264,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return err
 	}
 
-	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts, forkRollAppId ,gensisContent); err != nil {
+	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts, forkRollAppId, gensisContent); err != nil {
 		return fmt.Errorf("failed to configuration chains: %w", err)
 	}
 
@@ -392,7 +392,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context, redundant ibc.Chain) (
 			{
 				Address: faucetAddresses[c],
 				Denom:   c.Config().Denom,
-				Amount:  math.NewInt(100_000_000_000_000), // Faucet wallet gets 100T units of denom.
+				Amount:  math.NewInt(100_000_000_000_000_000), // Faucet wallet gets 100T units of denom.
 			},
 		}
 

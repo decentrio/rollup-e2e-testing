@@ -392,7 +392,7 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context, redundant ibc.Chain) (
 			{
 				Address: faucetAddresses[c],
 				Denom:   c.Config().Denom,
-				Amount:  math.NewInt(100_000_000_000_000_000), // Faucet wallet gets 100T units of denom.
+				Amount:  math.NewInt(100_000_000_000_000_000).MulRaw(100_000), // Faucet wallet gets 100T units of denom.
 			},
 		}
 

@@ -288,7 +288,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		if err != nil {
 			return err
 		}
-		amount := sdkmath.NewInt(10_000_000_000_000)
+		amount := sdkmath.NewInt(10_000_000_000_000).MulRaw(100_000_000)
 		fund := ibc.WalletData{
 			Address: sequencer,
 			Denom:   c.Config().Denom,
@@ -379,7 +379,7 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		amount := sdkmath.NewInt(10_000_000_000_000)
+		amount := sdkmath.NewInt(10_000_000_000_000).MulRaw(100_000_000)
 		fund := ibc.WalletData{
 			Address: sequencer,
 			Denom:   c.Config().Denom,

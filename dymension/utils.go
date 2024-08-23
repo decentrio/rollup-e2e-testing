@@ -33,8 +33,6 @@ func MapToEibcEventPlainStr(event blockdb.Event) (EibcEvent, error) {
 	var eibcEvent EibcEvent
 
 	for _, attr := range event.Attributes {
-		println("check attributes key: ", attr.Key)
-		println("check attributes value: ", attr.Value)
 		switch attr.Key {
 		case "order_id":
 			eibcEvent.OrderId = attr.Value

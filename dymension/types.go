@@ -10,12 +10,30 @@ import (
 
 var GenesisEventAmount = sdkmath.NewInt(100_000_000_000_000).MulRaw(int64(math.Pow10(6)))
 
+type Status int32
+
+const (
+	Status_PENDING   Status = 0
+	Status_FINALIZED Status = 1
+	Status_REVERTED  Status = 3
+)
+
+var Status_name = map[int32]Status{
+	0: Status_PENDING,
+	1: Status_FINALIZED,
+	3: Status_REVERTED,
+}
+
 type EibcEvent struct {
-	ID           string `json:"id"`
-	Price        string `json:"price"`
-	Fee          string `json:"fee"`
-	IsFulfilled  bool   `json:"is_fulfilled"`
-	PacketStatus string `json:"packet_status"`
+	OrderId         string `json:"order_id"`
+	Price           string `json:"price"`
+	Fee             string `json:"fee"`
+	IsFulfilled     bool   `json:"is_fulfilled"`
+	PacketStatus    string `json:"packet_status"`
+	PacketKey       string `json:"packet_key"`
+	RollAppId       string `json:"rollapp_id"`
+	Recipient       string `json:"recipient"`
+	NewPacketStatus Status `json:"new_packet_status"`
 }
 
 type RollappState struct {

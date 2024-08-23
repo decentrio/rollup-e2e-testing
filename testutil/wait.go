@@ -101,6 +101,7 @@ type height struct {
 func (h *height) WaitForDelta(ctx context.Context, delta int) error {
 	for h.delta() < delta {
 		cur, err := h.Chain.Height(ctx)
+		time.Sleep(2 * time.Second)
 		if err != nil {
 			return err
 		}

@@ -57,11 +57,7 @@ func MapToEibcEventPlainStr(event blockdb.Event) (EibcEvent, error) {
 		case "recipient":
 			eibcEvent.RollAppId = attr.Value
 		case "new_packet_status":
-			newPacketStatus, err := strconv.ParseInt(attr.Value, 10, 64)
-			if err != nil {
-				return EibcEvent{}, err
-			}
-			eibcEvent.NewPacketStatus = Status_name[int32(newPacketStatus)]
+			eibcEvent.NewPacketStatus = Status(Status_value[attr.Value])
 		}
 		
 	}
@@ -105,11 +101,7 @@ func MapToEibcEventBase64(event blockdb.Event) (EibcEvent, error) {
 		case "recipient":
 			eibcEvent.RollAppId = string(decodedValue)
 		case "new_packet_status":
-			newPacketStatus, err := strconv.ParseInt(string(decodedValue), 10, 64)
-			if err != nil {
-				return EibcEvent{}, err
-			}
-			eibcEvent.NewPacketStatus = Status_name[int32(newPacketStatus)]
+			eibcEvent.NewPacketStatus = Status(Status_value[string(decodedValue)])
 		}
 	}
 

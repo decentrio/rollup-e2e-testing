@@ -18,10 +18,10 @@ const (
 	Status_REVERTED  Status = 3
 )
 
-var Status_name = map[int32]Status{
-	0: Status_PENDING,
-	1: Status_FINALIZED,
-	3: Status_REVERTED,
+var Status_value = map[string]int32{
+	"PENDING":   0,
+	"FINALIZED": 1,
+	"REVERTED":  3,
 }
 
 type EibcEvent struct {

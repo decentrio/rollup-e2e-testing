@@ -418,21 +418,21 @@ func (c *DymRollApp) InitValidatorGenTx(
 			return err
 		}
 
-		valBech32, err := validator.KeyBech32(ctx, valKey, "val")
-		if err != nil {
-			return fmt.Errorf("failed to retrieve val bech32: %w", err)
-		}
+		// valBech32, err := validator.KeyBech32(ctx, valKey, "val")
+		// if err != nil {
+		// 	return fmt.Errorf("failed to retrieve val bech32: %w", err)
+		// }
 
 		g := make(map[string]interface{})
 		if err := json.Unmarshal(genbz, &g); err != nil {
 			return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
 
-		if err := dyno.Set(g, valBech32, "app_state", "sequencers", "genesis_operator_address"); err != nil {
-			return fmt.Errorf("failed to set genesis operator address in genesis json: %w", err)
-		}
+		// if err := dyno.Set(g, valBech32, "app_state", "sequencers", "genesis_operator_address"); err != nil {
+		// 	return fmt.Errorf("failed to set genesis operator address in genesis json: %w", err)
+		// }
 
-		fmt.Println("genesis_operator_address", valBech32)
+		// fmt.Println("genesis_operator_address", valBech32)
 
 		outGenBz, err := json.Marshal(g)
 		if err != nil {

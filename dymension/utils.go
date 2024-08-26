@@ -34,8 +34,8 @@ func MapToEibcEventPlainStr(event blockdb.Event) (EibcEvent, error) {
 
 	for _, attr := range event.Attributes {
 		switch attr.Key {
-		case "id":
-			eibcEvent.ID = attr.Value
+		case "order_id":
+			eibcEvent.OrderId = attr.Value
 		case "price":
 			eibcEvent.Price = attr.Value
 		case "fee":
@@ -48,7 +48,16 @@ func MapToEibcEventPlainStr(event blockdb.Event) (EibcEvent, error) {
 			eibcEvent.IsFulfilled = isFulfilled
 		case "packet_status":
 			eibcEvent.PacketStatus = attr.Value
+		case "packet_key":
+			eibcEvent.PacketKey = attr.Value
+		case "rollapp_id":
+			eibcEvent.RollAppId = attr.Value
+		case "recipient":
+			eibcEvent.RollAppId = attr.Value
+		case "new_packet_status":
+			eibcEvent.NewPacketStatus = Status(Status_value[attr.Value])
 		}
+		
 	}
 
 	return eibcEvent, nil
@@ -69,8 +78,8 @@ func MapToEibcEventBase64(event blockdb.Event) (EibcEvent, error) {
 		}
 
 		switch string(decodedKey) {
-		case "id":
-			eibcEvent.ID = string(decodedValue)
+		case "order_id":
+			eibcEvent.OrderId = string(decodedValue)
 		case "price":
 			eibcEvent.Price = string(decodedValue)
 		case "fee":
@@ -83,6 +92,14 @@ func MapToEibcEventBase64(event blockdb.Event) (EibcEvent, error) {
 			eibcEvent.IsFulfilled = isFulfilled
 		case "packet_status":
 			eibcEvent.PacketStatus = string(decodedValue)
+		case "packet_key":
+			eibcEvent.PacketKey = string(decodedValue)
+		case "rollapp_id":
+			eibcEvent.RollAppId = string(decodedValue)
+		case "recipient":
+			eibcEvent.RollAppId = string(decodedValue)
+		case "new_packet_status":
+			eibcEvent.NewPacketStatus = Status(Status_value[string(decodedValue)])
 		}
 	}
 

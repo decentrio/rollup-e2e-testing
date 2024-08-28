@@ -775,9 +775,10 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 		keyPath := keyDir + "/sequencer_keys"
 		command = append(command, "sequencer", "unbond",
 			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
+	} else {
+		command = append(command, "sequencer", "unbond",
+			"--broadcast-mode", "async", "--gas", "auto")
 	}
-	command = append(command, "sequencer", "unbond",
-		"--broadcast-mode", "async", "--gas", "auto")
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err

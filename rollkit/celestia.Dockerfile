@@ -1,6 +1,6 @@
 FROM ghcr.io/celestiaorg/celestia-app:v1.7.0 AS celestia-app
 
-FROM ghcr.io/celestiaorg/celestia-node:v0.14.0
+FROM ghcr.io/celestiaorg/celestia-node:v0.16.0-rc0
 
 USER root
 

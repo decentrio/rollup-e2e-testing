@@ -309,7 +309,8 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 			return err
 		}
 	}
-	// Use validator to show sequencer key, so that it gets regconized as sequencer
+
+	// Use validator to show sequencer key, so that it gets recognized as sequencer
 	var command []string
 	command = append(command, "dymint", "show-sequencer")
 	seq, _, err := c.Validators[0].ExecBin(ctx, command...)
@@ -317,6 +318,10 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 
 	if err != nil {
 		return fmt.Errorf("failed to show seq %s: %w", c.Config().Name, err)
+	}
+
+	if err = c.Validators[0].CopyFile(ctx, "data/native_denom.json", "native_denom.json"); err != nil {
+		return err
 	}
 
 	if err = c.Validators[0].CopyFile(ctx, "data/metadata.json", "metadata.json"); err != nil {

@@ -435,7 +435,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 
 	for r, chains := range s.relayerChains() {
 		for _, c := range chains {
-			rpcAddr, grpcAddr, apiAddr := c.GetRPCAddress(), c.GetGRPCAddress(), c.GetHostAPIAddress()
+			rpcAddr, grpcAddr, apiAddr := c.GetRPCAddress(), c.GetGRPCAddress(), c.GetAPIAddress()
 			if !r.UseDockerNetwork() {
 				rpcAddr, grpcAddr, apiAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress(), c.GetHostAPIAddress()
 			}

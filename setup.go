@@ -435,16 +435,16 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 
 	for r, chains := range s.relayerChains() {
 		for _, c := range chains {
-			rpcAddr, grpcAddr := c.GetRPCAddress(), c.GetGRPCAddress()
+			rpcAddr, grpcAddr, apiAddr := c.GetRPCAddress(), c.GetGRPCAddress(), c.GetHostAPIAddress()
 			if !r.UseDockerNetwork() {
-				rpcAddr, grpcAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress()
+				rpcAddr, grpcAddr, apiAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress(), c.GetHostAPIAddress()
 			}
 
 			chainName := s.chains[c]
 			if err := r.AddChainConfiguration(ctx,
 				rep,
 				c.Config(), chainName,
-				rpcAddr, grpcAddr,
+				rpcAddr, grpcAddr, apiAddr,
 			); err != nil {
 				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}

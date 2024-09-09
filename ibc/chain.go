@@ -38,6 +38,10 @@ type Chain interface {
 	// Note that this will not return a valid value until after Start returns.
 	GetHostRPCAddress() string
 
+	// GetHostAPIAddress returns the rpc address that can be reached by processes on the host machine.
+	// Note that this will not return a valid value until after Start returns.
+	GetHostAPIAddress() string
+
 	// GetHostGRPCAddress returns the grpc address that can be reached by processes on the host machine.
 	// Note that this will not return a valid value until after Start returns.
 	GetHostGRPCAddress() string

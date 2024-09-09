@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -48,18 +49,22 @@ type CosmosRelayerChainConfig struct {
 	Value Value  `json:"value"`
 }
 type Value struct {
-	AccountPrefix  string  `json:"account-prefix"`
-	ChainID        string  `json:"chain-id"`
-	Debug          bool    `json:"debug"`
-	GasAdjustment  float64 `json:"gas-adjustment"`
-	GasPrices      string  `json:"gas-prices"`
-	Key            string  `json:"key"`
-	KeyringBackend string  `json:"keyring-backend"`
-	OutputFormat   string  `json:"output-format"`
-	RPCAddr        string  `json:"rpc-addr"`
-	SignMode       string  `json:"sign-mode"`
-	Timeout        string  `json:"timeout"`
-	ClientType     string  `json:"client-type"`
+	AccountPrefix  string        `json:"account-prefix"`
+	ChainID        string        `json:"chain-id"`
+	Debug          bool          `json:"debug"`
+	GasAdjustment  float64       `json:"gas-adjustment"`
+	GasPrices      string        `json:"gas-prices"`
+	Key            string        `json:"key"`
+	KeyringBackend string        `json:"keyring-backend"`
+	OutputFormat   string        `json:"output-format"`
+	RPCAddr        string        `json:"rpc-addr"`
+	SignMode       string        `json:"sign-mode"`
+	Timeout        string        `json:"timeout"`
+	ClientType     string        `json:"client-type"`
+	HttpAddr       string        `json:"http-addr" yaml:"http-addr"`           // added to support http queries to Dym Hub
+	DymHub         bool          `json:"is-dym-hub" yaml:"is-dym-hub"`         // added to force wait for canonical client with Hub
+	DymRollapp     bool          `json:"is-dym-rollapp" yaml:"is-dym-rollapp"` // added to support custom trust levels
+	TrustPeriod    time.Duration `json:"trust-period" yaml:"trust-period"`
 }
 
 const (
@@ -72,14 +77,17 @@ const (
 	dmClientType = "01-dymint"
 )
 
-func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr string) CosmosRelayerChainConfig {
+func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr, apiAddr string) CosmosRelayerChainConfig {
 	// by default clientType should be tmClientType
 	clientType := tmClientType
-
+	isHub := true
+	isRA := false
 	chainType := strings.Split(chainConfig.Type, "-")
 
 	if chainType[0] == "rollapp" && chainType[1] == "dym" {
 		clientType = dmClientType
+		isHub = false
+		isRA = true
 	}
 
 	return CosmosRelayerChainConfig{
@@ -97,6 +105,10 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 			OutputFormat:   "json",
 			SignMode:       "direct",
 			ClientType:     clientType,
+			HttpAddr:       apiAddr,
+			DymHub:         isHub,
+			DymRollapp:     isRA,
+			TrustPeriod:    time.Hour,
 		},
 	}
 }
@@ -257,8 +269,8 @@ func (commander) UpdateClients(pathName, homeDir string) []string {
 	}
 }
 
-func (commander) ConfigContent(ctx context.Context, cfg ibc.ChainConfig, keyName, rpcAddr, grpcAddr string) ([]byte, error) {
-	cosmosRelayerChainConfig := ConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr)
+func (commander) ConfigContent(ctx context.Context, cfg ibc.ChainConfig, keyName, rpcAddr, grpcAddr, apiAddr string) ([]byte, error) {
+	cosmosRelayerChainConfig := ConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr, apiAddr)
 
 	jsonBytes, err := json.Marshal(cosmosRelayerChainConfig)
 	if err != nil {

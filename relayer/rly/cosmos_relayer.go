@@ -108,7 +108,7 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 			HttpAddr:       apiAddr,
 			DymHub:         isHub,
 			DymRollapp:     isRA,
-			TrustPeriod:    195 * time.Second,
+			TrustPeriod:    390 * time.Second,
 		},
 	}
 }

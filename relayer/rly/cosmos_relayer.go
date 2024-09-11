@@ -80,7 +80,7 @@ const (
 func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr, apiAddr string) CosmosRelayerChainConfig {
 	// by default clientType should be tmClientType
 	clientType := tmClientType
-	isHub := true
+	isHub := false
 	isRA := false
 	chainType := strings.Split(chainConfig.Type, "-")
 
@@ -88,6 +88,9 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 		clientType = dmClientType
 		isHub = false
 		isRA = true
+	} else if chainType[0] == "hub" && chainType[1] == "dym" {
+		isHub = true
+		isRA = false
 	}
 
 	return CosmosRelayerChainConfig{

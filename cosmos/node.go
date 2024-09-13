@@ -145,6 +145,11 @@ func (node *Node) Name() string {
 	} else {
 		nodeType = "fn"
 	}
+
+	if node.Chain.Config().Type == "rollapp-dym" {
+		return fmt.Sprintf("ra-%s-%s-%d-%s", node.Chain.Config().ChainID, nodeType, node.Index, dockerutil.SanitizeContainerName(node.TestName))
+	}
+
 	return fmt.Sprintf("%s-%s-%d-%s", node.Chain.Config().ChainID, nodeType, node.Index, dockerutil.SanitizeContainerName(node.TestName))
 }
 

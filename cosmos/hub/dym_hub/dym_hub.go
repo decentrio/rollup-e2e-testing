@@ -688,6 +688,8 @@ func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappC
 				}
 			}
 
+			fmt.Println(rollappState)
+
 			for _, bd := range rollappState.StateInfo.BlockDescriptors.BD {
 				height, err := strconv.ParseInt(bd.Height, 10, 64)
 				if err != nil {

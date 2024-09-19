@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -29,6 +30,7 @@ func (p BlockPoller[T]) DoPoll(ctx context.Context, startHeight, maxHeight int64
 
 	cursor := startHeight
 	for cursor <= maxHeight {
+		time.Sleep(5 * time.Second)
 		curHeight, err := p.CurrentHeight(ctx)
 		if err != nil {
 			return zero, err

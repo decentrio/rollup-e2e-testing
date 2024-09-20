@@ -281,7 +281,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return fmt.Errorf("failed to track blocks: %w", err)
 	}
 
-	if err := s.configureRelayerKeys(ctx, rep); err != nil {
+	if err := s.configureRelayerKeys(ctx, rep, failExpected); err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
 	}
@@ -434,7 +434,7 @@ func (s *Setup) generateRelayerWallets(ctx context.Context) error {
 
 // configureRelayerKeys adds the chain configuration for each relayer
 // and adds the preconfigured key to the relayer for each relayer-chain.
-func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter) error {
+func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter, failExpected bool) error {
 	// Possible optimization: each relayer could be configured concurrently.
 	// But we are only testing with a single relayer so far, so we don't need this yet.
 
@@ -463,13 +463,17 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 
-			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
-				Address: wallet.FormattedAddress(),
-				Amount:  math.NewInt(10_000_000_000_000),
-				Denom:   c.Config().Denom,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to get funds from faucet: %w", err)
+			if failExpected {
+				fmt.Println("did not send fund")
+			} else {
+				err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
+					Address: wallet.FormattedAddress(),
+					Amount:  math.NewInt(10_000_000_000_000),
+					Denom:   c.Config().Denom,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to get funds from faucet: %w", err)
+				}
 			}
 		}
 	}

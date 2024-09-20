@@ -144,6 +144,12 @@ func (commander) AddKey(chainID, keyName, coinType, homeDir string) []string {
 	}
 }
 
+func (commander) GetAddress(chainID, keyName, coinType, homeDir string) []string {
+	return []string{
+		"rly", "keys", "show", chainID, keyName, "--home", homeDir,
+	}
+}
+
 func (commander) CreateChannel(pathName string, opts ibc.CreateChannelOptions, homeDir string) []string {
 	return []string{
 		"rly", "tx", "channel", pathName,

@@ -300,7 +300,7 @@ func (c *CosmosChain) BuildRelayerWallet(ctx context.Context, keyName string) (i
 
 // Implements Chain interface
 func (c *CosmosChain) SendFunds(ctx context.Context, keyName string, amount ibc.WalletData) error {
-	return c.getFullNode().SendFunds(ctx, keyName, amount)
+	return c.Validators[0].SendFunds(ctx, keyName, amount)
 }
 
 // Implements Chain interface

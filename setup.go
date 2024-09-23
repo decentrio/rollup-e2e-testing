@@ -241,7 +241,7 @@ type InterchainBuildOptions struct {
 // It is the caller's responsibility to directly call StartRelayer on the relayer implementations.
 //
 // Calling Build more than once will cause a panic.
-func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain, forkRollAppId string, gensisContent []byte, failExpected bool) error {
+func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain, forkRollAppId string, gensisContent []byte, failExpected bool, trusting_period int64) error {
 	chains := make([]ibc.Chain, 0, len(s.chains))
 	for chain := range s.chains {
 		chains = append(chains, chain)
@@ -281,7 +281,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return fmt.Errorf("failed to track blocks: %w", err)
 	}
 
-	if err := s.configureRelayerKeys(ctx, rep, failExpected); err != nil {
+	if err := s.configureRelayerKeys(ctx, rep, failExpected, trusting_period); err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
 	}
@@ -434,7 +434,7 @@ func (s *Setup) generateRelayerWallets(ctx context.Context) error {
 
 // configureRelayerKeys adds the chain configuration for each relayer
 // and adds the preconfigured key to the relayer for each relayer-chain.
-func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter, failExpected bool) error {
+func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter, failExpected bool, trusting_period int64) error {
 	// Possible optimization: each relayer could be configured concurrently.
 	// But we are only testing with a single relayer so far, so we don't need this yet.
 
@@ -449,7 +449,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 			if err := r.AddChainConfiguration(ctx,
 				rep,
 				c.Config(), chainName,
-				rpcAddr, grpcAddr, apiAddr,
+				rpcAddr, grpcAddr, apiAddr, trusting_period,
 			); err != nil {
 				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}

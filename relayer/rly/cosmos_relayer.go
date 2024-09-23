@@ -77,7 +77,7 @@ const (
 	dmClientType = "01-dymint"
 )
 
-func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr, apiAddr string) CosmosRelayerChainConfig {
+func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcAddr, apiAddr string, trusting_period int64) CosmosRelayerChainConfig {
 	// by default clientType should be tmClientType
 	clientType := tmClientType
 	isHub := false
@@ -111,7 +111,7 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 			HttpAddr:       apiAddr,
 			DymHub:         isHub,
 			DymRollapp:     isRA,
-			TrustPeriod:    780 * time.Second,
+			TrustPeriod:    time.Duration(trusting_period) * time.Second,
 		},
 	}
 }
@@ -278,8 +278,8 @@ func (commander) UpdateClients(pathName, homeDir string) []string {
 	}
 }
 
-func (commander) ConfigContent(ctx context.Context, cfg ibc.ChainConfig, keyName, rpcAddr, grpcAddr, apiAddr string) ([]byte, error) {
-	cosmosRelayerChainConfig := ConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr, apiAddr)
+func (commander) ConfigContent(ctx context.Context, cfg ibc.ChainConfig, keyName, rpcAddr, grpcAddr, apiAddr string, trusting_period int64) ([]byte, error) {
+	cosmosRelayerChainConfig := ConfigToCosmosRelayerChainConfig(cfg, keyName, rpcAddr, apiAddr, trusting_period)
 
 	jsonBytes, err := json.Marshal(cosmosRelayerChainConfig)
 	if err != nil {

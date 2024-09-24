@@ -103,7 +103,7 @@ func (s *Setup) AddRollUp(hub ibc.Chain, rollApps ...ibc.Chain) *Setup {
 // AddChain adds the given chain to the Setup,
 // using the chain ID reported by the chain's config.
 // If the given chain already exists,
-// or if another chain with the same configured chain ID exists, AddChain panics.
+// or if another chain with the same chain type and same configured chain ID exists, AddChain panics.
 func (s *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.WalletData) *Setup {
 	if chain == nil {
 		panic(fmt.Errorf("cannot add nil chain"))
@@ -111,6 +111,15 @@ func (s *Setup) AddChain(chain ibc.Chain, additionalGenesisWallets ...ibc.Wallet
 
 	newID := chain.Config().ChainID
 	newName := chain.Config().Name
+
+	// Check if the chain is a RollApp chain
+	chainType := strings.Split(chain.Config().Type, "-")[0]
+
+	// Apply prefix for RollApp chains
+	if chainType == "rollapp" {
+		uniquePrefix := "ra_"
+		newID = uniquePrefix + newID
+	}
 
 	for c, id := range s.chains {
 		if c == chain {
@@ -445,22 +454,26 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				rpcAddr, grpcAddr, apiAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress(), c.GetHostAPIAddress()
 			}
 
-			chainName := s.chains[c]
+			chainId := c.Config().ChainID
+
+			// use chainId as keyName
 			if err := r.AddChainConfiguration(ctx,
 				rep,
-				c.Config(), chainName,
+				c.Config(), chainId,
+				rpcAddr, grpcAddr, apiAddr,
 				rpcAddr, grpcAddr, apiAddr, trusting_period,
+
 			); err != nil {
-				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainId, err)
 			}
 
 			wallet, err := r.AddKey(ctx,
 				rep,
-				chainName, chainName,
+				chainId, chainId,
 				c.Config().CoinType,
 			)
 			if err != nil {
-				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
+				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainId, err)
 			}
 
 			if failExpected {

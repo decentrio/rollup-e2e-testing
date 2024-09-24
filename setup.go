@@ -250,7 +250,7 @@ type InterchainBuildOptions struct {
 // It is the caller's responsibility to directly call StartRelayer on the relayer implementations.
 //
 // Calling Build more than once will cause a panic.
-func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain, forkRollAppId string, gensisContent []byte) error {
+func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter, opts InterchainBuildOptions, redundant ibc.Chain, forkRollAppId string, gensisContent []byte, failExpected bool, trusting_period int64) error {
 	chains := make([]ibc.Chain, 0, len(s.chains))
 	for chain := range s.chains {
 		chains = append(chains, chain)
@@ -278,14 +278,19 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	}
 
 	if err := s.cs.Start(ctx, opts.TestName, walletAmounts, redundant); err != nil {
-		return fmt.Errorf("failed to start chains: %w", err)
+		if failExpected {
+			fmt.Println("Start failed as expected")
+		} else {
+			return fmt.Errorf("failed to start chains: %w", err)
+		}
+
 	}
 
 	if err := s.cs.TrackBlocks(ctx, opts.TestName, opts.BlockDatabaseFile, opts.GitSha); err != nil {
 		return fmt.Errorf("failed to track blocks: %w", err)
 	}
 
-	if err := s.configureRelayerKeys(ctx, rep); err != nil {
+	if err := s.configureRelayerKeys(ctx, rep, failExpected, trusting_period); err != nil {
 		// Error already wrapped with appropriate detail.
 		return err
 	}
@@ -438,7 +443,7 @@ func (s *Setup) generateRelayerWallets(ctx context.Context) error {
 
 // configureRelayerKeys adds the chain configuration for each relayer
 // and adds the preconfigured key to the relayer for each relayer-chain.
-func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter) error {
+func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.RelayerExecReporter, failExpected bool, trusting_period int64) error {
 	// Possible optimization: each relayer could be configured concurrently.
 	// But we are only testing with a single relayer so far, so we don't need this yet.
 
@@ -456,6 +461,8 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				rep,
 				c.Config(), chainId,
 				rpcAddr, grpcAddr, apiAddr,
+				rpcAddr, grpcAddr, apiAddr, trusting_period,
+
 			); err != nil {
 				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainId, err)
 			}
@@ -469,13 +476,17 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainId, err)
 			}
 
-			err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
-				Address: wallet.FormattedAddress(),
-				Amount:  math.NewInt(10_000_000_000_000),
-				Denom:   c.Config().Denom,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to get funds from faucet: %w", err)
+			if failExpected {
+				fmt.Println("did not send fund")
+			} else {
+				err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
+					Address: wallet.FormattedAddress(),
+					Amount:  math.NewInt(10_000_000_000_000),
+					Denom:   c.Config().Denom,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to get funds from faucet: %w", err)
+				}
 			}
 		}
 	}

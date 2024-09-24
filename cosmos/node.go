@@ -1807,3 +1807,12 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 
 	return nil
 }
+
+func (node *Node) FinalizePacketsUntilHeight(ctx context.Context, keyName, rollappID, height string) (string, error) {
+	command := []string{
+		"delayedack", "finalize-packets-until-height", rollappID, height,
+		"--gas", "auto",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}

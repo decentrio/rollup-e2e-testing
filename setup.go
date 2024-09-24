@@ -460,9 +460,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 			if err := r.AddChainConfiguration(ctx,
 				rep,
 				c.Config(), chainId,
-				rpcAddr, grpcAddr, apiAddr,
 				rpcAddr, grpcAddr, apiAddr, trusting_period,
-
 			); err != nil {
 				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainId, err)
 			}

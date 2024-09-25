@@ -245,7 +245,7 @@ func (node *Node) SetTestConfig(ctx context.Context) error {
 	c := make(testutil.Toml)
 
 	// Set Log Level to info
-	c["log_level"] = "info"
+	c["log_level"] = "debug"
 
 	p2p := make(testutil.Toml)
 

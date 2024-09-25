@@ -332,6 +332,10 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 		return err
 	}
 
+	if err = c.Validators[0].CopyFile(ctx, "data/metadata_sequencer1.json", "metadata_sequencer1.json"); err != nil {
+		return err
+	}
+
 	return nil
 }
 

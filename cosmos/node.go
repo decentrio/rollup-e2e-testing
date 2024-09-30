@@ -76,7 +76,6 @@ func (node *Node) NewSidecarProcess(
 	ports []string,
 	startCmd []string,
 ) error {
-	fmt.Println("111111111111111111111111111111111111111111")
 	s := NewSidecar(node.log, true, preStart, node.Chain, cli, networkID, processName, node.TestName, image, homeDir, node.Index, ports, startCmd)
 	v, err := cli.VolumeCreate(ctx, volumetypes.CreateOptions{
 		Labels: map[string]string{

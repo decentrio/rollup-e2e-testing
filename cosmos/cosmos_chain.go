@@ -625,7 +625,7 @@ func (c *CosmosChain) NewNode(
 	}); err != nil {
 		return nil, fmt.Errorf("set volume owner: %w", err)
 	}
-	fmt.Println(c.cfg.SidecarConfigs)
+
 	for _, cfg := range c.cfg.SidecarConfigs {
 		if !cfg.ValidatorProcess {
 			continue
@@ -1145,7 +1145,6 @@ func (c *CosmosChain) NewSidecarProcess(
 	ports []string,
 	startCmd []string,
 ) error {
-	fmt.Println("333333333333333333333333333333333333")
 	// Construct the SidecarProcess first so we can access its name.
 	// The SidecarProcess's VolumeName cannot be set until after we create the volume.
 	s := NewSidecar(c.log, false, preStart, c, cli, networkID, processName, testName, image, homeDir, index, ports, startCmd)
@@ -1180,7 +1179,6 @@ func (c *CosmosChain) initializeSidecars(
 	cli *client.Client,
 	networkID string,
 ) error {
-	fmt.Println("22222222222222222222222222222222222222222222222222222222")
 	eg, egCtx := errgroup.WithContext(ctx)
 	for i, cfg := range c.cfg.SidecarConfigs {
 		i := i

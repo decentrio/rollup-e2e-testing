@@ -176,6 +176,10 @@ func (c ChainConfig) MergeChainSpecConfig(other ChainConfig) ChainConfig {
 		c.EncodingConfig = other.EncodingConfig
 	}
 
+	if len(other.SidecarConfigs) > 0 {
+		c.SidecarConfigs = append([]SidecarConfig(nil), other.SidecarConfigs...)
+	}
+
 	if other.CoinDecimals != nil {
 		c.CoinDecimals = other.CoinDecimals
 	}

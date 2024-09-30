@@ -1179,6 +1179,7 @@ func (c *CosmosChain) initializeSidecars(
 	cli *client.Client,
 	networkID string,
 ) error {
+	fmt.Println("22222222222222222222222222222222222222222222222222222222")
 	eg, egCtx := errgroup.WithContext(ctx)
 	for i, cfg := range c.cfg.SidecarConfigs {
 		i := i

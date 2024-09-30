@@ -52,6 +52,8 @@ type ChainConfig struct {
 	UsingChainIDFlagCLI bool `yaml:"using-chain-id-flag-cli"`
 	// CoinDecimals for the chains base micro/nano/atto token configuration.
 	CoinDecimals *int64
+	// Configuration describing additional sidecar processes.
+	SidecarConfigs []SidecarConfig
 }
 
 func (c ChainConfig) Clone() ChainConfig {
@@ -66,7 +68,22 @@ func (c ChainConfig) Clone() ChainConfig {
 		x.CoinDecimals = &coinDecimals
 	}
 
+	sidecars := make([]SidecarConfig, len(c.SidecarConfigs))
+	copy(sidecars, c.SidecarConfigs)
+	x.SidecarConfigs = sidecars
+
 	return x
+}
+
+// SidecarConfig describes the configuration options for instantiating a new sidecar process.
+type SidecarConfig struct {
+	ProcessName      string
+	Image            DockerImage
+	HomeDir          string
+	Ports            []string
+	StartCmd         []string
+	PreStart         bool
+	ValidatorProcess bool
 }
 
 func (c ChainConfig) VerifyCoinType() (string, error) {

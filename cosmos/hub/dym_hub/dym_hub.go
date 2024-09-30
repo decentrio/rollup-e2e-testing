@@ -242,6 +242,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 	}
 
 	eg, egCtx := errgroup.WithContext(ctx)
+
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {

@@ -49,6 +49,7 @@ type CosmosChain struct {
 	numFullNodes  int
 	Validators    Nodes
 	FullNodes     Nodes
+	Sidecars      SidecarProcesses
 
 	log      *zap.Logger
 	keyring  keyring.Keyring
@@ -150,6 +151,9 @@ func (c *CosmosChain) Config() ibc.ChainConfig {
 
 // Implements Chain interface
 func (c *CosmosChain) Initialize(ctx context.Context, testName string, cli *client.Client, networkID string) error {
+	if err := c.initializeSidecars(ctx, testName, cli, networkID); err != nil {
+		return err
+	}
 	return c.initializeNodes(ctx, testName, cli, networkID)
 }
 
@@ -622,6 +626,15 @@ func (c *CosmosChain) NewNode(
 		return nil, fmt.Errorf("set volume owner: %w", err)
 	}
 
+	for _, cfg := range c.cfg.SidecarConfigs {
+		if !cfg.ValidatorProcess {
+			continue
+		}
+		err = node.NewSidecarProcess(ctx, cfg.PreStart, cfg.ProcessName, cli, networkID, cfg.Image, cfg.HomeDir, cfg.Ports, cfg.StartCmd)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return node, nil
 }
 
@@ -866,6 +879,28 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 	}
 
 	eg, egCtx := errgroup.WithContext(ctx)
+
+	for _, s := range c.Sidecars {
+		s := s
+		err = s.containerLifecycle.Running(ctx)
+		if s.preStart && err != nil {
+			eg.Go(func() error {
+				if err := s.CreateContainer(egCtx); err != nil {
+					return err
+				}
+				if err := s.StartContainer(egCtx); err != nil {
+					return err
+				}
+				return nil
+			})
+		}
+	}
+
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	eg, egCtx = errgroup.WithContext(ctx)
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
@@ -1094,4 +1129,111 @@ func (c *CosmosChain) IBCTransfer(ctx context.Context, chainA, chainB ibc.Chain,
 
 func (c *CosmosChain) SetupRollAppWithExistHub(ctx context.Context) error {
 	return fmt.Errorf("not implemented")
+}
+
+// NewSidecarProcess constructs a new sidecar process with a docker volume.
+func (c *CosmosChain) NewSidecarProcess(
+	ctx context.Context,
+	preStart bool,
+	processName string,
+	testName string,
+	cli *client.Client,
+	networkID string,
+	image ibc.DockerImage,
+	homeDir string,
+	index int,
+	ports []string,
+	startCmd []string,
+) error {
+	// Construct the SidecarProcess first so we can access its name.
+	// The SidecarProcess's VolumeName cannot be set until after we create the volume.
+	s := NewSidecar(c.log, false, preStart, c, cli, networkID, processName, testName, image, homeDir, index, ports, startCmd)
+	v, err := cli.VolumeCreate(ctx, volumetypes.CreateOptions{
+		Labels: map[string]string{
+			dockerutil.CleanupLabel:   testName,
+			dockerutil.NodeOwnerLabel: s.Name(),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("creating volume for sidecar process: %w", err)
+	}
+	s.VolumeName = v.Name
+	if err := dockerutil.SetVolumeOwner(ctx, dockerutil.VolumeOwnerOptions{
+		Log:        c.log,
+		Client:     cli,
+		VolumeName: v.Name,
+		ImageRef:   image.Ref(),
+		TestName:   testName,
+		UidGid:     image.UidGid,
+	}); err != nil {
+		return fmt.Errorf("set volume owner: %w", err)
+	}
+	c.Sidecars = append(c.Sidecars, s)
+	return nil
+}
+
+// initializeSidecars creates the sidecar processes that exist at the chain level.
+func (c *CosmosChain) initializeSidecars(
+	ctx context.Context,
+	testName string,
+	cli *client.Client,
+	networkID string,
+) error {
+	eg, egCtx := errgroup.WithContext(ctx)
+	for i, cfg := range c.cfg.SidecarConfigs {
+		i := i
+		cfg := cfg
+		if cfg.ValidatorProcess {
+			continue
+		}
+		eg.Go(func() error {
+			err := c.NewSidecarProcess(egCtx, cfg.PreStart, cfg.ProcessName, testName, cli, networkID, cfg.Image, cfg.HomeDir, i, cfg.Ports, cfg.StartCmd)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// StopAllSidecars stops and removes all long-running containers for sidecar processes.
+func (c *CosmosChain) StopAllSidecars(ctx context.Context) error {
+	var eg errgroup.Group
+	for _, s := range c.Sidecars {
+		s := s
+		eg.Go(func() error {
+			if err := s.StopContainer(ctx); err != nil {
+				return err
+			}
+			return s.RemoveContainer(ctx)
+		})
+	}
+	return eg.Wait()
+}
+
+// StartAllSidecars creates and starts new containers for each sidecar process.
+// Should only be used if the chain has previously been started with .Start.
+func (c *CosmosChain) StartAllSidecars(ctx context.Context) error {
+	// prevent client calls during this time
+	c.findTxMu.Lock()
+	defer c.findTxMu.Unlock()
+	var eg errgroup.Group
+	for _, s := range c.Sidecars {
+		s := s
+		err := s.containerLifecycle.Running(ctx)
+		if err == nil {
+			continue
+		}
+		eg.Go(func() error {
+			if err := s.CreateContainer(ctx); err != nil {
+				return err
+			}
+			return s.StartContainer(ctx)
+		})
+	}
+	return eg.Wait()
 }

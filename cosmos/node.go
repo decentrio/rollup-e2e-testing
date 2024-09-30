@@ -33,6 +33,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	volumetypes "github.com/docker/docker/api/types/volume"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"go.uber.org/zap"
@@ -51,6 +52,7 @@ type Node struct {
 	Client       rpcclient.Client
 	TestName     string
 	Image        ibc.DockerImage
+	Sidecars     SidecarProcesses
 
 	lock sync.Mutex
 	log  *zap.Logger
@@ -61,6 +63,42 @@ type Node struct {
 	hostRPCPort  string
 	hostAPIPort  string
 	hostGRPCPort string
+}
+
+func (node *Node) NewSidecarProcess(
+	ctx context.Context,
+	preStart bool,
+	processName string,
+	cli *dockerclient.Client,
+	networkID string,
+	image ibc.DockerImage,
+	homeDir string,
+	ports []string,
+	startCmd []string,
+) error {
+	s := NewSidecar(node.log, true, preStart, node.Chain, cli, networkID, processName, node.TestName, image, homeDir, node.Index, ports, startCmd)
+	v, err := cli.VolumeCreate(ctx, volumetypes.CreateOptions{
+		Labels: map[string]string{
+			dockerutil.CleanupLabel:   node.TestName,
+			dockerutil.NodeOwnerLabel: s.Name(),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("creating volume for sidecar process: %w", err)
+	}
+	s.VolumeName = v.Name
+	if err := dockerutil.SetVolumeOwner(ctx, dockerutil.VolumeOwnerOptions{
+		Log:        node.log,
+		Client:     cli,
+		VolumeName: v.Name,
+		ImageRef:   image.Ref(),
+		TestName:   node.TestName,
+		UidGid:     image.UidGid,
+	}); err != nil {
+		return fmt.Errorf("set volume owner: %w", err)
+	}
+	node.Sidecars = append(node.Sidecars, s)
+	return nil
 }
 
 func NewNode(log *zap.Logger, validator bool, chain *CosmosChain, dockerClient *dockerclient.Client, networkID string, testName string, image ibc.DockerImage, index int) *Node {
@@ -1477,6 +1515,19 @@ func (node *Node) CreateNodeContainer(ctx context.Context, command []string) err
 }
 
 func (node *Node) StartContainer(ctx context.Context) error {
+
+	for _, s := range node.Sidecars {
+		err := s.containerLifecycle.Running(ctx)
+		if s.preStart && err != nil {
+			if err := s.CreateContainer(ctx); err != nil {
+				return err
+			}
+			if err := s.StartContainer(ctx); err != nil {
+				return err
+			}
+		}
+	}
+
 	if err := node.containerLifecycle.StartContainer(ctx); err != nil {
 		return err
 	}
@@ -1508,10 +1559,20 @@ func (node *Node) StartContainer(ctx context.Context) error {
 }
 
 func (node *Node) StopContainer(ctx context.Context) error {
+	for _, s := range node.Sidecars {
+		if err := s.StopContainer(ctx); err != nil {
+			return err
+		}
+	}
 	return node.containerLifecycle.StopContainer(ctx)
 }
 
 func (node *Node) RemoveContainer(ctx context.Context) error {
+	for _, s := range node.Sidecars {
+		if err := s.RemoveContainer(ctx); err != nil {
+			return err
+		}
+	}
 	return node.containerLifecycle.RemoveContainer(ctx)
 }
 

@@ -879,28 +879,6 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 	}
 
 	eg, egCtx := errgroup.WithContext(ctx)
-
-	for _, s := range c.Sidecars {
-		s := s
-		err = s.containerLifecycle.Running(ctx)
-		if s.preStart && err != nil {
-			eg.Go(func() error {
-				if err := s.CreateContainer(egCtx); err != nil {
-					return err
-				}
-				if err := s.StartContainer(egCtx); err != nil {
-					return err
-				}
-				return nil
-			})
-		}
-	}
-
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-
-	eg, egCtx = errgroup.WithContext(ctx)
 	for _, n := range nodes {
 		n := n
 		eg.Go(func() error {
@@ -1224,7 +1202,7 @@ func (c *CosmosChain) StartAllSidecars(ctx context.Context) error {
 	var eg errgroup.Group
 	for _, s := range c.Sidecars {
 		s := s
-		err := s.containerLifecycle.Running(ctx)
+		err := s.ContainerLifecycle.Running(ctx)
 		if err == nil {
 			continue
 		}

@@ -1202,7 +1202,7 @@ func (c *CosmosChain) StartAllSidecars(ctx context.Context) error {
 	var eg errgroup.Group
 	for _, s := range c.Sidecars {
 		s := s
-		err := s.ContainerLifecycle.Running(ctx)
+		err := s.containerLifecycle.Running(ctx)
 		if err == nil {
 			continue
 		}

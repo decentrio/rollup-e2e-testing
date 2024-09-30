@@ -345,27 +345,6 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
-
-		eg, egCtx = errgroup.WithContext(ctx)
-		for _, s := range c.Sidecars {
-			s := s
-			err = s.ContainerLifecycle.Running(ctx)
-			if err != nil {
-				eg.Go(func() error {
-					if err := s.CreateContainer(egCtx); err != nil {
-						return err
-					}
-					if err := s.StartContainer(egCtx); err != nil {
-						return err
-					}
-					return nil
-				})
-			}
-		}
-
-		if err := eg.Wait(); err != nil {
-			return err
-		}
 	}
 
 	return nil

@@ -33,7 +33,7 @@ type SidecarProcess struct {
 	ports              nat.PortSet
 	startCmd           []string
 	homeDir            string
-	ContainerLifecycle *dockerutil.ContainerLifecycle
+	containerLifecycle *dockerutil.ContainerLifecycle
 }
 
 // NewSidecar instantiates a new SidecarProcess.
@@ -72,7 +72,7 @@ func NewSidecar(
 		ports:            processPorts,
 		startCmd:         startCmd,
 	}
-	s.ContainerLifecycle = dockerutil.NewContainerLifecycle(log, dockerClient, s.Name())
+	s.containerLifecycle = dockerutil.NewContainerLifecycle(log, dockerClient, s.Name())
 	return s
 }
 
@@ -91,16 +91,16 @@ func (s *SidecarProcess) logger() *zap.Logger {
 	)
 }
 func (s *SidecarProcess) CreateContainer(ctx context.Context) error {
-	return s.ContainerLifecycle.CreateContainer(ctx, s.TestName, s.NetworkID, s.Image, s.ports, s.Bind(), s.HostName(), s.startCmd)
+	return s.containerLifecycle.CreateContainer(ctx, s.TestName, s.NetworkID, s.Image, s.ports, s.Bind(), s.HostName(), s.startCmd)
 }
 func (s *SidecarProcess) StartContainer(ctx context.Context) error {
-	return s.ContainerLifecycle.StartContainer(ctx)
+	return s.containerLifecycle.StartContainer(ctx)
 }
 func (s *SidecarProcess) StopContainer(ctx context.Context) error {
-	return s.ContainerLifecycle.StopContainer(ctx)
+	return s.containerLifecycle.StopContainer(ctx)
 }
 func (s *SidecarProcess) RemoveContainer(ctx context.Context) error {
-	return s.ContainerLifecycle.RemoveContainer(ctx)
+	return s.containerLifecycle.RemoveContainer(ctx)
 }
 
 // Bind returns the home folder bind point for running the process.
@@ -116,7 +116,7 @@ func (s *SidecarProcess) HostName() string {
 	return dockerutil.CondenseHostName(s.Name())
 }
 func (s *SidecarProcess) GetHostPorts(ctx context.Context, portIDs ...string) ([]string, error) {
-	return s.ContainerLifecycle.GetHostPorts(ctx, portIDs...)
+	return s.containerLifecycle.GetHostPorts(ctx, portIDs...)
 }
 
 // WriteFile accepts file contents in a byte slice and writes the contents to

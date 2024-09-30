@@ -1517,7 +1517,7 @@ func (node *Node) CreateNodeContainer(ctx context.Context, command []string) err
 func (node *Node) StartContainer(ctx context.Context) error {
 
 	for _, s := range node.Sidecars {
-		err := s.ContainerLifecycle.Running(ctx)
+		err := s.containerLifecycle.Running(ctx)
 		if s.preStart && err != nil {
 			if err := s.CreateContainer(ctx); err != nil {
 				return err

@@ -105,7 +105,7 @@ func (s *SidecarProcess) RemoveContainer(ctx context.Context) error {
 
 // Bind returns the home folder bind point for running the process.
 func (s *SidecarProcess) Bind() []string {
-	return []string{fmt.Sprintf("%s:%s", "/tmp/client", "/root")}
+	return []string{fmt.Sprintf("%s:%s", "/tmp", "/root")}
 }
 
 // HomeDir returns the path name where any configuration files will be written to the Docker filesystem.

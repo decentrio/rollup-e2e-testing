@@ -584,6 +584,22 @@ func (c *CosmosChain) pullImages(ctx context.Context, cli *client.Client) {
 			_ = rc.Close()
 		}
 	}
+	rc, err := cli.ImagePull(
+		ctx,
+		c.Config().SidecarConfigs[0].Image.Repository+":"+c.Config().SidecarConfigs[0].Image.Version,
+		dockertypes.ImagePullOptions{},
+	)
+	if err != nil {
+		c.log.Error("Failed to pull image",
+			zap.Error(err),
+			zap.String("repository", c.Config().SidecarConfigs[0].Image.Repository),
+			zap.String("tag", c.Config().SidecarConfigs[0].Image.Version),
+		)
+	} else {
+		_, _ = io.Copy(io.Discard, rc)
+		_ = rc.Close()
+	}
+
 }
 
 // NewNode constructs a new cosmos chain node with a docker volume.

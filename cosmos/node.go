@@ -787,6 +787,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
 	}
+	_, _ = node.ExecTx(ctx, keyName, command...)
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }

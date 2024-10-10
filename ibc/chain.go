@@ -105,7 +105,7 @@ type Chain interface {
 
 type Hub interface {
 	// Register RollApp to Hub
-	RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32, keyDir string, flags map[string]string) error
+	RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error
 	// Register Sequencer to Hub
 	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error
 	// Set RollApp to Hub

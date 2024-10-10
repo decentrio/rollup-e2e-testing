@@ -367,21 +367,18 @@ func (c *DymRollApp) SetGenesisAccount(ctx context.Context, bech32 string) error
 		return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 	}
 	// Add balance to hub genesis module account
-	// genesisAccounts, err := dyno.Get(g, "app_state", "hubgenesis", "state", "genesis_accounts")
-	// if err != nil {
-	// 	return fmt.Errorf("failed to retrieve genesis_accountss: %w", err)
-	// }
-	// genesisAccount := map[string]interface{}{
-	// 	"address": bech32,
-	// 	"amount": map[string]interface{}{
-	// 		"denom":  c.Config().Denom,
-	// 		"amount": dymension.GenesisEventAmount.String(),
-	// 	},
-	// }
-	// newGenesisAccounts := append(genesisAccounts.([]interface{}), genesisAccount)
-	// if err := dyno.Set(g, newGenesisAccounts, "app_state", "hubgenesis", "state", "genesis_accounts"); err != nil {
-	// 	return fmt.Errorf("failed to set genesis_accountss in genesis json: %w", err)
-	// }
+	genesisAccounts, err := dyno.Get(g, "app_state", "hubgenesis", "genesis_accounts")
+	if err != nil {
+		return fmt.Errorf("failed to retrieve genesis_accountss: %w", err)
+	}
+	genesisAccount := map[string]interface{}{
+		"address": bech32,
+		"amount":  dymension.GenesisEventAmount.String(),
+	}
+	newGenesisAccounts := append(genesisAccounts.([]interface{}), genesisAccount)
+	if err := dyno.Set(g, newGenesisAccounts, "app_state", "hubgenesis", "genesis_accounts"); err != nil {
+		return fmt.Errorf("failed to set genesis_accountss in genesis json: %w", err)
+	}
 	outGenBz, err = json.Marshal(g)
 	if err != nil {
 		return fmt.Errorf("failed to marshal genesis bytes to json: %w", err)

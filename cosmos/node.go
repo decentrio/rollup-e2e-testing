@@ -31,6 +31,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	volumetypes "github.com/docker/docker/api/types/volume"
@@ -761,7 +762,7 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
 	var vmtype string
 	const charset = "abcdefghijklmnopqrstuvwxyz"
@@ -780,7 +781,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, rollappChai
 	keyPath := keyDir + "/sequencer_keys"
 	command = append(
 		command, "rollapp", "create-rollapp",
-		rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json",
+		rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
 		"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000000010100000000000000000000",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	for flagName := range flags {

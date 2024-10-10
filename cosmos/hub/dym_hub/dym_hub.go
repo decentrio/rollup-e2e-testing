@@ -338,7 +338,7 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -353,11 +353,11 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 	// for the validators we need to collect the gentxs and the accounts
 	// to the first node's genesis file
-	// validator0 := c.Validators[0]
-	// bech32, err := validator0.AccountKeyBech32(ctx, valKey)
-	// if err != nil {
-	// 	return err
-	// }
+	validator0 := c.Validators[0]
+	bech32, err := validator0.AccountKeyBech32(ctx, valKey)
+	if err != nil {
+		return err
+	}
 
 	// Wait for 5 blocks before considering the chains "started"
 	testutil.WaitForBlocks(ctx, 5, c.GetNode())
@@ -428,7 +428,7 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -446,8 +446,8 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, rollappChainID, sequencerAddr, bech32Prefix, keyDir, flags)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir, flags)
 }
 
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.

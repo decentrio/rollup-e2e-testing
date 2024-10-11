@@ -772,18 +772,25 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 		alias[i] = charset[seededRand.Intn(len(charset))]
 	}
 	lastThree := node.TestName[len(node.TestName)-3:]
-	if lastThree == "EVM" {
-		vmtype = "EVM"
-	} else {
-		vmtype = "WASM"
-	}
 	checksum := "aaa"
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(
-		command, "rollapp", "create-rollapp",
-		rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
-		"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000000010100000000000000000000",
-		"--broadcast-mode", "async", "--keyring-dir", keyPath)
+
+	if lastThree == "EVM" {
+		vmtype = "EVM"
+		command = append(
+			command, "rollapp", "create-rollapp",
+			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000000010100000000000000000000",
+			"--broadcast-mode", "async", "--keyring-dir", keyPath)
+	} else {
+		vmtype = "WASM"
+		command = append(
+			command, "rollapp", "create-rollapp",
+			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "10200000000000000000000",
+			"--broadcast-mode", "async", "--keyring-dir", keyPath)
+	}
+
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
 	}

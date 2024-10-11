@@ -288,7 +288,7 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 				return fmt.Errorf("failed to retrieve bank balances: %w", err)
 			}
 			hubgenesisBalance := map[string]interface{}{
-				"address": "rol1xf77wm47d6af8799u368z8jc7kqaa6d208ct6n",
+				"address": "rol1748tamme3jj3v9wq95fc3pmglxtqscljs76x2z",
 				"coins": []interface{}{
 					map[string]interface{}{
 						"denom":  chainCfg.Denom,

@@ -83,11 +83,13 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 	isHub := false
 	isRA := false
 	chainType := strings.Split(chainConfig.Type, "-")
+	chainID := chainConfig.ChainID
 
 	if chainType[0] == "rollapp" && chainType[1] == "dym" {
 		clientType = dmClientType
 		isHub = false
 		isRA = true
+		chainID = ""
 	} else if chainType[0] == "hub" && chainType[1] == "dym" {
 		isHub = true
 		isRA = false
@@ -97,7 +99,7 @@ func ConfigToCosmosRelayerChainConfig(chainConfig ibc.ChainConfig, keyName, rpcA
 		Type: "cosmos",
 		Value: Value{
 			Key:            keyName,
-			ChainID:        chainConfig.ChainID,
+			ChainID:        chainID,
 			RPCAddr:        rpcAddr,
 			AccountPrefix:  chainConfig.Bech32Prefix,
 			KeyringBackend: keyring.BackendTest,

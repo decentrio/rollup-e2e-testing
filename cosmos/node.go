@@ -1283,7 +1283,7 @@ func (node *Node) SubmitUpdateClientProposal(ctx context.Context, keyName, subje
 }
 
 // SubmitProposal submits a gov v1 proposal to the chain.
-func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxProposalv1) (string, error) {
+func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxProposalV1) (string, error) {
 	// Write msg to container
 	file := "proposal.json"
 	propJson, err := json.MarshalIndent(prop, "", " ")
@@ -1297,7 +1297,7 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 
 	command := []string{
 		"gov", "submit-proposal",
-		path.Join(node.HomeDir(), file), "--gas", "auto",
+		path.Join(node.HomeDir(), file), "--gas", "auto", "--deposit", "500000000000urax",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)

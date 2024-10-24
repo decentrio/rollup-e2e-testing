@@ -388,6 +388,14 @@ func (c *CosmosChain) GovQueryProposalV1(ctx context.Context, proposalID uint64)
 	return res.Proposal, nil
 }
 
+func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop TxProposalV1) (tx TxProposal, _ error) {
+	txHash, err := c.getFullNode().SubmitProposal(ctx, keyName, prop)
+	if err != nil {
+		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
+	}
+	return c.txProposal(txHash)
+}
+
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
 	txHash, err := c.getFullNode().UpgradeLegacyProposal(ctx, keyName, prop)
@@ -446,8 +454,8 @@ func (c *CosmosChain) SubmitUpdateClientProposal(ctx context.Context, keyName, s
 }
 
 // Build a gov v1 proposal type.
-func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, metadata, depositStr, proposer string, expedited bool) (TxProposalv1, error) {
-	var propType TxProposalv1
+func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, metadata, depositStr, proposer string, expedited bool) (TxProposalV1, error) {
+	var propType TxProposalV1
 	rawMsgs := make([]json.RawMessage, len(messages))
 
 	for i, msg := range messages {
@@ -458,12 +466,13 @@ func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, met
 		rawMsgs[i] = msg
 	}
 
-	propType = TxProposalv1{
-		Messages: rawMsgs,
-		Metadata: metadata,
-		Deposit:  depositStr,
-		Title:    title,
-		Summary:  summary,
+	propType = TxProposalV1{
+		Messages:  rawMsgs,
+		Metadata:  metadata,
+		Deposit:   depositStr,
+		Title:     title,
+		Summary:   summary,
+		Expedited: expedited,
 	}
 
 	return propType, nil

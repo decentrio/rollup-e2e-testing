@@ -464,6 +464,7 @@ func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, met
 		Deposit:  depositStr,
 		Title:    title,
 		Summary:  summary,
+		Expedited: expedited,
 	}
 
 	return propType, nil

@@ -1297,7 +1297,7 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 
 	command := []string{
 		"gov", "submit-proposal",
-		path.Join(node.HomeDir(), file), "--gas", "auto",
+		path.Join(node.HomeDir(), file), "--gas", "auto", "--deposit", "10000000arax", "--from", keyName, "--keyring-backend", "test", "--fees", "2000000000000arax",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)

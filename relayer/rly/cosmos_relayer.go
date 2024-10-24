@@ -164,7 +164,7 @@ func (commander) CreateChannel(pathName string, opts ibc.CreateChannelOptions, h
 
 func (commander) CreateClients(pathName string, opts ibc.CreateClientOptions, homeDir string) []string {
 	return []string{
-		"rly", "tx", "clients", pathName, "--max-clock-drift", "70m",
+		"rly", "tx", "clients", pathName, "--max-clock-drift", "70m", "--debug",
 		"--home", homeDir,
 	}
 }

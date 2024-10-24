@@ -1208,6 +1208,22 @@ func (node *Node) QueryModuleAccount(ctx context.Context, moduleName string) (*M
 	return &moduleAccount, nil
 }
 
+// QueryModuleAccount returns the result for validate block height
+func (node *Node) QueryBlockValidation(ctx context.Context, blockHight string) (string, error) {
+	command := []string{"curl", fmt.Sprintf("http://%s:26657/block_validated?height=%s", node.HostName(), blockHight)}
+	stdout, stderr, err := node.Exec(ctx, command, nil)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to query block validation (stderr=%q): %w", stderr, err)
+	}
+	var result string
+	if err := json.Unmarshal(stdout, &result); err != nil {
+		return "", fmt.Errorf("block validation result response unmarshal failed: %w", err)
+	}
+
+	return result, nil
+}
+
 // QueryEscrowAddress returns the escrow address of a given channel.
 func (node *Node) QueryEscrowAddress(ctx context.Context, portID, channelID string) (string, error) {
 	stdout, _, err := node.ExecQuery(ctx, "ibc-transfer", "escrow-address", portID, channelID, "--output=json")

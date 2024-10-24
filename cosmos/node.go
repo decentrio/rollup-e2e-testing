@@ -1297,7 +1297,18 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 
 	command := []string{
 		"gov", "submit-proposal",
-		path.Join(node.HomeDir(), file), "--gas", "auto", "--deposit", "500000000000urax",
+		path.Join(node.HomeDir(), file), "--gas", "auto", 
+		// "--deposit", "500000000000urax",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) GovDeposit(ctx context.Context, keyName string, proposalID string, deposit string) (string, error) {
+	command := []string{
+		"gov", "deposit",
+		proposalID, deposit,
+		"--gas", "auto",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)

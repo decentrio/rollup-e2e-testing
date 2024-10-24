@@ -396,14 +396,20 @@ func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop T
 	return c.txProposal(txHash)
 }
 
-func (c *CosmosChain) GovDeposit(ctx context.Context, keyName string, proposalID string, deposit string) (tx TxProposal, _ error) {
-	_, err := c.getFullNode().GovDeposit(ctx, keyName, proposalID, deposit)
+func (c *CosmosChain) GovDeposit(ctx context.Context, keyName string, proposalID string, deposit string) (TxProposal, error) {
+	txHash, err := c.getFullNode().GovDeposit(ctx, keyName, proposalID, deposit)
 	if err != nil {
-		return tx, fmt.Errorf("failed to deposit for proposal: %w", err)
+		return TxProposal{}, fmt.Errorf("failed to deposit for proposal: %w", err)
+	}
+
+	tx, err := c.txProposal(txHash)
+	if err != nil {
+		return TxProposal{}, fmt.Errorf("failed to create TxProposal from txHash: %w", err)
 	}
 
 	return tx, nil
 }
+
 
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.

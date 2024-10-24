@@ -388,13 +388,13 @@ func (c *CosmosChain) GovQueryProposalV1(ctx context.Context, proposalID uint64)
 	return res.Proposal, nil
 }
 
-func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop TxProposalV1) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().SubmitProposal(ctx, keyName, prop)
-	if err != nil {
-		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
-	}
-	return c.txProposal(txHash)
-}
+// func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop TxProposalV1) (tx TxProposal, _ error) {
+// 	txHash, err := c.getFullNode().SubmitProposal(ctx, keyName, prop)
+// 	if err != nil {
+// 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
+// 	}
+// 	return c.txProposal(txHash)
+// }
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {

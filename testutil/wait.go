@@ -40,8 +40,7 @@ func WaitForTime(ctx context.Context, startTime, endTime time.Time) error {
 		case <-ctx.Done():
 			return ctx.Err() 
 		default:
-			currentTime := time.Now()
-			if currentTime.After(endTime) {
+			if startTime.After(endTime) {
 				return nil 
 			}
 			time.Sleep(1 * time.Second) 

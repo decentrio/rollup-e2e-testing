@@ -43,11 +43,10 @@ func WaitForTime(ctx context.Context, startTime, endTime time.Time) error {
 			if startTime.After(endTime) {
 				return nil 
 			}
-			time.Sleep(1 * time.Second) 
+			time.Sleep(2 * time.Millisecond) 
 		}
 	}
 }
-
 
 // WaitForBlocksUtil iterates from 0 to maxBlocks and calls fn function with the current iteration index as a parameter.
 // If fn returns nil, the loop is terminated and the function returns nil.

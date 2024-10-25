@@ -14,7 +14,7 @@ type ChainHeighter interface {
 }
 
 type ChainTimer interface {
-	GetBlockTime(ctx context.Context) (time.Time, error)
+	Height(ctx context.Context) (int64, error)
 }
 
 // WaitForBlocks blocks until all chains reach a block height delta equal to or greater than the delta argument.

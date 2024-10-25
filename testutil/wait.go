@@ -34,34 +34,21 @@ func WaitForBlocks(ctx context.Context, delta int, chains ...ChainHeighter) erro
 	return eg.Wait()
 }
 
-func WaitForTime(ctx context.Context, deltaTime time.Duration, chains ...ChainTimer) error {
-	if len(chains) == 0 {
-		panic("missing chains")
-	}
-	eg, egCtx := errgroup.WithContext(ctx)
-	targetTime := time.Now().Add(deltaTime)
-
-	for i := range chains {
-		chain := chains[i]
-		eg.Go(func() error {
-			for {
-				if err := egCtx.Err(); err != nil {
-					return err
-				}
-				currentTime, err := chain.GetBlockTime(ctx)
-				if err != nil {
-					return fmt.Errorf("failed to get block time: %w", err)
-				}
-				if !currentTime.Before(targetTime) {
-					return nil
-				}
-				time.Sleep(1 * time.Second)
+func WaitForTime(ctx context.Context, startTime, endTime time.Time) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err() 
+		default:
+			currentTime := time.Now()
+			if currentTime.After(endTime) {
+				return nil 
 			}
-		})
+			time.Sleep(1 * time.Second) 
+		}
 	}
-
-	return eg.Wait()
 }
+
 
 // WaitForBlocksUtil iterates from 0 to maxBlocks and calls fn function with the current iteration index as a parameter.
 // If fn returns nil, the loop is terminated and the function returns nil.

@@ -182,35 +182,35 @@ func (c *CosmosChain) Exec(ctx context.Context, cmd []string, env []string) (std
 
 // Implements Chain interface
 func (c *CosmosChain) GetRPCAddress() string {
-	return fmt.Sprintf("http://%s:26657", c.getFullNode().HostName())
+	return fmt.Sprintf("http://%s:26657", c.Validators[0].HostName())
 }
 
 // Implements Chain interface
 func (c *CosmosChain) GetAPIAddress() string {
-	return fmt.Sprintf("http://%s:1317", c.getFullNode().HostName())
+	return fmt.Sprintf("http://%s:1317", c.Validators[0].HostName())
 }
 
 // Implements Chain interface
 func (c *CosmosChain) GetGRPCAddress() string {
-	return fmt.Sprintf("%s:9090", c.getFullNode().HostName())
+	return fmt.Sprintf("%s:9090", c.Validators[0].HostName())
 }
 
 // GetHostRPCAddress returns the address of the RPC server accessible by the host.
 // This will not return a valid address until the chain has been started.
 func (c *CosmosChain) GetHostRPCAddress() string {
-	return "http://" + c.getFullNode().hostRPCPort
+	return "http://" + c.Validators[0].hostRPCPort
 }
 
 // GetHostAPIAddress returns the address of the REST API server accessible by the host.
 // This will not return a valid address until the chain has been started.
 func (c *CosmosChain) GetHostAPIAddress() string {
-	return "http://" + c.getFullNode().hostAPIPort
+	return "http://" + c.Validators[0].hostAPIPort
 }
 
 // GetHostGRPCAddress returns the address of the gRPC server accessible by the host.
 // This will not return a valid address until the chain has been started.
 func (c *CosmosChain) GetHostGRPCAddress() string {
-	return c.getFullNode().hostGRPCPort
+	return c.Validators[0].hostGRPCPort
 }
 
 // HomeDir implements ibc.Chain.
@@ -409,8 +409,6 @@ func (c *CosmosChain) GovDeposit(ctx context.Context, keyName string, proposalID
 
 	return tx, nil
 }
-
-
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {

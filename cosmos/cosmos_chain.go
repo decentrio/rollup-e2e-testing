@@ -322,7 +322,7 @@ func (c *CosmosChain) SendIBCTransfer(
 	toWallet ibc.WalletData,
 	options ibc.TransferOptions,
 ) (tx ibc.Tx, _ error) {
-	txHash, err := c.getFullNode().SendIBCTransfer(ctx, channelID, keyName, toWallet, options)
+	txHash, err := c.getValNode().SendIBCTransfer(ctx, channelID, keyName, toWallet, options)
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}
@@ -375,12 +375,12 @@ func (c *CosmosChain) SendIBCTransfer(
 
 // QueryProposal returns the state and details of a governance proposal.
 func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
-	return c.getFullNode().QueryProposal(ctx, proposalID)
+	return c.getValNode().QueryProposal(ctx, proposalID)
 }
 
 // GovQueryProposalV1 returns the state and details of a v1 governance proposal.
 func (c *CosmosChain) GovQueryProposalV1(ctx context.Context, proposalID uint64) (*govv1.Proposal, error) {
-	grpcAddress := c.getFullNode().hostGRPCPort
+	grpcAddress := c.getValNode().hostGRPCPort
 	conn, err := grpc.Dial(grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return &govv1.Proposal{}, err
@@ -404,7 +404,7 @@ func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop T
 }
 
 func (c *CosmosChain) GovDeposit(ctx context.Context, keyName string, proposalID string, deposit string) (TxProposal, error) {
-	txHash, err := c.getFullNode().GovDeposit(ctx, keyName, proposalID, deposit)
+	txHash, err := c.getValNode().GovDeposit(ctx, keyName, proposalID, deposit)
 	if err != nil {
 		return TxProposal{}, fmt.Errorf("failed to deposit for proposal: %w", err)
 	}
@@ -428,7 +428,7 @@ func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string,
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName, deposit, proposalPath string) error {
-	_, err := c.getFullNode().RegisterIBCTokenDenomProposal(ctx, keyName, deposit, proposalPath)
+	_, err := c.getValNode().RegisterIBCTokenDenomProposal(ctx, keyName, deposit, proposalPath)
 	if err != nil {
 		return fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -446,7 +446,7 @@ func (c *CosmosChain) TextProposal(ctx context.Context, keyName string, prop Tex
 
 // ParamChangeProposal submits a param change proposal to the chain, signed by keyName.
 func (c *CosmosChain) ParamChangeProposal(ctx context.Context, keyName string, prop *paramsutils.ParamChangeProposalJSON) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().ParamChangeProposal(ctx, keyName, prop)
+	txHash, err := c.getValNode().ParamChangeProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit param change proposal: %w", err)
 	}
@@ -466,7 +466,7 @@ func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName, rollappC
 
 // SubmitUpdateClientProposal submit a update client proposal.
 func (c *CosmosChain) SubmitUpdateClientProposal(ctx context.Context, keyName, subjectClientId, substituteClientId, deposit string) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().SubmitUpdateClientProposal(ctx, keyName, subjectClientId, substituteClientId, deposit)
+	txHash, err := c.getValNode().SubmitUpdateClientProposal(ctx, keyName, subjectClientId, substituteClientId, deposit)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit update client proposal: %w", err)
 	}
@@ -501,7 +501,7 @@ func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, met
 
 // QueryParam returns the param state of a given key.
 func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
-	return c.getFullNode().QueryParam(ctx, subspace, key)
+	return c.getValNode().QueryParam(ctx, subspace, key)
 }
 
 func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
@@ -534,7 +534,7 @@ func (c *CosmosChain) ExportState(ctx context.Context, height int64) (string, er
 // Implements Chain interface
 func (c *CosmosChain) GetBalance(ctx context.Context, address string, denom string) (sdkmath.Int, error) {
 	params := &bankTypes.QueryBalanceRequest{Address: address, Denom: denom}
-	grpcAddress := c.getFullNode().hostGRPCPort
+	grpcAddress := c.getValNode().hostGRPCPort
 	conn, err := grpc.Dial(grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return sdkmath.Int{}, err
@@ -554,7 +554,7 @@ func (c *CosmosChain) GetBalance(ctx context.Context, address string, denom stri
 // AllBalances fetches an account address's balance for all denoms it holds
 func (c *CosmosChain) AllBalances(ctx context.Context, address string) (types.Coins, error) {
 	params := bankTypes.QueryAllBalancesRequest{Address: address}
-	grpcAddress := c.getFullNode().hostGRPCPort
+	grpcAddress := c.getValNode().hostGRPCPort
 	conn, err := grpc.Dial(grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
@@ -572,8 +572,8 @@ func (c *CosmosChain) AllBalances(ctx context.Context, address string) (types.Co
 }
 
 func (c *CosmosChain) GetTransaction(txhash string) (*types.TxResponse, error) {
-	fn := c.getFullNode()
-	return fn.getTransaction(fn.CliContext(), txhash)
+	vn := c.getValNode()
+	return vn.getTransaction(vn.CliContext(), txhash)
 }
 
 func (c *CosmosChain) GetGasFeesInNativeDenom(gasPaid int64) int64 {
@@ -941,7 +941,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 
 // Height implements ibc.Chain
 func (c *CosmosChain) Height(ctx context.Context) (int64, error) {
-	return c.getFullNode().Height(ctx)
+	return c.getValNode().Height(ctx)
 }
 
 // Acknowledgements implements ibc.Chain, returning all acknowledgments in block at height
@@ -1011,7 +1011,7 @@ func (c *CosmosChain) Timeouts(ctx context.Context, height int64) ([]ibc.PacketT
 
 // FindTxs implements blockdb.BlockSaver.
 func (c *CosmosChain) FindTxs(ctx context.Context, height int64) ([]blockdb.Tx, error) {
-	fn := c.getFullNode()
+	fn := c.getValNode()
 	c.findTxMu.Lock()
 	defer c.findTxMu.Unlock()
 	return fn.FindTxs(ctx, height)

@@ -13,6 +13,10 @@ type ChainHeighter interface {
 	Height(ctx context.Context) (int64, error)
 }
 
+type ChainTimer interface {
+	Height(ctx context.Context) (int64, error)
+}
+
 // WaitForBlocks blocks until all chains reach a block height delta equal to or greater than the delta argument.
 // If a ChainHeighter does not monotonically increase the height, this function may block program execution indefinitely.
 func WaitForBlocks(ctx context.Context, delta int, chains ...ChainHeighter) error {
@@ -28,6 +32,20 @@ func WaitForBlocks(ctx context.Context, delta int, chains ...ChainHeighter) erro
 		})
 	}
 	return eg.Wait()
+}
+
+func WaitForTime(ctx context.Context, startTime, endTime time.Time) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err() 
+		default:
+			if startTime.After(endTime) {
+				return nil 
+			}
+			time.Sleep(2 * time.Millisecond) 
+		}
+	}
 }
 
 // WaitForBlocksUtil iterates from 0 to maxBlocks and calls fn function with the current iteration index as a parameter.

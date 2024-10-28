@@ -176,7 +176,7 @@ func (c *CosmosChain) getValNode() *Node {
 }
 
 func (c *CosmosChain) GetNode() *Node {
-	if len(c.FullNodes) == 0 {
+	if len(c.Validators) > 0 {
 		return c.Validators[0]
 	}
 	return c.FullNodes[0]

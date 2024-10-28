@@ -168,6 +168,13 @@ func (c *CosmosChain) getFullNode() *Node {
 	return c.Validators[0]
 }
 
+func (c *CosmosChain) getValNode() *Node {
+	c.findTxMu.Lock()
+	defer c.findTxMu.Unlock()
+	// use first validator
+	return c.Validators[0]
+}
+
 func (c *CosmosChain) GetNode() *Node {
 	if len(c.FullNodes) == 0 {
 		return c.Validators[0]
@@ -177,7 +184,7 @@ func (c *CosmosChain) GetNode() *Node {
 
 // Exec implements ibc.Chain.
 func (c *CosmosChain) Exec(ctx context.Context, cmd []string, env []string) (stdout, stderr []byte, err error) {
-	return c.getFullNode().Exec(ctx, cmd, env)
+	return c.getValNode().Exec(ctx, cmd, env)
 }
 
 // Implements Chain interface
@@ -215,7 +222,7 @@ func (c *CosmosChain) GetHostGRPCAddress() string {
 
 // HomeDir implements ibc.Chain.
 func (c *CosmosChain) HomeDir() string {
-	return c.getFullNode().HomeDir()
+	return c.getValNode().HomeDir()
 }
 
 func (c *CosmosChain) GetChainID() string {
@@ -224,27 +231,27 @@ func (c *CosmosChain) GetChainID() string {
 
 // Implements Chain interface
 func (c *CosmosChain) CreateKey(ctx context.Context, keyName string) error {
-	return c.getFullNode().CreateKey(ctx, keyName)
+	return c.getValNode().CreateKey(ctx, keyName)
 }
 
 // Implements Chain interface
 func (c *CosmosChain) CreateKeyWithKeyDir(ctx context.Context, name string, keyDir string) error {
-	return c.getFullNode().CreateKeyWithKeyDir(ctx, name, keyDir)
+	return c.getValNode().CreateKeyWithKeyDir(ctx, name, keyDir)
 }
 
 // Implements Chain interface
 func (c *CosmosChain) AccountKeyBech32WithKeyDir(ctx context.Context, keyName string, keyDir string) (string, error) {
-	return c.getFullNode().AccountKeyBech32WithKeyDir(ctx, keyName, keyDir)
+	return c.getValNode().AccountKeyBech32WithKeyDir(ctx, keyName, keyDir)
 }
 
 // Implements Chain interface
 func (c *CosmosChain) RecoverKey(ctx context.Context, keyName, mnemonic string) error {
-	return c.getFullNode().RecoverKey(ctx, keyName, mnemonic)
+	return c.getValNode().RecoverKey(ctx, keyName, mnemonic)
 }
 
 // Implements Chain interface
 func (c *CosmosChain) GetAddress(ctx context.Context, keyName string) ([]byte, error) {
-	b32Addr, err := c.getFullNode().AccountKeyBech32(ctx, keyName)
+	b32Addr, err := c.getValNode().AccountKeyBech32(ctx, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +311,7 @@ func (c *CosmosChain) BuildRelayerWallet(ctx context.Context, keyName string) (i
 
 // Implements Chain interface
 func (c *CosmosChain) SendFunds(ctx context.Context, keyName string, amount ibc.WalletData) error {
-	return c.getFullNode().SendFunds(ctx, keyName, amount)
+	return c.getValNode().SendFunds(ctx, keyName, amount)
 }
 
 // Implements Chain interface
@@ -389,7 +396,7 @@ func (c *CosmosChain) GovQueryProposalV1(ctx context.Context, proposalID uint64)
 }
 
 func (c *CosmosChain) SubmitProposal(ctx context.Context, keyName string, prop TxProposalV1) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().SubmitProposal(ctx, keyName, prop)
+	txHash, err := c.getValNode().SubmitProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -412,7 +419,7 @@ func (c *CosmosChain) GovDeposit(ctx context.Context, keyName string, proposalID
 
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().UpgradeLegacyProposal(ctx, keyName, prop)
+	txHash, err := c.getValNode().UpgradeLegacyProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -430,7 +437,7 @@ func (c *CosmosChain) RegisterIBCTokenDenomProposal(ctx context.Context, keyName
 
 // TextProposal submits a text governance proposal to the chain.
 func (c *CosmosChain) TextProposal(ctx context.Context, keyName string, prop TextProposal) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().TextProposal(ctx, keyName, prop)
+	txHash, err := c.getValNode().TextProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -449,7 +456,7 @@ func (c *CosmosChain) ParamChangeProposal(ctx context.Context, keyName string, p
 
 // SubmitFraudProposal submit a fraud proposal.
 func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName, rollappChainID, height, proposerAddr, clientId, title, descrition, deposit string) (tx TxProposal, _ error) {
-	txHash, err := c.getFullNode().SubmitFraudProposal(ctx, keyName, rollappChainID, height, proposerAddr, clientId, title, descrition, deposit)
+	txHash, err := c.getValNode().SubmitFraudProposal(ctx, keyName, rollappChainID, height, proposerAddr, clientId, title, descrition, deposit)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit fraud proposal: %w", err)
 	}
@@ -520,7 +527,7 @@ func (c *CosmosChain) txProposal(txHash string) (tx TxProposal, _ error) {
 // ExportState exports the chain state at specific height.
 // Implements Chain interface
 func (c *CosmosChain) ExportState(ctx context.Context, height int64) (string, error) {
-	return c.getFullNode().ExportState(ctx, height)
+	return c.getValNode().ExportState(ctx, height)
 }
 
 // GetBalance fetches the current balance for a specific account address and denom.

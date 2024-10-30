@@ -54,6 +54,8 @@ type ChainConfig struct {
 	CoinDecimals *int64
 	// Configuration describing additional sidecar processes.
 	SidecarConfigs []SidecarConfig
+	// List addresses of relayers
+	RelayerAddrs []string
 }
 
 func (c ChainConfig) Clone() ChainConfig {

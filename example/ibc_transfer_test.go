@@ -62,6 +62,7 @@ func TestIBCTransfer(t *testing.T) {
 				NoHostMount:         false,
 				ModifyGenesis:       nil,
 				ConfigFileOverrides: configFileOverrides,
+				RelayerAddrs:        []string{},
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,

@@ -1,6 +1,7 @@
 package rollupe2etesting
 
 import (
+	"math"
 	"context"
 	"fmt"
 	"log"
@@ -9,11 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	// "github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -400,19 +402,29 @@ func (s *Setup) genesisWalletAmounts(ctx context.Context, redundant ibc.Chain) (
 
 	// Add faucet for each chain first.
 	for c := range s.chains {
-		println("check faucet address :", faucetAddresses[c])
 		// The values are nil at this point, so it is safe to directly assign the slice.
 		walletAmounts[c] = []ibc.WalletData{
 			{
 				Address: faucetAddresses[c],
 				Denom:   c.Config().Denom,
-				Amount:  math.NewInt(100_000_000_000_000_000).MulRaw(100_000), // Faucet wallet gets 100T units of denom.
+				Amount:  sdkmath.NewInt(100_000_000_000_000_000).MulRaw(100_000), // Faucet wallet gets 100T units of denom.
 			},
 		}
 
 		if s.AdditionalGenesisWallets != nil {
 			walletAmounts[c] = append(walletAmounts[c], s.AdditionalGenesisWallets[c]...)
 		}
+	}
+
+	// Then add all defined relayer wallets.
+	for rc, wallet := range s.relayerWallets {
+		c := rc.C
+		decimalPow := int64(math.Pow10(int(*c.Config().CoinDecimals)))
+		walletAmounts[c] = append(walletAmounts[c], ibc.WalletData{
+			Address: wallet.FormattedAddress(),
+			Denom:   c.Config().Denom,
+			Amount:  sdkmath.NewInt(1_000_000).MulRaw(decimalPow), // Every wallet gets 1M units of scaled denom.
+		})
 	}
 
 	return walletAmounts, nil
@@ -451,40 +463,26 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 		for _, c := range chains {
 			rpcAddr, grpcAddr, apiAddr := c.GetRPCAddress(), c.GetGRPCAddress(), c.GetAPIAddress()
 			if !r.UseDockerNetwork() {
-				rpcAddr, grpcAddr, apiAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress(), c.GetHostAPIAddress()
+				rpcAddr, grpcAddr = c.GetHostRPCAddress(), c.GetHostGRPCAddress()
 			}
 
 			chainId := c.Config().ChainID
 
-			// use chainId as keyName
+			chainName := s.chains[c]
 			if err := r.AddChainConfiguration(ctx,
 				rep,
 				c.Config(), chainId,
 				rpcAddr, grpcAddr, apiAddr, trusting_period,
 			); err != nil {
-				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainId, err)
+				return fmt.Errorf("failed to configure relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 
-			wallet, err := r.AddKey(ctx,
+			if err := r.RestoreKey(ctx,
 				rep,
-				chainId, chainId,
-				c.Config().CoinType,
-			)
-			if err != nil {
-				return fmt.Errorf("failed to add key to relayer %s for chain %s: %w", s.relayers[r], chainId, err)
-			}
-
-			if failExpected {
-				fmt.Println("did not send fund")
-			} else {
-				err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
-					Address: wallet.FormattedAddress(),
-					Amount:  math.NewInt(10_000_000_000_000),
-					Denom:   c.Config().Denom,
-				})
-				if err != nil {
-					return fmt.Errorf("failed to get funds from faucet: %w", err)
-				}
+				c.Config(), chainName,
+				s.relayerWallets[relayerChain{R: r, C: c}].Mnemonic(),
+			); err != nil {
+				return fmt.Errorf("failed to restore key to relayer %s for chain %s: %w", s.relayers[r], chainName, err)
 			}
 		}
 	}
@@ -533,7 +531,7 @@ func GetAndFundTestUsers(
 	t *testing.T,
 	ctx context.Context,
 	keyNamePrefix string,
-	amount math.Int,
+	amount sdkmath.Int,
 	chains ...ibc.Chain,
 ) []ibc.Wallet {
 	users := make([]ibc.Wallet, len(chains))
@@ -565,7 +563,7 @@ func GetAndFundTestUsers(
 func GetAndFundTestUserWithMnemonic(
 	ctx context.Context,
 	keyNamePrefix, mnemonic string,
-	amount math.Int,
+	amount sdkmath.Int,
 	chain ibc.Chain,
 ) (ibc.Wallet, error) {
 	chainCfg := chain.Config()

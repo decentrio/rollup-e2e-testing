@@ -837,6 +837,30 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	return err
 }
 
+func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member string) (string, error) {
+	var command []string
+	command = append(command, "group", "create-group", "operator", metadata, member)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) CreateGroupPolicy(ctx context.Context, keyName, metadata, policy, group string) (string, error) {
+	var command []string
+	command = append(command, "group", "create-group-policy", "operator", group, metadata, policy)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) GrantAuthorization(ctx context.Context, keyName, policyAddress, spendLimit, rollappID, denoms, minLPFeePercentage, maxPrice, feeShare string) (string, error) {
+	var command []string
+	command = append(command, "eibc", "grant", policyAddress, "--spend-limit", spendLimit, "--rollapps", rollappID, "--denoms", denoms, "--min-lp-fee-percentage", minLPFeePercentage, "--max-price", maxPrice, "--operator-fee-share", feeShare, "--settlement-validated")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
 // CollectGentxs runs collect gentxs on the node's home folders
 func (node *Node) CollectGentxs(ctx context.Context) error {
 	command := []string{node.Chain.Config().Bin}
@@ -1297,7 +1321,7 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 
 	command := []string{
 		"gov", "submit-proposal",
-		path.Join(node.HomeDir(), file), "--gas", "auto", 
+		path.Join(node.HomeDir(), file), "--gas", "auto",
 		// "--deposit", "500000000000urax",
 	}
 

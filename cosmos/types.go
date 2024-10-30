@@ -248,6 +248,12 @@ type Sequencer struct {
 	UnbondingHeight string `protobuf:"varint,9,opt,name=unbonding_height,json=unbondingHeight,proto3" json:"unbonding_height,omitempty"`
 	// unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
 	UnbondTime string `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime" json:"unbond_time"`
+	// notice_period_time defines the time when the sequencer will finish it's notice period if started
+	NoticePeriodTime string `protobuf:"bytes,11,opt,name=notice_period_time,json=noticePeriodTime,proto3,stdtime" json:"notice_period_time"`
+	// RewardAddr is a bech32 encoded sdk acc address
+	RewardAddr string `protobuf:"bytes,12,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	WhitelistedRelayers []string `protobuf:"bytes,13,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3" json:"whitelisted_relayers,omitempty"`
 }
 
 // Metadata defines rollapp/sequencer extra information.

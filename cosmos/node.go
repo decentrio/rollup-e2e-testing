@@ -1398,6 +1398,13 @@ func (node *Node) CrisisInvariant(ctx context.Context, keyName string, module, i
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, creator string, relayers []string) (string, error) {
+	listRelayer := strings.Join(relayers, ",")
+	command := []string{"sequencer", "update-whitelisted-relayers", listRelayer}
+
+	return node.ExecTx(ctx, creator, command...)
+}
+
 // QueryParam returns the state and details of a subspace param.
 func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
 	stdout, _, err := node.ExecQuery(ctx, "params", "subspace", subspace, key)

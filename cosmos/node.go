@@ -1429,6 +1429,13 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, creator string,
 	return node.ExecTx(ctx, creator, command...)
 }
 
+// KickProposer kicks current proposer by kicker 
+func (node *Node) KickProposer(ctx context.Context, kicker string) (string, error) {
+	command := []string{"sequencer", "kick-whitelisted-relayers"}
+
+	return node.ExecTx(ctx, kicker, command...)
+}
+
 // QueryParam returns the state and details of a subspace param.
 func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
 	stdout, _, err := node.ExecQuery(ctx, "params", "subspace", subspace, key)

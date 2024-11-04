@@ -1932,7 +1932,6 @@ func (node *Node) FinalizePacket(ctx context.Context, keyName, rollappID, proofH
 func (node *Node) QueryPendingPacketsByReceiver(ctx context.Context, rollappID, receiver string) (QueryPendingPacketByReceiverListResponse, error) {
 	command := []string{
 		"delayedack", "pending-packets-by-receiver", rollappID, receiver,
-		"--gas", "auto",
 	}
 	stdout, _, err := node.ExecQuery(ctx, command...)
 

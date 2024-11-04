@@ -1920,11 +1920,30 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 	return nil
 }
 
-func (node *Node) FinalizePacketsUntilHeight(ctx context.Context, keyName, rollappID, height string) (string, error) {
+func (node *Node) FinalizePacket(ctx context.Context, keyName, rollappID, proofHeight, packetType, packetSrcChannel, packetSequence string) (string, error) {
 	command := []string{
-		"delayedack", "finalize-packets-until-height", rollappID, height,
+		"delayedack", "finalize-packet", rollappID, proofHeight, packetType, packetSrcChannel, packetSequence,
 		"--gas", "auto",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) QueryPendingPacketsByReceiver(ctx context.Context, rollappID, receiver string) (QueryPendingPacketByReceiverListResponse, error) {
+	command := []string{
+		"delayedack", "pending-packets-by-receiver", rollappID, receiver,
+		"--gas", "auto",
+	}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+
+	fmt.Println(err)
+
+	output := QueryPendingPacketByReceiverListResponse{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return output, err
+	}
+
+	return output, err
+
 }

@@ -287,3 +287,8 @@ func (c *GmRollApp) SetDABlockHeight(daBlockHeight string) {
 func (c *GmRollApp) SetGenesisAccount(ctx context.Context, bech32 string) error {
 	return nil
 }
+
+func (c *GmRollApp) GetChecksum(ctx context.Context) string {
+	// Todo
+	return ""
+}

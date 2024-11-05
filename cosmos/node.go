@@ -1947,9 +1947,9 @@ func (node *Node) QueryPendingPacketsByReceiver(ctx context.Context, rollappID, 
 
 func (node *Node) QueryChecksum(ctx context.Context) string {
 	var command []string
-	command = append(command, "genesis-checksum")
+	command = append(command, "q", "genesis-checksum")
 
-	stdout, _, err := node.ExecQuery(ctx, command...)
+	stdout, _, err := node.ExecBin(ctx, command...)
 	if err != nil {
 		fmt.Println(err)
 		return ""

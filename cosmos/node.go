@@ -1956,5 +1956,5 @@ func (node *Node) QueryChecksum(ctx context.Context) string {
 	}
 	fmt.Println("Checksum: ", string(stdout))
 
-	return string(stdout)
+	return strings.ReplaceAll(string(stdout), "\n", "")
 }

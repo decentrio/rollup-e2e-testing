@@ -501,6 +501,7 @@ func (node *Node) TxCommand(keyName string, command ...string) []string {
 		command = append(command, "--gas-adjustment", fmt.Sprint(node.Chain.Config().GasAdjustment))
 	}
 	return node.NodeCommand(append(command,
+		"--gas", "auto",
 		"--from", keyName,
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
@@ -793,7 +794,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
 	}
-	_, _ = node.ExecTx(ctx, keyName, command...)
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }

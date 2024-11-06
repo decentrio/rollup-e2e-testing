@@ -417,6 +417,15 @@ func (c *CosmosChain) GovDeposit(ctx context.Context, keyName string, proposalID
 	return tx, nil
 }
 
+func (c *CosmosChain) SubmitDRSDeprecationProposal(ctx context.Context, keyName, rollappChainID, height, proposerAddr, clientId, title, description, deposit string) (tx TxProposal, _ error) {
+	txHash, err := c.getValNode().SubmitDRSDeprecationProposal(ctx, keyName, rollappChainID, height, proposerAddr, clientId, title, description, deposit)
+	if err != nil {
+		return tx, fmt.Errorf("failed to submit DRS deprecation proposal: %w", err)
+	}
+
+	return c.txProposal(txHash)
+}
+
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
 	txHash, err := c.getValNode().UpgradeLegacyProposal(ctx, keyName, prop)

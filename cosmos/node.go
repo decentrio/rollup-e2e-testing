@@ -1314,6 +1314,20 @@ func (node *Node) GovDeposit(ctx context.Context, keyName string, proposalID str
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) SubmitDRSDeprecationProposal(ctx context.Context, keyName, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {
+	command := []string{
+		"gov", "submit-legacy-proposal", "submit-drs-deprecation-proposal",
+		rollappId, height, proposerAddr, clientId,
+		"--title=" + title,
+		"--description=" + description,
+		"--gas", "auto",
+		"--broadcast-mode", "async",
+		"--deposit", deposit,
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (node *Node) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (string, error) {
 	command := []string{

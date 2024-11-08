@@ -381,14 +381,15 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 			return err
 		}
 		amount := sdkmath.NewInt(10_000_000_000_000).MulRaw(100_000_000)
-		fund := ibc.WalletData{
-			Address: sequencer,
-			Denom:   c.Config().Denom,
-			Amount:  amount,
-		}
-		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
-			return err
-		}
+		// fund := ibc.WalletData{
+		// 	Address: sequencer,
+		// 	Denom:   c.Config().Denom,
+		// 	Amount:  amount,
+		// }
+		c.GetNode().AddGenesisAccount(ctx, sequencer, types.NewCoins(types.NewCoin(c.Config().Denom, amount)))
+		// if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+		// 	return err
+		// }
 
 		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}

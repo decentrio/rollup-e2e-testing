@@ -1328,7 +1328,7 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName, rollappId, h
 	}
 
 	var command []string
-	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
+	command = append(command, "gov", "submit-proposal", "submit-fraud-proposal",
 		"--message", string(messageBytes), "--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
 
 	return node.ExecTx(ctx, keyName, command...)

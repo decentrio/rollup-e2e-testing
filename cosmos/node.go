@@ -66,6 +66,23 @@ type Node struct {
 	hostGRPCPort string
 }
 
+type MsgFraudProposal struct {
+	Type                   string `json:"@type"`
+	Authority              string `json:"authority"`
+	RollappID              string `json:"rollapp_id"`
+	RollappRevision        string `json:"rollapp_revision"`
+	FraudHeight            string `json:"fraud_height"`
+	PunishSequencerAddress string `json:"punish_sequencer_address"`
+}
+
+type FraudProposal struct {
+	Messages []MsgFraudProposal `json:"messages"`
+	Metadata string             `json:"metadata"`
+	Deposit  string             `json:"deposit"`
+	Title    string             `json:"title"`
+	Summary  string             `json:"summary"`
+}
+
 func (node *Node) NewSidecarProcess(
 	ctx context.Context,
 	preStart bool,
@@ -1287,35 +1304,34 @@ func (node *Node) QueryClientStatus(ctx context.Context, clientId string) (*Quer
 }
 
 // SubmitFraudProposal a fraud proposal to the chain.
-func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string) (string, error) {
-    message := map[string]interface{}{
-        "messages": []map[string]interface{}{
-            {
-                "@type":                    "/dymensionxyz.dymension.rollapp.MsgFraudProposal",
-                "authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",    
-                "rollapp_id":               "rollappevm_1234-1",                                
-                "rollapp_revision":         "4",                                               
-                "fraud_height":             "1050",                                           
-                "punish_sequencer_address": "",                                                
-            },
-        },
-        "metadata": "ipfs://CID",       
-        "deposit":  "100dym",           
-        "title":    "fsdfds",           
-        "summary":  "fsdfsdf",          
-    }
+func (node *Node) SubmitFraudProposal(ctx context.Context, keyName, rollappId, height, proposerAddr, clientId, title, description, deposit, metadata, sequencerAddr string) (string, error) {
+	fraudProposal := FraudProposal{
+		Messages: []MsgFraudProposal{
+			{
+				Type:                   "/dymensionxyz.dymension.rollapp.MsgFraudProposal",
+				Authority:              proposerAddr,
+				RollappID:              rollappId,
+				RollappRevision:        height, 
+				FraudHeight:            height,
+				PunishSequencerAddress: sequencerAddr,
+			},
+		},
+		Metadata: metadata,
+		Deposit:  deposit,
+		Title:    title,
+		Summary:  description,
+	}
 
-    messageJson, err := json.Marshal(message)
-    if err != nil {
-        return "", fmt.Errorf("failed to marshal message: %w", err)
-    }
+	messageBytes, err := json.Marshal(fraudProposal)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal fraud proposal: %w", err)
+	}
 
-    command := []string{
-        "gov", "submit-legacy-proposal", "submit-fraud-proposal", string(messageJson),
-        "--gas", "auto", "--broadcast-mode", "async",
-    }
+	var command []string
+	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
+		"--message", string(messageBytes), "--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
 
-    return node.ExecTx(ctx, keyName, command...)
+	return node.ExecTx(ctx, keyName, command...)
 }
 
 // SubmitUpdateClientProposal a update client proposal to the chain.

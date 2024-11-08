@@ -105,7 +105,7 @@ type Chain interface {
 
 type Hub interface {
 	// Register RollApp to Hub
-	RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error
+	RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error
 	// Register Sequencer to Hub
 	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error
 	// Set RollApp to Hub
@@ -136,6 +136,8 @@ type RollApp interface {
 	GetDABlockHeight() string
 	// Set DABlockHeight
 	SetDABlockHeight(string)
+
+	GetChecksum(context.Context) string
 }
 
 // TransferOptions defines the options for an IBC packet transfer.

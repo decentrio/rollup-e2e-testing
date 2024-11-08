@@ -501,6 +501,7 @@ func (node *Node) TxCommand(keyName string, command ...string) []string {
 		command = append(command, "--gas-adjustment", fmt.Sprint(node.Chain.Config().GasAdjustment))
 	}
 	return node.NodeCommand(append(command,
+		"--gas", "auto",
 		"--from", keyName,
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
@@ -762,7 +763,7 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
 	var vmtype string
 	const charset = "abcdefghijklmnopqrstuvwxyz"
@@ -772,7 +773,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 		alias[i] = charset[seededRand.Intn(len(charset))]
 	}
 	lastThree := node.TestName[len(node.TestName)-3:]
-	checksum := "aaa"
 	keyPath := keyDir + "/sequencer_keys"
 
 	if lastThree == "EVM" {
@@ -794,7 +794,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
 	}
-	_, _ = node.ExecTx(ctx, keyName, command...)
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
@@ -1920,11 +1919,42 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 	return nil
 }
 
-func (node *Node) FinalizePacketsUntilHeight(ctx context.Context, keyName, rollappID, height string) (string, error) {
+func (node *Node) FinalizePacket(ctx context.Context, keyName, rollappID, proofHeight, packetType, packetSrcChannel, packetSequence string) (string, error) {
 	command := []string{
-		"delayedack", "finalize-packets-until-height", rollappID, height,
+		"delayedack", "finalize-packet", rollappID, proofHeight, packetType, packetSrcChannel, packetSequence,
 		"--gas", "auto",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) QueryPendingPacketsByAddress(ctx context.Context, addr string) (QueryPendingPacketByReceiverListResponse, error) {
+	command := []string{
+		"delayedack", "pending-packets-by-address", addr,
+	}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+
+	fmt.Println(err)
+
+	output := QueryPendingPacketByReceiverListResponse{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return output, err
+	}
+
+	return output, err
+}
+
+func (node *Node) QueryChecksum(ctx context.Context) string {
+	var command []string
+	command = append(command, "q", "genesis-checksum")
+
+	stdout, _, err := node.ExecBin(ctx, command...)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	fmt.Println("Checksum: ", string(stdout))
+
+	return strings.ReplaceAll(string(stdout), "\n", "")
 }

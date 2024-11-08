@@ -290,15 +290,17 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 			return err
 		}
 		amount := sdkmath.NewInt(10_000_000_000_000).MulRaw(100_000_000)
-		fund := ibc.WalletData{
-			Address: sequencer,
-			Denom:   c.Config().Denom,
-			Amount:  amount,
-		}
-		if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+		// fund := ibc.WalletData{
+		// 	Address: sequencer,
+		// 	Denom:   c.Config().Denom,
+		// 	Amount:  amount,
+		// }
+		// if err := c.SendFunds(ctx, "faucet", fund); err != nil {
+		// 	return err
+		// }
+		if err := c.GetNode().AddGenesisAccount(ctx, sequencer, types.NewCoins(types.NewCoin(c.Config().Denom, amount))); err != nil {
 			return err
 		}
-
 		// hasFlagGenesisPath, ok := c.extraFlags["genesis-accounts-path"].(bool)
 		flags := map[string]string{}
 		// flags["transfers-enabled"] = "true"
@@ -387,7 +389,9 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 		// 	Denom:   c.Config().Denom,
 		// 	Amount:  amount,
 		// }
-		c.GetNode().AddGenesisAccount(ctx, sequencer, types.NewCoins(types.NewCoin(c.Config().Denom, amount)))
+		if err := c.GetNode().AddGenesisAccount(ctx, sequencer, types.NewCoins(types.NewCoin(c.Config().Denom, amount))); err != nil {
+			return err
+		}
 		// if err := c.SendFunds(ctx, "faucet", fund); err != nil {
 		// 	return err
 		// }

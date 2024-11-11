@@ -755,9 +755,18 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 		command = append(command, "genesis")
 	}
 
-	command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
-		"--keyring-backend", keyring.BackendTest,
-		"--chain-id", node.Chain.Config().ChainID)
+	if node.Chain.Config().Type == "rollapp-dym" {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+			"--fees", fmt.Sprintf("4000000000000%s", node.Chain.Config().Denom),
+		)
+	} else {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+		)
+	}
 
 	_, _, err := node.ExecBin(ctx, command...)
 	return err

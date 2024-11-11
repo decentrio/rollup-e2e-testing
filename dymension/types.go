@@ -159,7 +159,7 @@ type QueryGetSequencersByRollappResponse struct {
 }
 
 type Sequencer struct {
-	SequencerAddress    string            `json:"sequencerAddress"`
+	Address             string            `json:"address"`
 	DymintPubKey        *types.Any        `json:"dymintPubKey"`
 	RollappId           string            `json:"rollappId"`
 	Metadata            SequencerMetadata `json:"metadata"`
@@ -192,7 +192,7 @@ type SequencerMetadata struct {
 	ContactDetails *ContactDetails `json:"contact_details,omitempty"`
 	ExtraData      []byte          `json:"extra_data,omitempty"`
 	Snapshots      []*SnapshotInfo `json:"snapshots,omitempty"`
-	GasPrice       string           `json:"gas_price,omitempty"`
+	GasPrice       string          `json:"gas_price,omitempty"`
 }
 
 type ContactDetails struct {

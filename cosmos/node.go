@@ -836,6 +836,22 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	return err
 }
 
+func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
+	command := []string{"sequencer", "next-proposer", rollappId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetNextProposerByRollappResponse{}, err
+	}
+
+	var nextProposer QueryGetNextProposerByRollappResponse
+	err = json.Unmarshal(stdout, &nextProposer)
+	if err != nil {
+		return QueryGetNextProposerByRollappResponse{}, err
+	}
+
+	return nextProposer, nil
+}
+
 func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member string) (string, error) {
 	var command []string
 	command = append(command, "group", "create-group", "operator", metadata, member)

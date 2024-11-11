@@ -397,3 +397,7 @@ type QueryGetNextProposerByRollappResponse struct {
 	// rotationInProgress is true if the proposer rotation is in progress.
 	RotationInProgress bool `protobuf:"varint,2,opt,name=rotationInProgress,proto3" json:"rotationInProgress,omitempty"`
 }
+
+type QueryGetProposerByRollappResponse struct {
+	ProposerAddr string `json:"proposerAddr,omitempty"`
+}

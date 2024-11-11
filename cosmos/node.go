@@ -852,6 +852,22 @@ func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyna
 	return nextProposer, nil
 }
 
+func (node *Node) GetProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetProposerByRollappResponse, error) {
+	command := []string{"sequencer", "proposer", rollappId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetProposerByRollappResponse{}, err
+	}
+
+	var proposer QueryGetProposerByRollappResponse
+	err = json.Unmarshal(stdout, &proposer)
+	if err != nil {
+		return QueryGetProposerByRollappResponse{}, err
+	}
+
+	return proposer, nil
+}
+
 func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member string) (string, error) {
 	var command []string
 	command = append(command, "group", "create-group", "operator", metadata, member)

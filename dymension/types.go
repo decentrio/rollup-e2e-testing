@@ -192,7 +192,7 @@ type SequencerMetadata struct {
 	ContactDetails *ContactDetails `json:"contact_details,omitempty"`
 	ExtraData      []byte          `json:"extra_data,omitempty"`
 	Snapshots      []*SnapshotInfo `json:"snapshots,omitempty"`
-	GasPrice       int64           `json:"gas_price,omitempty"`
+	GasPrice       string           `json:"gas_price,omitempty"`
 }
 
 type ContactDetails struct {

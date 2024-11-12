@@ -42,18 +42,20 @@ type TxProposalV1 struct {
 }
 
 type TxFraudProposal struct {
-	Messages []struct {
-		Type                    string `json:"@type"`
-		Authority               string `json:"authority"`
-		RollappID               string `json:"rollapp_id"`
-		RollappRevision         string `json:"rollapp_revision"`
-		FraudHeight             string `json:"fraud_height"`
-		PunishSequencerAddress  string `json:"punish_sequencer_address"`
-	} `json:"messages"`
-	Metadata string `json:"metadata"`
-	Deposit  string `json:"deposit"`
-	Title    string `json:"title"`
-	Summary  string `json:"summary"`
+	Messages []FraudProposalMessage `json:"messages"`
+	Metadata string                 `json:"metadata"`
+	Deposit  string                 `json:"deposit"`
+	Title    string                 `json:"title"`
+	Summary  string                 `json:"summary"`
+}
+
+type FraudProposalMessage struct {
+	Type                    string `json:"@type"`
+	Authority               string `json:"authority"`
+	RollappID               string `json:"rollapp_id"`
+	RollappRevision         string `json:"rollapp_revision"`
+	FraudHeight             string `json:"fraud_height"`
+	PunishSequencerAddress  string `json:"punish_sequencer_address"`
 }
 
 

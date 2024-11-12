@@ -845,14 +845,14 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	return err
 }
 
-func (node *Node) DecreaseBond(ctx context.Context, keyName, keyDir string) error {
+func (node *Node) DecreaseBond(ctx context.Context, keyName, keyDir, amount string) error {
 	var command []string
 	if keyDir != "" {
 		keyPath := keyDir + "/sequencer_keys"
-		command = append(command, "sequencer", "decrease-bond",
+		command = append(command, "sequencer", "decrease-bond", amount,
 			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
 	} else {
-		command = append(command, "sequencer", "decrease-bond",
+		command = append(command, "sequencer", "decrease-bond", amount,
 			"--broadcast-mode", "async", "--gas", "auto")
 	}
 

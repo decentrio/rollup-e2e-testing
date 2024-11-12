@@ -1345,32 +1345,23 @@ func (node *Node) QueryClientStatus(ctx context.Context, clientId string) (*Quer
 }
 
 // SubmitFraudProposal a fraud proposal to the chain.
-func (node *Node) SubmitFraudProposal(ctx context.Context, keyName, rollappId, height, proposerAddr, clientId, title, description, deposit, metadata, sequencerAddr string) (string, error) {
-	fraudProposal := FraudProposal{
-		Messages: []MsgFraudProposal{
-			{
-				Type:                   "/dymensionxyz.dymension.rollapp.MsgFraudProposal",
-				Authority:              proposerAddr,
-				RollappID:              rollappId,
-				RollappRevision:        height,
-				FraudHeight:            height,
-				PunishSequencerAddress: sequencerAddr,
-			},
-		},
-		Metadata: metadata,
-		Deposit:  deposit,
-		Title:    title,
-		Summary:  description,
-	}
-
-	messageBytes, err := json.Marshal(fraudProposal)
+func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, prop TxFraudProposal) (string, error) {
+	// Write message to container
+	file := "fraud_proposal.json"
+	propJson, err := json.MarshalIndent(prop, "", " ")
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal fraud proposal: %w", err)
+		return "", err
+	}
+	fw := dockerutil.NewFileWriter(node.logger(), node.DockerClient, node.TestName)
+	if err := fw.WriteFile(ctx, node.VolumeName, node.Chain.Config().Name, file, propJson); err != nil {
+		return "", fmt.Errorf("writing fraud proposal file to docker volume: %w", err)
 	}
 
-	var command []string
-	command = append(command, "gov", "submit-proposal", "submit-fraud-proposal", "--description", description,
-		string(messageBytes), "--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
+	command := []string{
+		"gov", "submit-fraud-proposal",
+		path.Join(node.HomeDir(), file), "--gas", "auto",
+		// "--deposit", "100dym",
+	}
 
 	return node.ExecTx(ctx, keyName, command...)
 }

@@ -1352,7 +1352,7 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName, rollappId, h
 				Type:                   "/dymensionxyz.dymension.rollapp.MsgFraudProposal",
 				Authority:              proposerAddr,
 				RollappID:              rollappId,
-				RollappRevision:        height, 
+				RollappRevision:        height,
 				FraudHeight:            height,
 				PunishSequencerAddress: sequencerAddr,
 			},
@@ -1369,8 +1369,8 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName, rollappId, h
 	}
 
 	var command []string
-	command = append(command, "gov", "submit-proposal", "submit-fraud-proposal",
-		"--title=fraud", string(messageBytes), "--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
+	command = append(command, "gov", "submit-proposal", "submit-fraud-proposal", "--description", description,
+		string(messageBytes), "--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
 
 	return node.ExecTx(ctx, keyName, command...)
 }

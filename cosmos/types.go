@@ -5,6 +5,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
 const (
@@ -336,4 +337,67 @@ type CelestiaBlock struct {
 
 type CelestiaBlockHeader struct {
 	Height string `json:"height"`
+}
+
+type QueryPendingPacketByReceiverListResponse struct {
+	RollappPackets []RollappPacket     `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
+	Pagination     *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+type RollappPacket struct {
+	RollappId       string             `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	Packet          Packet             `protobuf:"bytes,2,opt,name=packet,proto3" json:"packet,omitempty"`
+	Acknowledgement []byte             `protobuf:"bytes,3,opt,name=acknowledgement,proto3" json:"acknowledgement,omitempty"`
+	Status          Status             `protobuf:"varint,4,opt,name=status,proto3,enum=dymensionxyz.dymension.common.Status" json:"status,omitempty"`
+	ProofHeight     string             `protobuf:"varint,5,opt,name=ProofHeight,proto3" json:"ProofHeight,omitempty"`
+	Relayer         []byte             `protobuf:"bytes,6,opt,name=relayer,proto3" json:"relayer,omitempty"`
+	Type            RollappPacket_Type `protobuf:"varint,7,opt,name=type,proto3,enum=dymensionxyz.dymension.common.RollappPacket_Type" json:"type,omitempty"`
+	// stores the result of onAck, onTimeout or onRecv/writeAck
+	Error string `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
+	// who was the original person who gets the money (recipient of ics20 transfer) of the packet?
+	OriginalTransferTarget string `protobuf:"bytes,9,opt,name=original_transfer_target,json=originalTransferTarget,proto3" json:"original_transfer_target,omitempty"`
+}
+
+type Status string
+type RollappPacket_Type string
+
+type Packet struct {
+	// number corresponds to the order of sends and receives, where a Packet
+	// with an earlier sequence number must be sent and received before a Packet
+	// with a later sequence number.
+	Sequence string `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	// identifies the port on the sending chain.
+	SourcePort string `protobuf:"bytes,2,opt,name=source_port,json=sourcePort,proto3" json:"source_port,omitempty" yaml:"source_port"`
+	// identifies the channel end on the sending chain.
+	SourceChannel string `protobuf:"bytes,3,opt,name=source_channel,json=sourceChannel,proto3" json:"source_channel,omitempty" yaml:"source_channel"`
+	// identifies the port on the receiving chain.
+	DestinationPort string `protobuf:"bytes,4,opt,name=destination_port,json=destinationPort,proto3" json:"destination_port,omitempty" yaml:"destination_port"`
+	// identifies the channel end on the receiving chain.
+	DestinationChannel string `protobuf:"bytes,5,opt,name=destination_channel,json=destinationChannel,proto3" json:"destination_channel,omitempty" yaml:"destination_channel"`
+	// actual opaque bytes transferred directly to the application module
+	Data []byte `protobuf:"bytes,6,opt,name=data,proto3" json:"data,omitempty"`
+	// block height after which the packet times out
+	TimeoutHeight Heightt `protobuf:"bytes,7,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height" yaml:"timeout_height"`
+	// block timestamp (in nanoseconds) after which the packet times out
+	TimeoutTimestamp string `protobuf:"varint,8,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty" yaml:"timeout_timestamp"`
+}
+
+type Heightt struct {
+	// the revision that the client is currently on
+	RevisionNumber string `protobuf:"varint,1,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty" yaml:"revision_number"`
+	// the height within the given revision
+	RevisionHeight string `protobuf:"varint,2,opt,name=revision_height,json=revisionHeight,proto3" json:"revision_height,omitempty" yaml:"revision_height"`
+}
+
+// Response type for the GetNextProposerByRollapp RPC method.
+type QueryGetNextProposerByRollappResponse struct {
+	// nextProposerAddr is the address of the next proposer.
+	// can be empty if no sequencer is available to be the next proposer.
+	NextProposerAddr string `protobuf:"bytes,1,opt,name=nextProposerAddr,proto3" json:"nextProposerAddr,omitempty"`
+	// rotationInProgress is true if the proposer rotation is in progress.
+	RotationInProgress bool `protobuf:"varint,2,opt,name=rotationInProgress,proto3" json:"rotationInProgress,omitempty"`
+}
+
+type QueryGetProposerByRollappResponse struct {
+	ProposerAddr string `json:"proposerAddr,omitempty"`
 }

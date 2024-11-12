@@ -338,7 +338,8 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
+		checksum := r.GetChecksum(ctx)
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, checksum, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -428,7 +429,8 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
+		checksum := r.GetChecksum(ctx)
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, checksum, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -446,8 +448,8 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir, flags)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir, flags)
 }
 
 // TriggerGenesisEvent trigger rollapp genesis event on dym hub.

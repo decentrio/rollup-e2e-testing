@@ -506,3 +506,7 @@ func (c *DymRollApp) GetDABlockHeight() string {
 
 func (c *DymRollApp) SetDABlockHeight(daBlockHeight string) {
 }
+
+func (c *DymRollApp) GetChecksum(ctx context.Context) string {
+	return c.GetNode().QueryChecksum(ctx)
+}

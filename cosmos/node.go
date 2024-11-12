@@ -501,6 +501,7 @@ func (node *Node) TxCommand(keyName string, command ...string) []string {
 		command = append(command, "--gas-adjustment", fmt.Sprint(node.Chain.Config().GasAdjustment))
 	}
 	return node.NodeCommand(append(command,
+		"--gas", "auto",
 		"--from", keyName,
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
@@ -754,15 +755,24 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 		command = append(command, "genesis")
 	}
 
-	command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
-		"--keyring-backend", keyring.BackendTest,
-		"--chain-id", node.Chain.Config().ChainID)
+	if node.Chain.Config().Type == "rollapp-dym" {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+			"--fees", fmt.Sprintf("4000000000000000%s", node.Chain.Config().Denom),
+		)
+	} else {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+		)
+	}
 
 	_, _, err := node.ExecBin(ctx, command...)
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
 	var command []string
 	var vmtype string
 	const charset = "abcdefghijklmnopqrstuvwxyz"
@@ -772,7 +782,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 		alias[i] = charset[seededRand.Intn(len(charset))]
 	}
 	lastThree := node.TestName[len(node.TestName)-3:]
-	checksum := "aaa"
 	keyPath := keyDir + "/sequencer_keys"
 
 	if lastThree == "EVM" {
@@ -780,7 +789,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 		command = append(
 			command, "rollapp", "create-rollapp",
 			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
-			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000000010100000000000000000000",
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000100000000000000000000",
 			"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	} else {
 		vmtype = "WASM"
@@ -794,7 +803,6 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 	for flagName := range flags {
 		command = append(command, "--"+flagName, flags[flagName])
 	}
-	_, _ = node.ExecTx(ctx, keyName, command...)
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
@@ -802,7 +810,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "1000000000adym", keyDir+"/metadata_sequencer.json",
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "100000000000000000000adym", keyDir+"/metadata_sequencer.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath, "--gas", "auto")
 
 	_, err := node.ExecTx(ctx, keyName, command...)
@@ -835,6 +843,38 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
+}
+
+func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
+	command := []string{"sequencer", "next-proposer", rollappId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetNextProposerByRollappResponse{}, err
+	}
+
+	var nextProposer QueryGetNextProposerByRollappResponse
+	err = json.Unmarshal(stdout, &nextProposer)
+	if err != nil {
+		return QueryGetNextProposerByRollappResponse{}, err
+	}
+
+	return nextProposer, nil
+}
+
+func (node *Node) GetProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetProposerByRollappResponse, error) {
+	command := []string{"sequencer", "proposer", rollappId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetProposerByRollappResponse{}, err
+	}
+
+	var proposer QueryGetProposerByRollappResponse
+	err = json.Unmarshal(stdout, &proposer)
+	if err != nil {
+		return QueryGetProposerByRollappResponse{}, err
+	}
+
+	return proposer, nil
 }
 
 func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member string) (string, error) {
@@ -1422,11 +1462,11 @@ func (node *Node) CrisisInvariant(ctx context.Context, keyName string, module, i
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, creator string, relayers []string) (string, error) {
+func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyringDir string, relayers []string) (string, error) {
 	listRelayer := strings.Join(relayers, ",")
-	command := []string{"sequencer", "update-whitelisted-relayers", listRelayer}
+	command := []string{"sequencer", "update-whitelisted-relayers", listRelayer, "--keyring-dir", keyringDir}
 
-	return node.ExecTx(ctx, creator, command...)
+	return node.ExecTx(ctx, keyName, command...)
 }
 
 // KickProposer kicks current proposer by kicker 
@@ -1927,11 +1967,42 @@ func (node *Node) ModifyConsensusGenesis(ctx context.Context) error {
 	return nil
 }
 
-func (node *Node) FinalizePacketsUntilHeight(ctx context.Context, keyName, rollappID, height string) (string, error) {
+func (node *Node) FinalizePacket(ctx context.Context, keyName, rollappID, proofHeight, packetType, packetSrcChannel, packetSequence string) (string, error) {
 	command := []string{
-		"delayedack", "finalize-packets-until-height", rollappID, height,
+		"delayedack", "finalize-packet", rollappID, proofHeight, packetType, packetSrcChannel, packetSequence,
 		"--gas", "auto",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) QueryPendingPacketsByAddress(ctx context.Context, addr string) (QueryPendingPacketByReceiverListResponse, error) {
+	command := []string{
+		"delayedack", "pending-packets-by-address", addr,
+	}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+
+	fmt.Println(err)
+
+	output := QueryPendingPacketByReceiverListResponse{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return output, err
+	}
+
+	return output, err
+}
+
+func (node *Node) QueryChecksum(ctx context.Context) string {
+	var command []string
+	command = append(command, "q", "genesis-checksum")
+
+	stdout, _, err := node.ExecBin(ctx, command...)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	fmt.Println("Checksum: ", string(stdout))
+
+	return strings.ReplaceAll(string(stdout), "\n", "")
 }

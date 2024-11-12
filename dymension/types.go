@@ -159,23 +159,52 @@ type QueryGetSequencersByRollappResponse struct {
 }
 
 type Sequencer struct {
-	SequencerAddress string      `json:"sequencerAddress"`
-	DymintPubKey     *types.Any  `json:"dymintPubKey"`
-	RollappId        string      `json:"rollappId"`
-	Description      Description `json:"description"`
-	Jailed           bool        `json:"jailed"`
-	Proposer         bool        `json:"proposer"`
-	Status           string      `json:"status"`
-	Tokens           []Coin      `json:"tokens"`
-	UnbondingHeight  string      `json:"unbonding_height"`
-	UnbondTime       time.Time   `json:"unbond_time"`
+	Address             string            `json:"address"`
+	DymintPubKey        *types.Any        `json:"dymintPubKey"`
+	RollappId           string            `json:"rollappId"`
+	Metadata            SequencerMetadata `json:"metadata"`
+	Proposer            bool              `json:"proposer"`
+	Status              string            `json:"status"`
+	OptedIn             bool              `json:"opted_in,omitempty"`
+	Tokens              []Coin            `json:"tokens"`
+	NoticePeriodTime    time.Time         `json:"notice_period_time"`
+	RewardAddr          string            `json:"reward_addr"`
+	WhitelistedRelayers []string          `json:"whitelisted_relayers"`
 }
+
 type Description struct {
 	Moniker         string `json:"moniker,omitempty"`
 	Identity        string `json:"identity,omitempty"`
 	Website         string `json:"website,omitempty"`
 	SecurityContact string `json:"securityContact,omitempty"`
 	Details         string `json:"details,omitempty"`
+}
+
+type SequencerMetadata struct {
+	Moniker        string          `json:"moniker,omitempty"`
+	Details        string          `json:"details,omitempty"`
+	P2PSeeds       []string        `json:"p2p_seeds,omitempty"`
+	Rpcs           []string        `json:"rpcs,omitempty"`
+	EvmRpcs        []string        `json:"evm_rpcs,omitempty"`
+	RestApiUrls    []string        `json:"rest_api_urls,omitempty"`
+	ExplorerUrl    string          `json:"explorer_url,omitempty"`
+	GenesisUrls    []string        `json:"genesis_urls,omitempty"`
+	ContactDetails *ContactDetails `json:"contact_details,omitempty"`
+	ExtraData      []byte          `json:"extra_data,omitempty"`
+	Snapshots      []*SnapshotInfo `json:"snapshots,omitempty"`
+	GasPrice       string          `json:"gas_price,omitempty"`
+}
+
+type ContactDetails struct {
+	Website  string `json:"website,omitempty"`
+	Telegram string `json:"telegram,omitempty"`
+	X        string `json:"x,omitempty"`
+}
+
+type SnapshotInfo struct {
+	SnapshotUrl string `json:"snapshot_url,omitempty"`
+	Height      uint64 `json:"height,omitempty"`
+	Checksum    string `json:"checksum,omitempty"`
 }
 
 type QueryGetSequencerResponse struct {

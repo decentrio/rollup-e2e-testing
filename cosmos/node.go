@@ -772,9 +772,18 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 		command = append(command, "genesis")
 	}
 
-	command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
-		"--keyring-backend", keyring.BackendTest,
-		"--chain-id", node.Chain.Config().ChainID)
+	if node.Chain.Config().Type == "rollapp-dym" {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+			"--fees", fmt.Sprintf("4000000000000000%s", node.Chain.Config().Denom),
+		)
+	} else {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+		)
+	}
 
 	_, _, err := node.ExecBin(ctx, command...)
 	return err
@@ -797,7 +806,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 		command = append(
 			command, "rollapp", "create-rollapp",
 			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
-			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000000010100000000000000000000",
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000100000000000000000000",
 			"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	} else {
 		vmtype = "WASM"
@@ -818,7 +827,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error {
 	var command []string
 	keyPath := keyDir + "/sequencer_keys"
-	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "1000000000adym", keyDir+"/metadata_sequencer.json",
+	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "100000000000000000000adym", keyDir+"/metadata_sequencer.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath, "--gas", "auto")
 
 	_, err := node.ExecTx(ctx, keyName, command...)
@@ -851,6 +860,38 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
+}
+
+func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
+	command := []string{"sequencer", "next-proposer", rollappId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetNextProposerByRollappResponse{}, err
+	}
+
+	var nextProposer QueryGetNextProposerByRollappResponse
+	err = json.Unmarshal(stdout, &nextProposer)
+	if err != nil {
+		return QueryGetNextProposerByRollappResponse{}, err
+	}
+
+	return nextProposer, nil
+}
+
+func (node *Node) GetProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetProposerByRollappResponse, error) {
+	command := []string{"sequencer", "proposer", rollappId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetProposerByRollappResponse{}, err
+	}
+
+	var proposer QueryGetProposerByRollappResponse
+	err = json.Unmarshal(stdout, &proposer)
+	if err != nil {
+		return QueryGetProposerByRollappResponse{}, err
+	}
+
+	return proposer, nil
 }
 
 func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member string) (string, error) {

@@ -388,3 +388,16 @@ type Heightt struct {
 	// the height within the given revision
 	RevisionHeight string `protobuf:"varint,2,opt,name=revision_height,json=revisionHeight,proto3" json:"revision_height,omitempty" yaml:"revision_height"`
 }
+
+// Response type for the GetNextProposerByRollapp RPC method.
+type QueryGetNextProposerByRollappResponse struct {
+	// nextProposerAddr is the address of the next proposer.
+	// can be empty if no sequencer is available to be the next proposer.
+	NextProposerAddr string `protobuf:"bytes,1,opt,name=nextProposerAddr,proto3" json:"nextProposerAddr,omitempty"`
+	// rotationInProgress is true if the proposer rotation is in progress.
+	RotationInProgress bool `protobuf:"varint,2,opt,name=rotationInProgress,proto3" json:"rotationInProgress,omitempty"`
+}
+
+type QueryGetProposerByRollappResponse struct {
+	ProposerAddr string `json:"proposerAddr,omitempty"`
+}

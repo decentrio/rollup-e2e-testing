@@ -1485,10 +1485,19 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyrin
 }
 
 // KickProposer kicks current proposer by kicker 
-func (node *Node) KickProposer(ctx context.Context, kicker string) (string, error) {
-	command := []string{"sequencer", "kick"}
+func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) (error) {	
+	var command []string
+	if keyDir != "" {
+		keyPath := keyDir + "/sequencer_keys"
+		command = append(command, "sequencer", "kick",
+			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
+	} else {
+		command = append(command, "sequencer", "kick",
+			"--broadcast-mode", "async", "--gas", "auto")
+	}
 
-	return node.ExecTx(ctx, kicker, command...)
+	_, err := node.ExecTx(ctx, kicker, command...)
+	return err
 }
 
 // QueryParam returns the state and details of a subspace param.

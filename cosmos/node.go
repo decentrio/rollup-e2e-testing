@@ -845,6 +845,21 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	return err
 }
 
+func (node *Node) DecreaseBond(ctx context.Context, keyName, keyDir string) error {
+	var command []string
+	if keyDir != "" {
+		keyPath := keyDir + "/sequencer_keys"
+		command = append(command, "sequencer", "decrease-bond",
+			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
+	} else {
+		command = append(command, "sequencer", "decrease-bond",
+			"--broadcast-mode", "async", "--gas", "auto")
+	}
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
 	command := []string{"sequencer", "next-proposer", rollappId}
 	stdout, _, err := node.ExecQuery(ctx, command...)

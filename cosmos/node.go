@@ -1358,7 +1358,7 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, prop 
 	}
 
 	command := []string{
-		"gov", "submit-fraud-proposal",
+		"gov", "submit-proposal",
 		path.Join(node.HomeDir(), file), "--gas", "auto",
 		// "--deposit", "100dym",
 	}

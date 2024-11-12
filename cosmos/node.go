@@ -1486,7 +1486,7 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyrin
 
 // KickProposer kicks current proposer by kicker 
 func (node *Node) KickProposer(ctx context.Context, kicker string) (string, error) {
-	command := []string{"sequencer", "kick-whitelisted-relayers"}
+	command := []string{"sequencer", "kick"}
 
 	return node.ExecTx(ctx, kicker, command...)
 }

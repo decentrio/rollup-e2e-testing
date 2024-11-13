@@ -1366,6 +1366,28 @@ func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, prop 
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+// SubmitDRSDeprecationProposal submits a DRS deprecation proposal to the chain.
+func (node *Node) SubmitDRSDeprecationProposal(ctx context.Context, keyName string, prop TxDRSDeprecationProposal) (string, error) {
+	// Write message to container
+	file := "drs_deprecation_proposal.json"
+	propJson, err := json.MarshalIndent(prop, "", " ")
+	if err != nil {
+		return "", err
+	}
+	fw := dockerutil.NewFileWriter(node.logger(), node.DockerClient, node.TestName)
+	if err := fw.WriteFile(ctx, node.VolumeName, node.Chain.Config().Name, file, propJson); err != nil {
+		return "", fmt.Errorf("writing DRS deprecation proposal file to docker volume: %w", err)
+	}
+
+	command := []string{
+		"gov", "submit-proposal",
+		path.Join(node.HomeDir(), file), "--gas", "auto",
+		// "--deposit", "100dym",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 // SubmitUpdateClientProposal a update client proposal to the chain.
 func (node *Node) SubmitUpdateClientProposal(ctx context.Context, keyName, subjectClientId, substituteClientId, deposit string) (string, error) {
 	var command []string

@@ -463,6 +463,15 @@ func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName string, p
 	return c.txProposal(txHash)
 }
 
+// SubmitDRSDeprecationProposal submits a DRS deprecation proposal.
+func (c *CosmosChain) SubmitDRSDeprecationProposal(ctx context.Context, keyName string, prop TxDRSDeprecationProposal) (tx TxProposal, _ error) {
+	txHash, err := c.getValNode().SubmitDRSDeprecationProposal(ctx, keyName, prop)
+	if err != nil {
+		return tx, fmt.Errorf("failed to submit DRS deprecation proposal: %w", err)
+	}
+	return c.txProposal(txHash)
+}
+
 // SubmitUpdateClientProposal submit a update client proposal.
 func (c *CosmosChain) SubmitUpdateClientProposal(ctx context.Context, keyName, subjectClientId, substituteClientId, deposit string) (tx TxProposal, _ error) {
 	txHash, err := c.getValNode().SubmitUpdateClientProposal(ctx, keyName, subjectClientId, substituteClientId, deposit)

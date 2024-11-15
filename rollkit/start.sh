@@ -18,7 +18,7 @@ mkdir -p /home/celestia/light/keys
 cp -r $1/keyring-test/ /home/celestia/light/keys/keyring-test/
 
 # Start the celestia-app
-celestia-appd start --home $1 
+celestia-appd start --home $1 --force-no-bbr 
 # Try to get the genesis hash. Usually first request returns an empty string (port is not open, curl fails), later attempts
 # returns "null" if block was not yet produced.
 # GENESIS=

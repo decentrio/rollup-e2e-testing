@@ -778,6 +778,12 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 			"--chain-id", node.Chain.Config().ChainID,
 			"--fees", fmt.Sprintf("4000000000000000%s", node.Chain.Config().Denom),
 		)
+	} else if node.Chain.Config().Type == "hub-celes" {
+		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
+			"--keyring-backend", keyring.BackendTest,
+			"--chain-id", node.Chain.Config().ChainID,
+			"--fees", fmt.Sprintf("4000%s", node.Chain.Config().Denom),
+		)
 	} else {
 		command = append(command, "gentx", valKey, fmt.Sprintf("%s%s", genesisSelfDelegation.Amount.String(), genesisSelfDelegation.Denom),
 			"--keyring-backend", keyring.BackendTest,

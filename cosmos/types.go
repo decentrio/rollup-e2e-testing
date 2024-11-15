@@ -41,6 +41,22 @@ type TxProposalV1 struct {
 	Expedited   bool              `json:"expedited"`
 }
 
+type TxFraudProposal struct {
+	Messages []json.RawMessage `json:"messages"`
+	Metadata string            `json:"metadata"`
+	Deposit  string            `json:"deposit"`
+	Title    string            `json:"title"`
+	Summary  string            `json:"summary"`
+}
+
+type TxDRSDeprecationProposal struct {
+	Messages []json.RawMessage `json:"messages"`
+	Metadata string            `json:"metadata"`
+	Deposit  string            `json:"deposit"`
+	Title    string            `json:"title"`
+	Summary  string            `json:"summary"`
+}
+
 // TxProposal contains chain proposal transaction details.
 type TxProposal struct {
 	// The block height.

@@ -698,7 +698,7 @@ func (c *DymHub) WaitUntilRollappHeightIsFinalized(ctx context.Context, rollappC
 				if err != nil {
 					continue
 				}
-				if height == targetHeight {
+				if height >= targetHeight {
 					return true, nil
 				}
 			}

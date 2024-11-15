@@ -66,6 +66,23 @@ type Node struct {
 	hostGRPCPort string
 }
 
+type MsgFraudProposal struct {
+	Type                   string `json:"@type"`
+	Authority              string `json:"authority"`
+	RollappID              string `json:"rollapp_id"`
+	RollappRevision        string `json:"rollapp_revision"`
+	FraudHeight            string `json:"fraud_height"`
+	PunishSequencerAddress string `json:"punish_sequencer_address"`
+}
+
+type FraudProposal struct {
+	Messages []MsgFraudProposal `json:"messages"`
+	Metadata string             `json:"metadata"`
+	Deposit  string             `json:"deposit"`
+	Title    string             `json:"title"`
+	Summary  string             `json:"summary"`
+}
+
 func (node *Node) NewSidecarProcess(
 	ctx context.Context,
 	preStart bool,
@@ -1328,11 +1345,46 @@ func (node *Node) QueryClientStatus(ctx context.Context, clientId string) (*Quer
 }
 
 // SubmitFraudProposal a fraud proposal to the chain.
-func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, rollappId, height, proposerAddr, clientId, title, description, deposit string) (string, error) {
-	var command []string
-	command = append(command, "gov", "submit-legacy-proposal", "submit-fraud-proposal",
-		rollappId, height, proposerAddr, clientId, "--title=fraud", "--description=fraud",
-		"--gas", "auto", "--broadcast-mode", "async", "--deposit", deposit)
+func (node *Node) SubmitFraudProposal(ctx context.Context, keyName string, prop TxFraudProposal) (string, error) {
+	// Write message to container
+	file := "fraud_proposal.json"
+	propJson, err := json.MarshalIndent(prop, "", " ")
+	if err != nil {
+		return "", err
+	}
+	fw := dockerutil.NewFileWriter(node.logger(), node.DockerClient, node.TestName)
+	if err := fw.WriteFile(ctx, node.VolumeName, node.Chain.Config().Name, file, propJson); err != nil {
+		return "", fmt.Errorf("writing fraud proposal file to docker volume: %w", err)
+	}
+
+	command := []string{
+		"gov", "submit-proposal",
+		path.Join(node.HomeDir(), file), "--gas", "auto",
+		// "--deposit", "100dym",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+// SubmitDRSDeprecationProposal submits a DRS deprecation proposal to the chain.
+func (node *Node) SubmitDRSDeprecationProposal(ctx context.Context, keyName string, prop TxDRSDeprecationProposal) (string, error) {
+	// Write message to container
+	file := "drs_deprecation_proposal.json"
+	propJson, err := json.MarshalIndent(prop, "", " ")
+	if err != nil {
+		return "", err
+	}
+	fw := dockerutil.NewFileWriter(node.logger(), node.DockerClient, node.TestName)
+	if err := fw.WriteFile(ctx, node.VolumeName, node.Chain.Config().Name, file, propJson); err != nil {
+		return "", fmt.Errorf("writing DRS deprecation proposal file to docker volume: %w", err)
+	}
+
+	command := []string{
+		"gov", "submit-proposal",
+		path.Join(node.HomeDir(), file), "--gas", "auto",
+		// "--deposit", "100dym",
+	}
+
 	return node.ExecTx(ctx, keyName, command...)
 }
 

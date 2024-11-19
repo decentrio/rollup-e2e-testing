@@ -77,7 +77,7 @@ func (c *ContainerLifecycle) CreateContainer(
 			PortBindings:    pb,
 			PublishAllPorts: true,
 			AutoRemove:      false,
-			DNS:             []string{},
+			DNS:             []string{"8.8.8.8"},
 			ExtraHosts:      []string{"host.docker.internal:host-gateway"},
 		},
 		&network.NetworkingConfig{

@@ -373,6 +373,65 @@ func (c *CosmosChain) SendIBCTransfer(
 	return tx, nil
 }
 
+// SendIBCTransferAfterHardFork is customized to support hard fork logic
+func (c *CosmosChain) SendIBCTransferAfterHardFork(
+	ctx context.Context,
+	channelID string,
+	keyName string,
+	toWallet ibc.WalletData,
+	options ibc.TransferOptions,
+) (tx ibc.Tx, _ error) {
+	txHash, err := c.getFullNode().SendIBCTransfer(ctx, channelID, keyName, toWallet, options)
+	if err != nil {
+		return tx, fmt.Errorf("send ibc transfer: %w", err)
+	}
+	txResp, err := c.GetTransaction(txHash)
+	if err != nil {
+		return tx, fmt.Errorf("failed to get transaction %s: %w", txHash, err)
+	}
+	if txResp.Code != 0 {
+		return tx, fmt.Errorf("error in transaction (code: %d): %s", txResp.Code, txResp.RawLog)
+	}
+	tx.Height = int64(txResp.Height)
+	tx.TxHash = txHash
+	// In cosmos, user is charged for entire gas requested, not the actual gas used.
+	tx.GasSpent = txResp.GasWanted
+
+	const evType = "send_packet"
+	events := txResp.Events
+
+	var (
+		seq, _           = AttributeValue(events, evType, "packet_sequence")
+		srcPort, _       = AttributeValue(events, evType, "packet_src_port")
+		srcChan, _       = AttributeValue(events, evType, "packet_src_channel")
+		dstPort, _       = AttributeValue(events, evType, "packet_dst_port")
+		dstChan, _       = AttributeValue(events, evType, "packet_dst_channel")
+		timeoutHeight, _ = AttributeValue(events, evType, "packet_timeout_height")
+		timeoutTs, _     = AttributeValue(events, evType, "packet_timeout_timestamp")
+		data, _          = AttributeValue(events, evType, "packet_data")
+	)
+	tx.Packet.SourcePort = srcPort
+	tx.Packet.SourceChannel = srcChan
+	tx.Packet.DestPort = dstPort
+	tx.Packet.DestChannel = dstChan
+	tx.Packet.TimeoutHeight = timeoutHeight
+	tx.Packet.Data = []byte(data)
+
+	seqNum, err := strconv.Atoi(seq)
+	if err != nil {
+		return tx, fmt.Errorf("invalid packet sequence from events %s: %w", seq, err)
+	}
+	tx.Packet.Sequence = uint64(seqNum)
+
+	timeoutNano, err := strconv.ParseInt(timeoutTs, 10, 64)
+	if err != nil {
+		return tx, fmt.Errorf("invalid packet timestamp timeout %s: %w", timeoutTs, err)
+	}
+	tx.Packet.TimeoutTimestamp = ibc.Nanoseconds(timeoutNano)
+
+	return tx, nil
+}
+
 // QueryProposal returns the state and details of a governance proposal.
 func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
 	return c.getValNode().QueryProposal(ctx, proposalID)

@@ -572,6 +572,9 @@ func (node *Node) NodeCommand(command ...string) []string {
 // Will include additional flags for home directory and chain ID.
 func (node *Node) BinCommand(command ...string) []string {
 	command = append([]string{node.Chain.Config().Bin}, command...)
+	if strings.Contains(node.HostName(), "fn") {
+		return command
+	}
 	return append(command,
 		"--home", node.HomeDir(),
 	)
@@ -972,6 +975,32 @@ func (node *Node) SendIBCTransfer(
 		"ibc-transfer", "transfer", "transfer", channelID,
 		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
 		"--gas", "auto",
+	}
+	if options.Timeout != nil {
+		if options.Timeout.NanoSeconds > 0 {
+			command = append(command, "--packet-timeout-timestamp", fmt.Sprint(options.Timeout.NanoSeconds))
+		} else if options.Timeout.Height > 0 {
+			command = append(command, "--packet-timeout-height", fmt.Sprintf("0-%d", options.Timeout.Height))
+		}
+	}
+	if options.Memo != "" {
+		command = append(command, "--memo", options.Memo)
+	}
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) SendIBCTransferAfterHardFork(
+	ctx context.Context,
+	channelID string,
+	keyName string,
+	toWallet ibc.WalletData,
+	options ibc.TransferOptions,
+	home string,
+) (string, error) {
+	command := []string{
+		"ibc-transfer", "transfer", "transfer", channelID,
+		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
+		"--gas", "auto", "--home", home,
 	}
 	if options.Timeout != nil {
 		if options.Timeout.NanoSeconds > 0 {
@@ -1542,8 +1571,8 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyrin
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-// KickProposer kicks current proposer by kicker 
-func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) (error) {	
+// KickProposer kicks current proposer by kicker
+func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) error {
 	var command []string
 	if keyDir != "" {
 		keyPath := keyDir + "/sequencer_keys"

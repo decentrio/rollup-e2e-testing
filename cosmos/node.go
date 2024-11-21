@@ -573,8 +573,11 @@ func (node *Node) NodeCommand(command ...string) []string {
 func (node *Node) BinCommand(command ...string) []string {
 	command = append([]string{node.Chain.Config().Bin}, command...)
 	if strings.Contains(node.HostName(), "fn") {
+		println("check cmd case fn: ", command)
 		return command
 	}
+	println("Check node home dir: ", node.HomeDir())
+	println("check cmd another case: ", command)
 	return append(command,
 		"--home", node.HomeDir(),
 	)

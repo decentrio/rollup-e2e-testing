@@ -381,7 +381,9 @@ func (c *CosmosChain) SendIBCTransferAfterHardFork(
 	toWallet ibc.WalletData,
 	options ibc.TransferOptions,
 ) (tx ibc.Tx, _ error) {
-	txHash, err := c.getFullNode().SendIBCTransferAfterHardFork(ctx, channelID, keyName, toWallet, options, c.getValNode().HomeDir())
+	txHash, err := c.getFullNode().SendIBCTransfer(ctx, channelID, keyName, toWallet, options)
+
+	// txHash, err := c.getFullNode().SendIBCTransferAfterHardFork(ctx, channelID, keyName, toWallet, options, c.getValNode().HomeDir())
 	if err != nil {
 		return tx, fmt.Errorf("send ibc transfer: %w", err)
 	}

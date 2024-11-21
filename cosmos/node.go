@@ -1066,7 +1066,7 @@ func (node *Node) SendIBCTransferAfterHardFork(
 	if options.Memo != "" {
 		command = append(command, "--memo", options.Memo)
 	}
-	return node.ExecTx(ctx, keyName, command...)
+	return node.ExecTxAfterHardFork(ctx, keyName, command...)
 }
 
 func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver string) (string, error) {

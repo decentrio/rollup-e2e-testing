@@ -526,12 +526,69 @@ func (node *Node) TxCommand(keyName string, command ...string) []string {
 	)...)
 }
 
+func (node *Node) TxCommandAfterHardFork(keyName string, command ...string) []string {
+	command = append([]string{"tx"}, command...)
+	var gasPriceFound, gasAdjustmentFound = false, false
+	for i := 0; i < len(command); i++ {
+		if command[i] == "--gas-prices" {
+			gasPriceFound = true
+		}
+		if command[i] == "--gas-adjustment" {
+			gasAdjustmentFound = true
+		}
+	}
+	if !gasPriceFound {
+		command = append(command, "--gas-prices", node.Chain.Config().GasPrices)
+	}
+	if !gasAdjustmentFound {
+		command = append(command, "--gas-adjustment", fmt.Sprint(node.Chain.Config().GasAdjustment))
+	}
+
+	command = append(append([]string{node.Chain.Config().Bin}, command...), 
+			"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+			"--chain-id", node.Chain.Config().ChainID,
+			"--gas", "auto",
+			"--from", keyName,
+			"--keyring-backend", keyring.BackendTest,
+			"--output", "json",
+			"-y",
+		)
+
+	return command
+}
+
 // ExecTx executes a transaction, waits for 2 blocks if successful, then returns the tx hash.
 func (node *Node) ExecTx(ctx context.Context, keyName string, command ...string) (string, error) {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
 	stdout, _, err := node.Exec(ctx, node.TxCommand(keyName, command...), nil)
+	if err != nil {
+		return "", err
+	}
+	output := CosmosTx{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if node.Chain.Config().Type == "rollapp-dym" {
+		return output.TxHash, nil
+	}
+
+	if err := testutil.WaitForBlocks(ctx, 5, node); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
+}
+
+func (node *Node) ExecTxAfterHardFork(ctx context.Context, keyName string, command ...string) (string, error) {
+	node.lock.Lock()
+	defer node.lock.Unlock()
+
+	stdout, _, err := node.Exec(ctx, node.TxCommandAfterHardFork(keyName, command...), nil)
 	if err != nil {
 		return "", err
 	}
@@ -572,12 +629,6 @@ func (node *Node) NodeCommand(command ...string) []string {
 // Will include additional flags for home directory and chain ID.
 func (node *Node) BinCommand(command ...string) []string {
 	command = append([]string{node.Chain.Config().Bin}, command...)
-	if strings.Contains(node.HostName(), "fn") {
-		println("check cmd case fn: ", command)
-		return command
-	}
-	println("Check node home dir: ", node.HomeDir())
-	println("check cmd another case: ", command)
 	return append(command,
 		"--home", node.HomeDir(),
 	)
@@ -1574,8 +1625,8 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyrin
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-// KickProposer kicks current proposer by kicker
-func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) error {
+// KickProposer kicks current proposer by kicker 
+func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) (error) {	
 	var command []string
 	if keyDir != "" {
 		keyPath := keyDir + "/sequencer_keys"

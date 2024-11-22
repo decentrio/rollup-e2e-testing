@@ -526,12 +526,69 @@ func (node *Node) TxCommand(keyName string, command ...string) []string {
 	)...)
 }
 
+func (node *Node) TxCommandAfterHardFork(keyName string, command ...string) []string {
+	command = append([]string{"tx"}, command...)
+	var gasPriceFound, gasAdjustmentFound = false, false
+	for i := 0; i < len(command); i++ {
+		if command[i] == "--gas-prices" {
+			gasPriceFound = true
+		}
+		if command[i] == "--gas-adjustment" {
+			gasAdjustmentFound = true
+		}
+	}
+	if !gasPriceFound {
+		command = append(command, "--gas-prices", node.Chain.Config().GasPrices)
+	}
+	if !gasAdjustmentFound {
+		command = append(command, "--gas-adjustment", fmt.Sprint(node.Chain.Config().GasAdjustment))
+	}
+
+	command = append(append([]string{node.Chain.Config().Bin}, command...), 
+			"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+			"--chain-id", node.Chain.Config().ChainID,
+			"--gas", "auto",
+			"--from", keyName,
+			"--keyring-backend", keyring.BackendTest,
+			"--output", "json",
+			"-y",
+		)
+
+	return command
+}
+
 // ExecTx executes a transaction, waits for 2 blocks if successful, then returns the tx hash.
 func (node *Node) ExecTx(ctx context.Context, keyName string, command ...string) (string, error) {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
 	stdout, _, err := node.Exec(ctx, node.TxCommand(keyName, command...), nil)
+	if err != nil {
+		return "", err
+	}
+	output := CosmosTx{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if node.Chain.Config().Type == "rollapp-dym" {
+		return output.TxHash, nil
+	}
+
+	if err := testutil.WaitForBlocks(ctx, 5, node); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
+}
+
+func (node *Node) ExecTxAfterHardFork(ctx context.Context, keyName string, command ...string) (string, error) {
+	node.lock.Lock()
+	defer node.lock.Unlock()
+
+	stdout, _, err := node.Exec(ctx, node.TxCommandAfterHardFork(keyName, command...), nil)
 	if err != nil {
 		return "", err
 	}
@@ -868,6 +925,21 @@ func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	return err
 }
 
+func (node *Node) DecreaseBond(ctx context.Context, keyName, keyDir, amount string) error {
+	var command []string
+	if keyDir != "" {
+		keyPath := keyDir + "/sequencer_keys"
+		command = append(command, "sequencer", "decrease-bond", amount,
+			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
+	} else {
+		command = append(command, "sequencer", "decrease-bond", amount,
+			"--broadcast-mode", "async", "--gas", "auto")
+	}
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
 	command := []string{"sequencer", "next-proposer", rollappId}
 	stdout, _, err := node.ExecQuery(ctx, command...)
@@ -969,6 +1041,32 @@ func (node *Node) SendIBCTransfer(
 		command = append(command, "--memo", options.Memo)
 	}
 	return node.ExecTx(ctx, keyName, command...)
+}
+
+func (node *Node) SendIBCTransferAfterHardFork(
+	ctx context.Context,
+	channelID string,
+	keyName string,
+	toWallet ibc.WalletData,
+	options ibc.TransferOptions,
+	home string,
+) (string, error) {
+	command := []string{
+		"ibc-transfer", "transfer", "transfer", channelID,
+		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
+		"--gas", "auto", "--home", home,
+	}
+	if options.Timeout != nil {
+		if options.Timeout.NanoSeconds > 0 {
+			command = append(command, "--packet-timeout-timestamp", fmt.Sprint(options.Timeout.NanoSeconds))
+		} else if options.Timeout.Height > 0 {
+			command = append(command, "--packet-timeout-height", fmt.Sprintf("0-%d", options.Timeout.Height))
+		}
+	}
+	if options.Memo != "" {
+		command = append(command, "--memo", options.Memo)
+	}
+	return node.ExecTxAfterHardFork(ctx, keyName, command...)
 }
 
 func (node *Node) ConvertCoin(ctx context.Context, keyName, coin, receiver string) (string, error) {
@@ -1525,6 +1623,22 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyrin
 	command := []string{"sequencer", "update-whitelisted-relayers", listRelayer, "--keyring-dir", keyringDir}
 
 	return node.ExecTx(ctx, keyName, command...)
+}
+
+// KickProposer kicks current proposer by kicker 
+func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) (error) {	
+	var command []string
+	if keyDir != "" {
+		keyPath := keyDir + "/sequencer_keys"
+		command = append(command, "sequencer", "kick",
+			"--broadcast-mode", "async", "--gas", "auto", "--keyring-dir", keyPath)
+	} else {
+		command = append(command, "sequencer", "kick",
+			"--broadcast-mode", "async", "--gas", "auto")
+	}
+
+	_, err := node.ExecTx(ctx, kicker, command...)
+	return err
 }
 
 // QueryParam returns the state and details of a subspace param.

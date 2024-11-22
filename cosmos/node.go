@@ -902,7 +902,7 @@ func (node *Node) GetProposerByRollapp(ctx context.Context, rollappId, keyname s
 
 func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member string) (string, error) {
 	var command []string
-	command = append(command, "group", "create-group", "operator", metadata, member)
+	command = append(command, "group", "create-group", keyName, metadata, member)
 
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err
@@ -910,7 +910,7 @@ func (node *Node) CreateGroup(ctx context.Context, keyName, metadata, member str
 
 func (node *Node) CreateGroupPolicy(ctx context.Context, keyName, metadata, policy, group string) (string, error) {
 	var command []string
-	command = append(command, "group", "create-group-policy", "operator", group, metadata, policy)
+	command = append(command, "group", "create-group-policy", keyName, group, metadata, policy)
 
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err

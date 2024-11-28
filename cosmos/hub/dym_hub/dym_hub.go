@@ -534,13 +534,7 @@ func (c *DymHub) StartWithoutGenesisAccount(testName string, ctx context.Context
 	if err != nil {
 		return err
 	}
-	for _, r := range c.rollApps {
-		r := r
-		err := r.SetGenesisAccount(ctx, bech32)
-		if err != nil {
-			return err
-		}
-	}
+
 	if err := nodes.LogGenesisHashes(ctx); err != nil {
 		return err
 	}

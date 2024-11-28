@@ -988,9 +988,13 @@ func (node *Node) CreateGroupPolicy(ctx context.Context, keyName, metadata, poli
 	return hash, err
 }
 
-func (node *Node) GrantAuthorization(ctx context.Context, keyName, policyAddress, spendLimit, rollappID, denoms, minFeePercentage, maxPrice, feeShare, settlementValidated string) (string, error) {
+func (node *Node) GrantAuthorization(ctx context.Context, keyName, policyAddress, spendLimit, rollappID, denoms, minFeePercentage, maxPrice, feeShare string, settlementValidated bool) (string, error) {
 	var command []string
-	command = append(command, "eibc", "grant", policyAddress, "--spend-limit", spendLimit, "--rollapp", rollappID, "--denoms", denoms, "--min-fee-percentage", minFeePercentage, "--max-price", maxPrice, "--operator-fee-share", feeShare, "--settlement-validated", settlementValidated)
+	if settlementValidated {
+		command = append(command, "eibc", "grant", policyAddress, "--spend-limit", spendLimit, "--rollapp", rollappID, "--denoms", denoms, "--min-fee-percentage", minFeePercentage, "--max-price", maxPrice, "--operator-fee-share", feeShare, "--settlement-validated")
+	} else {
+		command = append(command, "eibc", "grant", policyAddress, "--spend-limit", spendLimit, "--rollapp", rollappID, "--denoms", denoms, "--min-fee-percentage", minFeePercentage, "--max-price", maxPrice, "--operator-fee-share", feeShare)
+	}
 
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err

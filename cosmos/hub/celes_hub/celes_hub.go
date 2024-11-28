@@ -100,6 +100,11 @@ func (c *CelesHub) RegisterRollAppToHub(ctx context.Context, keyName, bech32, ro
 	return c.GetNode().RegisterRollAppToHub(ctx, keyName, "", rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir, flags)
 }
 
+// RegisterRollAppToHubWithoutGenesisAccount register rollapp on settlement without genesis acc.
+func (c *CelesHub) RegisterRollAppToHubWithoutGenesisAccount(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHubWithoutGenesisAccount(ctx, keyName, "", rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir, flags)
+}
+
 func (c *CelesHub) SetRollApp(rollApp ibc.RollApp) {
 	c.rollApps = append(c.rollApps, rollApp)
 }

@@ -1206,6 +1206,10 @@ func (c *CosmosChain) SetupRollAppWithExistHub(ctx context.Context) error {
 	return fmt.Errorf("not implemented")
 }
 
+func (c *CosmosChain) StartWithoutGenesisAccount(testName string, ctx context.Context, additionalGenesisWallets ...ibc.WalletData) error {
+	return fmt.Errorf("not implemented")
+}
+
 // NewSidecarProcess constructs a new sidecar process with a docker volume.
 func (c *CosmosChain) NewSidecarProcess(
 	ctx context.Context,

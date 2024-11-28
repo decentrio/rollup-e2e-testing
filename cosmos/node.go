@@ -544,15 +544,15 @@ func (node *Node) TxCommandAfterHardFork(keyName string, command ...string) []st
 		command = append(command, "--gas-adjustment", fmt.Sprint(node.Chain.Config().GasAdjustment))
 	}
 
-	command = append(append([]string{node.Chain.Config().Bin}, command...), 
-			"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
-			"--chain-id", node.Chain.Config().ChainID,
-			"--gas", "auto",
-			"--from", keyName,
-			"--keyring-backend", keyring.BackendTest,
-			"--output", "json",
-			"-y",
-		)
+	command = append(append([]string{node.Chain.Config().Bin}, command...),
+		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID,
+		"--gas", "auto",
+		"--from", keyName,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+	)
 
 	return command
 }
@@ -893,6 +893,41 @@ func (node *Node) RegisterSequencerToHub(ctx context.Context, keyName, rollappCh
 	command = append(command, "sequencer", "create-sequencer", seq, rollappChainID, "100000000000000000000adym", keyDir+"/metadata_sequencer.json",
 		"--broadcast-mode", "async", "--keyring-dir", keyPath, "--gas", "auto")
 
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
+func (node *Node) RegisterRollAppToHubWithoutGenesisAccount(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+	var command []string
+	var vmtype string
+	const charset = "abcdefghijklmnopqrstuvwxyz"
+	seededRand := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
+	alias := make([]byte, 5)
+	for i := range alias {
+		alias[i] = charset[seededRand.Intn(len(charset))]
+	}
+	lastThree := node.TestName[len(node.TestName)-3:]
+	keyPath := keyDir + "/sequencer_keys"
+
+	if lastThree == "EVM" {
+		vmtype = "EVM"
+		command = append(
+			command, "rollapp", "create-rollapp",
+			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000100000000000000000000",
+			"--broadcast-mode", "async", "--keyring-dir", keyPath)
+	} else {
+		vmtype = "WASM"
+		command = append(
+			command, "rollapp", "create-rollapp",
+			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "10200000000000000000000",
+			"--broadcast-mode", "async", "--keyring-dir", keyPath)
+	}
+
+	for flagName := range flags {
+		command = append(command, "--"+flagName, flags[flagName])
+	}
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err
 }
@@ -1629,8 +1664,8 @@ func (node *Node) UpdateWhitelistedRelayers(ctx context.Context, keyName, keyrin
 	return node.ExecTx(ctx, keyName, command...)
 }
 
-// KickProposer kicks current proposer by kicker 
-func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) (error) {	
+// KickProposer kicks current proposer by kicker
+func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) error {
 	var command []string
 	if keyDir != "" {
 		keyPath := keyDir + "/sequencer_keys"

@@ -17,6 +17,8 @@ type Chain interface {
 	// Start sets up everything needed (validators, gentx, fullnodes, peering, additional accounts) for Chain to start from genesis.
 	Start(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
 
+	StartWithoutGenesisAccount(testName string, ctx context.Context, additionalGenesisWallets ...WalletData) error
+
 	SetupRollAppWithExistHub(ctx context.Context) error
 	// Exec runs an arbitrary command using Chain's docker environment.
 	// Whether the invoked command is run in a one-off container or execing into an already running container
@@ -106,6 +108,8 @@ type Chain interface {
 type Hub interface {
 	// Register RollApp to Hub
 	RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error
+	// Register RollApp to Hub without genesis acc
+	RegisterRollAppToHubWithoutGenesisAccount(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error
 	// Register Sequencer to Hub
 	RegisterSequencerToHub(ctx context.Context, keyName, rollappChainID, seq, keyDir string) error
 	// Set RollApp to Hub

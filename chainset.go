@@ -121,7 +121,7 @@ func (cs *chainSet) CreateCommonAccount(ctx context.Context, keyName string, red
 }
 
 // Start concurrently calls Start against each chain in the set.
-func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, redundant ibc.Chain) error {
+func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, redundant ibc.Chain, genesisAcc bool) error {
 	// Start Hub chain first
 	for c := range cs.chains {
 		c := c
@@ -132,8 +132,14 @@ func (cs *chainSet) Start(ctx context.Context, testName string, additionalGenesi
 				}
 				break
 			}
-			if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
-				return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+			if genesisAcc {
+				if err := c.Start(testName, ctx, additionalGenesisWallets[c]...); err != nil {
+					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+				}
+			} else {
+				if err := c.StartWithoutGenesisAccount(testName, ctx, additionalGenesisWallets[c]...); err != nil {
+					return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
+				}
 			}
 		}
 	}

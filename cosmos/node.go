@@ -914,7 +914,7 @@ func (node *Node) RegisterRollAppToHubWithoutGenesisAccount(ctx context.Context,
 		command = append(
 			command, "rollapp", "create-rollapp",
 			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json",
-			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000100000000000000000000",
+			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000000000000000000000000",
 			"--broadcast-mode", "async", "--keyring-dir", keyPath)
 	} else {
 		vmtype = "WASM"

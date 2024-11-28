@@ -93,7 +93,7 @@ func (c *DymRollApp) Start(testName string, ctx context.Context, additionalGenes
 	return nil
 }
 
-func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRollAppId string, gensisContent []byte, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRollAppId string, gensisContent []byte, genesisAccount bool, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))
@@ -244,76 +244,77 @@ func (c *DymRollApp) Configuration(testName string, ctx context.Context, forkRol
 		if err := json.Unmarshal(genbz, &g); err != nil {
 			return fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
-
-		if c.CosmosChain.Config().Bech32Prefix == "ethm" {
-			// Add balance to hub genesis module account
-			bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
-			if err != nil {
-				return fmt.Errorf("failed to retrieve bank balances: %w", err)
-			}
-			hubgenesisBalance := map[string]interface{}{
-				"address": "ethm1748tamme3jj3v9wq95fc3pmglxtqscljdy7483",
-				"coins": []interface{}{
-					map[string]interface{}{
-						"denom":  chainCfg.Denom,
-						"amount": dymension.GenesisEventAmount.String(),
+		if genesisAccount {
+			if c.CosmosChain.Config().Bech32Prefix == "ethm" {
+				// Add balance to hub genesis module account
+				bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
+				if err != nil {
+					return fmt.Errorf("failed to retrieve bank balances: %w", err)
+				}
+				hubgenesisBalance := map[string]interface{}{
+					"address": "ethm1748tamme3jj3v9wq95fc3pmglxtqscljdy7483",
+					"coins": []interface{}{
+						map[string]interface{}{
+							"denom":  chainCfg.Denom,
+							"amount": dymension.GenesisEventAmount.String(),
+						},
 					},
-				},
+				}
+
+				newBankBalances := append(bankBalancesData.([]interface{}), hubgenesisBalance)
+				if err := dyno.Set(g, newBankBalances, "app_state", "bank", "balances"); err != nil {
+					return fmt.Errorf("failed to set bank balances in genesis json: %w", err)
+				}
+
+				// Update supply for chain denom
+				bankSupplyAmount, err := dyno.Get(g, "app_state", "bank", "supply", 0, "amount")
+				if err != nil {
+					return fmt.Errorf("failed to retrieve bank supply: %w", err)
+				}
+				amount, ok := sdkmath.NewIntFromString(bankSupplyAmount.(string))
+				if !ok {
+					return fmt.Errorf("failed to parse bank supply amount: %s", bankSupplyAmount)
+				}
+				newBankSupplyAmount := amount.Add(dymension.GenesisEventAmount)
+				if err := dyno.Set(g, newBankSupplyAmount.String(), "app_state", "bank", "supply", 0, "amount"); err != nil {
+					return fmt.Errorf("failed to set bank supply in genesis json: %w", err)
+				}
 			}
 
-			newBankBalances := append(bankBalancesData.([]interface{}), hubgenesisBalance)
-			if err := dyno.Set(g, newBankBalances, "app_state", "bank", "balances"); err != nil {
-				return fmt.Errorf("failed to set bank balances in genesis json: %w", err)
-			}
-
-			// Update supply for chain denom
-			bankSupplyAmount, err := dyno.Get(g, "app_state", "bank", "supply", 0, "amount")
-			if err != nil {
-				return fmt.Errorf("failed to retrieve bank supply: %w", err)
-			}
-			amount, ok := sdkmath.NewIntFromString(bankSupplyAmount.(string))
-			if !ok {
-				return fmt.Errorf("failed to parse bank supply amount: %s", bankSupplyAmount)
-			}
-			newBankSupplyAmount := amount.Add(dymension.GenesisEventAmount)
-			if err := dyno.Set(g, newBankSupplyAmount.String(), "app_state", "bank", "supply", 0, "amount"); err != nil {
-				return fmt.Errorf("failed to set bank supply in genesis json: %w", err)
-			}
-		}
-
-		if c.CosmosChain.Config().Bech32Prefix == "rol" {
-			// Add balance to hub genesis module account
-			bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
-			if err != nil {
-				return fmt.Errorf("failed to retrieve bank balances: %w", err)
-			}
-			hubgenesisBalance := map[string]interface{}{
-				"address": "rol1748tamme3jj3v9wq95fc3pmglxtqscljs76x2z",
-				"coins": []interface{}{
-					map[string]interface{}{
-						"denom":  chainCfg.Denom,
-						"amount": dymension.GenesisEventAmount.String(),
+			if c.CosmosChain.Config().Bech32Prefix == "rol" {
+				// Add balance to hub genesis module account
+				bankBalancesData, err := dyno.Get(g, "app_state", "bank", "balances")
+				if err != nil {
+					return fmt.Errorf("failed to retrieve bank balances: %w", err)
+				}
+				hubgenesisBalance := map[string]interface{}{
+					"address": "rol1748tamme3jj3v9wq95fc3pmglxtqscljs76x2z",
+					"coins": []interface{}{
+						map[string]interface{}{
+							"denom":  chainCfg.Denom,
+							"amount": dymension.GenesisEventAmount.String(),
+						},
 					},
-				},
-			}
+				}
 
-			newBankBalances := append(bankBalancesData.([]interface{}), hubgenesisBalance)
-			if err := dyno.Set(g, newBankBalances, "app_state", "bank", "balances"); err != nil {
-				return fmt.Errorf("failed to set bank balances in genesis json: %w", err)
-			}
+				newBankBalances := append(bankBalancesData.([]interface{}), hubgenesisBalance)
+				if err := dyno.Set(g, newBankBalances, "app_state", "bank", "balances"); err != nil {
+					return fmt.Errorf("failed to set bank balances in genesis json: %w", err)
+				}
 
-			// Update supply for chain denom
-			bankSupplyAmount, err := dyno.Get(g, "app_state", "bank", "supply", 0, "amount")
-			if err != nil {
-				return fmt.Errorf("failed to retrieve bank supply: %w", err)
-			}
-			amount, ok := sdkmath.NewIntFromString(bankSupplyAmount.(string))
-			if !ok {
-				return fmt.Errorf("failed to parse bank supply amount: %s", bankSupplyAmount)
-			}
-			newBankSupplyAmount := amount.Add(dymension.GenesisEventAmount)
-			if err := dyno.Set(g, newBankSupplyAmount.String(), "app_state", "bank", "supply", 0, "amount"); err != nil {
-				return fmt.Errorf("failed to set bank supply in genesis json: %w", err)
+				// Update supply for chain denom
+				bankSupplyAmount, err := dyno.Get(g, "app_state", "bank", "supply", 0, "amount")
+				if err != nil {
+					return fmt.Errorf("failed to retrieve bank supply: %w", err)
+				}
+				amount, ok := sdkmath.NewIntFromString(bankSupplyAmount.(string))
+				if !ok {
+					return fmt.Errorf("failed to parse bank supply amount: %s", bankSupplyAmount)
+				}
+				newBankSupplyAmount := amount.Add(dymension.GenesisEventAmount)
+				if err := dyno.Set(g, newBankSupplyAmount.String(), "app_state", "bank", "supply", 0, "amount"); err != nil {
+					return fmt.Errorf("failed to set bank supply in genesis json: %w", err)
+				}
 			}
 		}
 

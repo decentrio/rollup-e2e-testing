@@ -80,7 +80,7 @@ func (c *GmRollApp) Start(testName string, ctx context.Context, additionalGenesi
 	return testutil.WaitForBlocks(ctx, 5, c.GetNode())
 }
 
-func (c *GmRollApp) Configuration(testName string, ctx context.Context, forkRollAppId string, gensisContent []byte, additionalGenesisWallets ...ibc.WalletData) error {
+func (c *GmRollApp) Configuration(testName string, ctx context.Context, forkRollAppId string, gensisContent []byte, genesisAccount bool, additionalGenesisWallets ...ibc.WalletData) error {
 	chainCfg := c.Config()
 
 	decimalPow := int64(math.Pow10(int(*chainCfg.CoinDecimals)))

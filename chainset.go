@@ -66,11 +66,11 @@ func (cs *chainSet) Initialize(ctx context.Context, testName string, cli *client
 }
 
 // Configuration concurrently calls Configuration against each rollapp chain in the set.
-func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, forkRollAppId string, gensisContent []byte) error {
+func (cs *chainSet) Configuration(ctx context.Context, testName string, additionalGenesisWallets map[ibc.Chain][]ibc.WalletData, forkRollAppId string, gensisContent []byte, genesisAccount bool) error {
 	for c := range cs.chains {
 		c := c
 		if rollApp, ok := c.(ibc.RollApp); ok {
-			err := rollApp.Configuration(testName, ctx, forkRollAppId, gensisContent, additionalGenesisWallets[c]...)
+			err := rollApp.Configuration(testName, ctx, forkRollAppId, gensisContent, genesisAccount, additionalGenesisWallets[c]...)
 			if err != nil {
 				return fmt.Errorf("failed to configuration chain %s: %w", c.Config().Name, err)
 			}

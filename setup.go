@@ -273,7 +273,7 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 		return err
 	}
 
-	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts, forkRollAppId, gensisContent); err != nil {
+	if err := s.cs.Configuration(ctx, opts.TestName, walletAmounts, forkRollAppId, gensisContent, genesisAcc); err != nil {
 		return fmt.Errorf("failed to configuration chains: %w", err)
 	}
 

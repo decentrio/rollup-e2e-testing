@@ -1023,21 +1023,21 @@ func (node *Node) CreateGroupPolicy(ctx context.Context, keyName, metadata, poli
 	return hash, err
 }
 
-func (node *Node) QueryGroupInfo(ctx context.Context, groupId string) (QueryGroupPolicyInfoResponse, error) {
+func (node *Node) QueryGroupInfo(ctx context.Context, groupId string) (*QueryGroupPolicyInfoResponse, error) {
 	command := []string{"group", "group-info", groupId}
 	stdout, _, err := node.ExecQuery(ctx, command...)
 	if err != nil {
-		return QueryGroupPolicyInfoResponse{}, err
+		return &QueryGroupPolicyInfoResponse{}, err
 	}
 
 	var groupPolicyInfo QueryGroupPolicyInfoResponse
 
 	err = json.Unmarshal(stdout, &groupPolicyInfo)
 	if err != nil {
-		return QueryGroupPolicyInfoResponse{}, err
+		return &QueryGroupPolicyInfoResponse{}, err
 	}
 
-	return groupPolicyInfo, nil
+	return &groupPolicyInfo, nil
 }
 
 func (node *Node) QueryGroupPoliciesByAdmin(ctx context.Context, admin string) (QueryGroupPoliciesByAdminResponse, error) {

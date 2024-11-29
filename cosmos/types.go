@@ -2,7 +2,7 @@ package cosmos
 
 import (
 	"encoding/json"
-
+	"time"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -416,4 +416,31 @@ type QueryGetNextProposerByRollappResponse struct {
 
 type QueryGetProposerByRollappResponse struct {
 	ProposerAddr string `json:"proposerAddr,omitempty"`
+}
+
+
+type QueryGroupPolicyInfoResponse struct {
+	// info is the GroupPolicyInfo of the group policy.
+	Info *GroupPolicyInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
+}
+
+// GroupPolicyInfo represents the high-level on-chain information for a group policy.
+type GroupPolicyInfo struct {
+	// address is the account address of group policy.
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// group_id is the unique ID of the group.
+	GroupId uint64 `protobuf:"varint,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	// admin is the account address of the group admin.
+	Admin string `protobuf:"bytes,3,opt,name=admin,proto3" json:"admin,omitempty"`
+	// metadata is any arbitrary metadata attached to the group policy.
+	// the recommended format of the metadata is to be found here:
+	// https://docs.cosmos.network/v0.47/modules/group#decision-policy-1
+	Metadata string `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// version is used to track changes to a group's GroupPolicyInfo structure that
+	// would create a different result on a running proposal.
+	Version uint64 `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`
+	// decision_policy specifies the group policy's decision policy.
+	DecisionPolicy **codectypes.Any `protobuf:"bytes,6,opt,name=decision_policy,json=decisionPolicy,proto3" json:"decision_policy,omitempty"`
+	// created_at is a timestamp specifying when a group policy was created.
+	CreatedAt time.Time `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3,stdtime" json:"created_at"`
 }

@@ -449,6 +449,5 @@ type QueryGroupPoliciesByAdminResponse struct {
 	// group_policies are the group policies info with provided admin.
 	GroupPolicies []*GroupPolicyInfo `protobuf:"bytes,1,rep,name=group_policies,json=groupPolicies,proto3" json:"group_policies,omitempty"`
 	// pagination defines the pagination in the response.
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
-

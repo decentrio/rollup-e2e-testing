@@ -1040,6 +1040,23 @@ func (node *Node) QueryGroupInfo(ctx context.Context, groupId string) (QueryGrou
 	return groupPolicyInfo, nil
 }
 
+func (node *Node) QueryGroupPoliciesByAdmin(ctx context.Context, admin string) (QueryGroupPoliciesByAdminResponse, error) {
+	command := []string{"group", "group-policies-by-admin", admin}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGroupPoliciesByAdminResponse{}, err
+	}
+
+	var groupPolicies QueryGroupPoliciesByAdminResponse
+
+	err = json.Unmarshal(stdout, &groupPolicies)
+	if err != nil {
+		return QueryGroupPoliciesByAdminResponse{}, err
+	}
+
+	return groupPolicies, nil
+}
+
 func (node *Node) GrantAuthorization(ctx context.Context, keyName, policyAddress, spendLimit, rollappID, denoms, minFeePercentage, maxPrice, feeShare string, settlementValidated bool) (string, error) {
 	var command []string
 	if settlementValidated {

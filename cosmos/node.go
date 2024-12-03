@@ -1310,7 +1310,6 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRol
 	fmt.Println("QueryOperatorAddress")
 	var command []string
 	command = append(command, "sequencers", "sequencers")
-	fmt.Println("Command:", command)
 
 	stdout, _, err := node.ExecQuery(ctx, command...)
 	if err != nil {
@@ -1318,7 +1317,7 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRol
 	}
 
 	fmt.Println("Commandoutputhung:", string(stdout))
-
+	// Unmarshal the response
 	var sequencersResponse QuerySequencersRollappResponse
 	err = json.Unmarshal(stdout, &sequencersResponse)
 	if err != nil {

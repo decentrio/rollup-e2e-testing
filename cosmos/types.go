@@ -138,6 +138,10 @@ type StateIndexResponse struct {
 	StateIndex StateIndex `json:"stateIndex"`
 }
 
+type QueryGetLatestHeightResponse struct {
+	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+}
+
 type StateIndex struct {
 	RollappID string `json:"rollappId"`
 	Index     string `json:"index"`

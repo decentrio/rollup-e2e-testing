@@ -1316,7 +1316,6 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRol
 		return nil, err
 	}
 
-	fmt.Println("Commandoutputhung:", string(stdout))
 	// Unmarshal the response
 	var sequencersResponse QuerySequencersRollappResponse
 	err = json.Unmarshal(stdout, &sequencersResponse)
@@ -1330,7 +1329,7 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRol
 		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
 	}
 
-	fmt.Printf("Operator Address: %s", operatorAddress)
+	fmt.Printf("Operator Address: %s\n", operatorAddress)
 
 	return &QuerySequencersRollappResponse{
 		Sequencers: sequencersResponse.Sequencers,
@@ -1347,7 +1346,6 @@ func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewa
 		return nil, err
 	}
 
-	fmt.Println("Commandoutputhung2:", string(stdout))
 	// Unmarshal the response
 	var rewardAddressResponse QueryRewardAddressResponse
 	err = json.Unmarshal(stdout, &rewardAddressResponse)
@@ -1358,8 +1356,6 @@ func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewa
 
 	var reward_addr string
 	reward_addr = rewardAddressResponse.RewardAddr
-
-	fmt.Printf("Operator Address: %s", reward_addr)
 
 	return &QueryRewardAddressResponse{
 		RewardAddr: reward_addr,

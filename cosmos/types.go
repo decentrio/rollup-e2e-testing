@@ -252,17 +252,9 @@ type Validator struct {
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
-// type QuerySequencersRewardAddressResponse struct {
-// 	RewardAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-// }
-
 type QueryRewardAddressResponse struct {
 	RewardAddr string `protobuf:"bytes,1,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
-
-// type QueryRewardAddressResponse struct {
-// 	RewardAddr string `protobuf:"bytes,1,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
-// }
 
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).

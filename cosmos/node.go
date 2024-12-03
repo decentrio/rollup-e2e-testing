@@ -1306,10 +1306,10 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	}, nil
 }
 
-func (node *Node) QueryOperatorAddress(ctx context.Context, rollappId string) (*QuerySequencersRollappResponse, error) {
+func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRollappResponse, error) {
 	fmt.Println("QueryOperatorAddress")
 	var command []string
-	command = append(command, "sequencers", "sequencers", rollappId)
+	command = append(command, "sequencers", "sequencers")
 	fmt.Println("Command:", command)
 
 	stdout, _, err := node.ExecQuery(ctx, command...)

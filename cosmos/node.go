@@ -1326,18 +1326,43 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRol
 	}
 
 	var operatorAddress string
-	var rewardAddr string
 	if len(sequencersResponse.Sequencers) > 0 {
 		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
-		// rewardAddr = sequencersResponse.RewardAddr          
 	}
 
-	fmt.Printf("Operator Address: %s, Reward Address: %s\n", operatorAddress, rewardAddr)
-
+	fmt.Printf("Operator Address: %s", operatorAddress)
 
 	return &QuerySequencersRollappResponse{
-		Sequencers:   sequencersResponse.Sequencers,
-		// RewardAddr: rewardAddr,
+		Sequencers: sequencersResponse.Sequencers,
+	}, nil
+}
+
+func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewardAddress string) (*QuerySequencersRewardAddressResponse, error) {
+	fmt.Println("Reward address", rewardAddress)
+	var command []string
+	command = append(command, "sequencers", "reward-address", rewardAddress)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Commandoutputhung2:", string(stdout))
+	// Unmarshal the response
+	var rewardAddressResponse QuerySequencersRewardAddressResponse
+	err = json.Unmarshal(stdout, &rewardAddressResponse)
+	if err != nil {
+		fmt.Println("Error on unmarshal stdout:", err)
+		return nil, err
+	}
+
+	var reward_addr string
+	reward_addr = rewardAddressResponse.RewardAddress
+
+	fmt.Printf("Operator Address: %s", reward_addr)
+
+	return &QuerySequencersRewardAddressResponse{
+		RewardAddress: reward_addr,
 	}, nil
 }
 

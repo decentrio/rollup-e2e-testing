@@ -244,15 +244,16 @@ type QuerySequencersResponse struct {
 
 // QuerySequencersResponse is response type for the Query/Sequencers RPC method
 type QuerySequencersRollappResponse struct {
-	// Sequencers contains all the queried sequencers.
 	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
-	// Pagination defines the pagination in the response.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 type Validator struct {
-	// operator_address defines the address of the validator's operator; bech encoded in JSON.
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+}
+
+type QuerySequencersRewardAddressResponse struct {
+	RewardAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
 // type QueryRewardAddressResponse struct {

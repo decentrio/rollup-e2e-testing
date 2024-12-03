@@ -1310,6 +1310,7 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QueryOperatorAddre
 	fmt.Println("QueryOperatorAddress")
 	var command []string
 	command = append(command, "sequencers", "sequencers")
+	fmt.Println("Command:", command)
 
 	stdout, _, err := node.ExecQuery(ctx, command...)
 	if err != nil {

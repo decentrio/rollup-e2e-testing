@@ -6,6 +6,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const (
@@ -242,11 +243,12 @@ type QuerySequencersResponse struct {
 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-type QueryOperatorAddressResponse struct {
-	// Operator is the bech32-encoded address of the actor sending the update
-	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
-	// RewardAddr is a bech32 encoded sdk acc address
-	// RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+// QuerySequencersResponse is response type for the Query/Sequencers RPC method
+type QuerySequencersRollappResponse struct {
+	// Sequencers contains all the queried sequencers.
+	Sequencers []stakingtypes.Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	// Pagination defines the pagination in the response.
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 // type QueryRewardAddressResponse struct {

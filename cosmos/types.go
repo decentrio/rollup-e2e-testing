@@ -361,7 +361,7 @@ type CelestiaBlockHeader struct {
 
 type QueryPendingPacketByReceiverListResponse struct {
 	RollappPackets []RollappPacket     `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
-	Pagination     *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination     PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 type RollappPacket struct {

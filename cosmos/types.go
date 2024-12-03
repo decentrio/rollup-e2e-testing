@@ -246,7 +246,7 @@ type QueryOperatorAddressResponse struct {
 	// Operator is the bech32-encoded address of the actor sending the update
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// RewardAddr is a bech32 encoded sdk acc address
-	RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+	// RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
 
 // type QueryRewardAddressResponse struct {

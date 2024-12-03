@@ -1307,6 +1307,7 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 }
 
 func (node *Node) QueryOperatorAddress(ctx context.Context) (*QueryOperatorAddressResponse, error) {
+	fmt.Println("QueryOperatorAddress")
 	var command []string
 	command = append(command, "sequencers", "sequencers")
 
@@ -1328,15 +1329,15 @@ func (node *Node) QueryOperatorAddress(ctx context.Context) (*QueryOperatorAddre
 	var rewardAddr string
 	if len(sequencersResponse.Operator) > 0 {
 		operatorAddress = sequencersResponse.Operator
-		rewardAddr = sequencersResponse.RewardAddr          
+		// rewardAddr = sequencersResponse.RewardAddr          
 	}
 
 	fmt.Printf("Operator Address: %s, Reward Address: %s\n", operatorAddress, rewardAddr)
 
 
 	return &QueryOperatorAddressResponse{
-		Operator:   operatorAddress,
-		RewardAddr: rewardAddr,
+		Operator:   string(stdout),
+		// RewardAddr: rewardAddr,
 	}, nil
 }
 

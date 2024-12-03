@@ -1306,6 +1306,40 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	}, nil
 }
 
+func (node *Node) QueryOperatorAddress(ctx context.Context) (*QueryOperatorAddressResponse, error) {
+	var command []string
+	command = append(command, "sequencers", "sequencers")
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Commandoutputhung:", string(stdout))
+
+	var sequencersResponse QueryOperatorAddressResponse
+	err = json.Unmarshal(stdout, &sequencersResponse)
+	if err != nil {
+		fmt.Println("Error on unmarshal stdout:", err)
+		return nil, err
+	}
+
+	var operatorAddress string
+	var rewardAddr string
+	if len(sequencersResponse.Operator) > 0 {
+		operatorAddress = sequencersResponse.Operator
+		rewardAddr = sequencersResponse.RewardAddr          
+	}
+
+	fmt.Printf("Operator Address: %s, Reward Address: %s\n", operatorAddress, rewardAddr)
+
+
+	return &QueryOperatorAddressResponse{
+		Operator:   operatorAddress,
+		RewardAddr: rewardAddr,
+	}, nil
+}
+
 // StoreContract takes a file path to smart contract and stores it on-chain. Returns the contracts code id.
 func (node *Node) StoreContract(ctx context.Context, keyName string, fileName string, extraExecTxArgs ...string) (string, error) {
 	_, file := filepath.Split(fileName)

@@ -259,9 +259,9 @@ type QueryRewardAddressResponse struct {
 	RewardAddr string `protobuf:"bytes,1,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
 
-type MsgUpdateRewardAddress struct {
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+type ConsensusMsgUpsertSequencer struct {
+	Operator string `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
+	RewardAddr string `protobuf:"bytes,4,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
 
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).

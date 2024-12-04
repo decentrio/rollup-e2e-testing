@@ -1380,7 +1380,7 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 	}
 
 	var reward_addr string
-	reward_addr = rewardAddressResponse.Operator
+	reward_addr = rewardAddressResponse.RewardAddr
 
 	return &MsgUpdateRewardAddress{
 		RewardAddr: reward_addr,

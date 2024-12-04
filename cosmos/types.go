@@ -260,7 +260,7 @@ type QueryRewardAddressResponse struct {
 }
 
 type MsgUpdateRewardAddress struct {
-	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
 

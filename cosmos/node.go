@@ -1361,7 +1361,37 @@ func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewa
 	}, nil
 }
 
-func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*ConsensusMsgUpsertSequencer, error) {
+// func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*ConsensusMsgUpsertSequencer, error) {
+// 	fmt.Println("QuerySequencersRewardAddressByDymResponse")
+// 	var command []string
+// 	command = append(command, "sequencer", "list-sequencer")
+
+// 	stdout, _, err := node.ExecQuery(ctx, command...)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	fmt.Println("stdoutaaaa: ", stdout)
+
+// 	// Unmarshal the response
+// 	var rewardAddressResponse ConsensusMsgUpsertSequencer
+// 	err = json.Unmarshal(stdout, &rewardAddressResponse)
+// 	if err != nil {
+// 		fmt.Println("Error on unmarshal stdout:", err)
+// 		return nil, err
+// 	}
+
+// 	var reward_addr string
+// 	reward_addr = rewardAddressResponse.RewardAddr
+// 	var operator_addr string
+// 	operator_addr = rewardAddressResponse.Operator
+
+// 	return &ConsensusMsgUpsertSequencer{
+// 		RewardAddr: reward_addr,
+// 		Operator:   operator_addr,
+// 	}, nil
+// }
+
+func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*MsgUpdateRewardAddress, error) {
 	fmt.Println("QuerySequencersRewardAddressByDymResponse")
 	var command []string
 	command = append(command, "sequencer", "list-sequencer")
@@ -1373,7 +1403,7 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 	fmt.Println("stdoutaaaa: ", stdout)
 
 	// Unmarshal the response
-	var rewardAddressResponse ConsensusMsgUpsertSequencer
+	var rewardAddressResponse MsgUpdateRewardAddress
 	err = json.Unmarshal(stdout, &rewardAddressResponse)
 	if err != nil {
 		fmt.Println("Error on unmarshal stdout:", err)
@@ -1382,12 +1412,12 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 
 	var reward_addr string
 	reward_addr = rewardAddressResponse.RewardAddr
-	var operator_addr string
-	operator_addr = rewardAddressResponse.Operator
+	var creator_addr string
+	creator_addr = rewardAddressResponse.Creator
 
-	return &ConsensusMsgUpsertSequencer{
+	return &MsgUpdateRewardAddress{
 		RewardAddr: reward_addr,
-		Operator:   operator_addr,
+		Creator:   creator_addr,
 	}, nil
 }
 

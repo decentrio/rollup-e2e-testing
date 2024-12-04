@@ -1400,7 +1400,7 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("stdoutaaaa: ", stdout)
+	fmt.Println("stdoutaaaa: ", string(stdout))
 
 	// Unmarshal the response
 	var rewardAddressResponse MsgUpdateRewardAddress
@@ -1409,15 +1409,16 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 		fmt.Println("Error on unmarshal stdout:", err)
 		return nil, err
 	}
+	fmt.Println("rewardAddressResponse: " , rewardAddressResponse)
 
 	var reward_addr string
 	reward_addr = rewardAddressResponse.RewardAddr
-	var creator_addr string
-	creator_addr = rewardAddressResponse.Creator
+	// var creator_addr string
+	// creator_addr = rewardAddressResponse.Creator
 
 	return &MsgUpdateRewardAddress{
 		RewardAddr: reward_addr,
-		Creator:   creator_addr,
+		// Creator:   creator_addr,
 	}, nil
 }
 

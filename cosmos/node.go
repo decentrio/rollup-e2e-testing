@@ -1306,37 +1306,38 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	}, nil
 }
 
-// func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRollappResponse, error) {
-// 	fmt.Println("QueryOperatorAddress")
-// 	var command []string
-// 	command = append(command, "sequencers", "sequencers")
+func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRollappResponse, error) {
+	fmt.Println("QueryOperatorAddress")
+	var command []string
+	command = append(command, "sequencers", "sequencers")
 
-// 	stdout, _, err := node.ExecQuery(ctx, command...)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// Unmarshal the response
-// 	var sequencersResponse QuerySequencersRollappResponse
-// 	err = json.Unmarshal(stdout, &sequencersResponse)
-// 	if err != nil {
-// 		fmt.Println("Error on unmarshal stdout:", err)
-// 		return nil, err
-// 	}
+	// Unmarshal the response
+	var sequencersResponse QuerySequencersRollappResponse
+	err = json.Unmarshal(stdout, &sequencersResponse)
+	if err != nil {
+		fmt.Println("Error on unmarshal stdout:", err)
+		return nil, err
+	}
 
-// 	var operatorAddress string
-// 	if len(sequencersResponse.Sequencers) > 0 {
-// 		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
-// 	}
+	var operatorAddress string
+	if len(sequencersResponse.Sequencers) > 0 {
+		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
+	}
 
-// 	fmt.Printf("Operator Address: %s\n", operatorAddress)
+	fmt.Printf("Operator Address: %s\n", operatorAddress)
 
-// 	return &QuerySequencersRollappResponse{
-// 		Sequencers: sequencersResponse.Sequencers,
-// 	}, nil
-// }
+	return &QuerySequencersRollappResponse{
+		Sequencers: sequencersResponse.Sequencers,
+	}, nil
+}
 
 func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewardAddress string) (*QueryRewardAddressResponse, error) {
+	fmt.Println("Reward address", rewardAddress)
 	var command []string
 	command = append(command, "sequencers", "reward-address", rewardAddress)
 
@@ -1361,35 +1362,35 @@ func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewa
 	}, nil
 }
 
-func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*ConsensusMsgUpsertSequencer, error) {
-	fmt.Println("QuerySequencersRewardAddressByDymResponse")
-	var command []string
-	command = append(command, "sequencer", "list-sequencer")
+// func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*ConsensusMsgUpsertSequencer, error) {
+// 	fmt.Println("QuerySequencersRewardAddressByDymResponse")
+// 	var command []string
+// 	command = append(command, "sequencer", "list-sequencer")
 
-	stdout, _, err := node.ExecQuery(ctx, command...)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("stdoutaaaa: ", stdout)
+// 	stdout, _, err := node.ExecQuery(ctx, command...)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	fmt.Println("stdoutaaaa: ", stdout)
 
-	// Unmarshal the response
-	var rewardAddressResponse ConsensusMsgUpsertSequencer
-	err = json.Unmarshal(stdout, &rewardAddressResponse)
-	if err != nil {
-		fmt.Println("Error on unmarshal stdout:", err)
-		return nil, err
-	}
+// 	// Unmarshal the response
+// 	var rewardAddressResponse ConsensusMsgUpsertSequencer
+// 	err = json.Unmarshal(stdout, &rewardAddressResponse)
+// 	if err != nil {
+// 		fmt.Println("Error on unmarshal stdout:", err)
+// 		return nil, err
+// 	}
 
-	var reward_addr string
-	reward_addr = rewardAddressResponse.RewardAddr
-	var operator_addr string
-	operator_addr = rewardAddressResponse.Operator
+// 	var reward_addr string
+// 	reward_addr = rewardAddressResponse.RewardAddr
+// 	var operator_addr string
+// 	operator_addr = rewardAddressResponse.Operator
 
-	return &ConsensusMsgUpsertSequencer{
-		RewardAddr: reward_addr,
-		Operator:   operator_addr,
-	}, nil
-}
+// 	return &ConsensusMsgUpsertSequencer{
+// 		RewardAddr: reward_addr,
+// 		Operator:   operator_addr,
+// 	}, nil
+// }
 
 // func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*MsgUpdateRewardAddress, error) {
 // 	var command []string

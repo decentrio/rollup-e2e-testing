@@ -246,14 +246,14 @@ type QuerySequencersResponse struct {
 }
 
 // // QuerySequencersResponse is response type for the Query/Sequencers RPC method
-// type QuerySequencersRollappResponse struct {
-// 	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
-// 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-// }
+type QuerySequencersRollappResponse struct {
+	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
 
-// type Validator struct {
-// 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-// }
+type Validator struct {
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+}
 
 type QueryRewardAddressResponse struct {
 	RewardAddr string `protobuf:"bytes,1,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`

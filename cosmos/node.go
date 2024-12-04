@@ -1382,9 +1382,12 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 
 	var reward_addr string
 	reward_addr = rewardAddressResponse.RewardAddr
+	var operator_addr string
+	operator_addr = rewardAddressResponse.Operator
 
 	return &ConsensusMsgUpsertSequencer{
 		RewardAddr: reward_addr,
+		Operator:   operator_addr,
 	}, nil
 }
 

@@ -1362,6 +1362,7 @@ func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewa
 }
 
 func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*MsgUpdateRewardAddress, error) {
+	fmt.Println("QuerySequencersRewardAddressByDymResponse")
 	var command []string
 	command = append(command, "sequencer", "list-sequencer")
 

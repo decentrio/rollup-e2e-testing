@@ -1306,60 +1306,60 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	}, nil
 }
 
-func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRollappResponse, error) {
-	fmt.Println("QueryOperatorAddress")
-	var command []string
-	command = append(command, "sequencers", "sequencers")
+// func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRollappResponse, error) {
+// 	fmt.Println("QueryOperatorAddress")
+// 	var command []string
+// 	command = append(command, "sequencers", "sequencers")
 
-	stdout, _, err := node.ExecQuery(ctx, command...)
-	if err != nil {
-		return nil, err
-	}
+// 	stdout, _, err := node.ExecQuery(ctx, command...)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// Unmarshal the response
-	var sequencersResponse QuerySequencersRollappResponse
-	err = json.Unmarshal(stdout, &sequencersResponse)
-	if err != nil {
-		fmt.Println("Error on unmarshal stdout:", err)
-		return nil, err
-	}
+// 	// Unmarshal the response
+// 	var sequencersResponse QuerySequencersRollappResponse
+// 	err = json.Unmarshal(stdout, &sequencersResponse)
+// 	if err != nil {
+// 		fmt.Println("Error on unmarshal stdout:", err)
+// 		return nil, err
+// 	}
 
-	var operatorAddress string
-	if len(sequencersResponse.Sequencers) > 0 {
-		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
-	}
+// 	var operatorAddress string
+// 	if len(sequencersResponse.Sequencers) > 0 {
+// 		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
+// 	}
 
-	fmt.Printf("Operator Address: %s\n", operatorAddress)
+// 	fmt.Printf("Operator Address: %s\n", operatorAddress)
 
-	return &QuerySequencersRollappResponse{
-		Sequencers: sequencersResponse.Sequencers,
-	}, nil
-}
+// 	return &QuerySequencersRollappResponse{
+// 		Sequencers: sequencersResponse.Sequencers,
+// 	}, nil
+// }
 
-func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewardAddress string) (*QueryRewardAddressResponse, error) {
-	var command []string
-	command = append(command, "sequencers", "reward-address", rewardAddress)
+// func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewardAddress string) (*QueryRewardAddressResponse, error) {
+// 	var command []string
+// 	command = append(command, "sequencers", "reward-address", rewardAddress)
 
-	stdout, _, err := node.ExecQuery(ctx, command...)
-	if err != nil {
-		return nil, err
-	}
+// 	stdout, _, err := node.ExecQuery(ctx, command...)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// Unmarshal the response
-	var rewardAddressResponse QueryRewardAddressResponse
-	err = json.Unmarshal(stdout, &rewardAddressResponse)
-	if err != nil {
-		fmt.Println("Error on unmarshal stdout:", err)
-		return nil, err
-	}
+// 	// Unmarshal the response
+// 	var rewardAddressResponse QueryRewardAddressResponse
+// 	err = json.Unmarshal(stdout, &rewardAddressResponse)
+// 	if err != nil {
+// 		fmt.Println("Error on unmarshal stdout:", err)
+// 		return nil, err
+// 	}
 
-	var reward_addr string
-	reward_addr = rewardAddressResponse.RewardAddr
+// 	var reward_addr string
+// 	reward_addr = rewardAddressResponse.RewardAddr
 
-	return &QueryRewardAddressResponse{
-		RewardAddr: reward_addr,
-	}, nil
-}
+// 	return &QueryRewardAddressResponse{
+// 		RewardAddr: reward_addr,
+// 	}, nil
+// }
 
 // func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context) (*ConsensusMsgUpsertSequencer, error) {
 // 	fmt.Println("QuerySequencersRewardAddressByDymResponse")
@@ -1400,7 +1400,7 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("stdoutaaaa: ", string(stdout))
+	// fmt.Println("stdoutaaaa: ", string(stdout))
 
 	type Sequencer struct {
 		RewardAddr string `json:"reward_addr"`
@@ -1420,22 +1420,11 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 		return nil, fmt.Errorf("no sequencers found")
 	}
 	reward_addr := response.Sequencers[0].RewardAddr
-	fmt.Println("Extracted reward_addr: ", reward_addr)
+	// fmt.Println("Extracted reward_addr: ", reward_addr)
 
 	return &MsgUpdateRewardAddress{
 		RewardAddr: reward_addr,
 	}, nil
-
-
-	// var reward_addr string
-	// reward_addr = rewardAddressResponse.RewardAddr
-	// // var creator_addr string
-	// // creator_addr = rewardAddressResponse.Creator
-
-	// return &MsgUpdateRewardAddress{
-	// 	RewardAddr: reward_addr,
-	// 	// Creator:   creator_addr,
-	// }, nil
 }
 
 // StoreContract takes a file path to smart contract and stores it on-chain. Returns the contracts code id.

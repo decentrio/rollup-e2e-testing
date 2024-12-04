@@ -248,7 +248,7 @@ type QuerySequencersResponse struct {
 // QuerySequencersResponse is response type for the Query/Sequencers RPC method
 type QuerySequencersRollappResponse struct {
 	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 type Validator struct {

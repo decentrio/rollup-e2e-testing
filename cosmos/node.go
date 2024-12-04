@@ -1402,24 +1402,40 @@ func (node *Node) QuerySequencersRewardAddressByDymResponse(ctx context.Context)
 	}
 	fmt.Println("stdoutaaaa: ", string(stdout))
 
-	// Unmarshal the response
-	var rewardAddressResponse MsgUpdateRewardAddress
-	err = json.Unmarshal(stdout, &rewardAddressResponse)
+	type Sequencer struct {
+		RewardAddr string `json:"reward_addr"`
+	}
+	type Response struct {
+		Sequencers []Sequencer `json:"sequencers"`
+	}
+
+	var response Response
+	err = json.Unmarshal(stdout, &response)
 	if err != nil {
 		fmt.Println("Error on unmarshal stdout:", err)
 		return nil, err
 	}
-	fmt.Println("rewardAddressResponse: " , rewardAddressResponse)
 
-	var reward_addr string
-	reward_addr = rewardAddressResponse.RewardAddr
-	// var creator_addr string
-	// creator_addr = rewardAddressResponse.Creator
+	if len(response.Sequencers) == 0 {
+		return nil, fmt.Errorf("no sequencers found")
+	}
+	reward_addr := response.Sequencers[0].RewardAddr
+	fmt.Println("Extracted reward_addr: ", reward_addr)
 
 	return &MsgUpdateRewardAddress{
 		RewardAddr: reward_addr,
-		// Creator:   creator_addr,
 	}, nil
+
+
+	// var reward_addr string
+	// reward_addr = rewardAddressResponse.RewardAddr
+	// // var creator_addr string
+	// // creator_addr = rewardAddressResponse.Creator
+
+	// return &MsgUpdateRewardAddress{
+	// 	RewardAddr: reward_addr,
+	// 	// Creator:   creator_addr,
+	// }, nil
 }
 
 // StoreContract takes a file path to smart contract and stores it on-chain. Returns the contracts code id.

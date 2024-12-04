@@ -1458,6 +1458,23 @@ func (node *Node) QueryLatestStateIndex(ctx context.Context, rollappChainID stri
 	return &stateIndex, nil
 }
 
+func (node *Node) QueryLatestHeight(ctx context.Context, rollappChainID string) (*QueryGetLatestHeightResponse, error) {
+	var command []string
+	command = append(command, "rollapp", "latest-height", rollappChainID)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var stateHeight QueryGetLatestHeightResponse
+	err = json.Unmarshal(stdout, &stateHeight)
+	if err != nil {
+		return nil, err
+	}
+	return &stateHeight, nil
+}
+
 // QueryDenomMetadata returns denom metadata of a given denom
 func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomMetadata, error) {
 	var command []string

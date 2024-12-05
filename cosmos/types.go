@@ -5,7 +5,6 @@ import (
 	"time"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
 const (
@@ -136,6 +135,10 @@ type ContractStateModels struct {
 
 type StateIndexResponse struct {
 	StateIndex StateIndex `json:"stateIndex"`
+}
+
+type QueryGetLatestHeightResponse struct {
+	Height string `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
 }
 
 type StateIndex struct {
@@ -357,7 +360,7 @@ type CelestiaBlockHeader struct {
 
 type QueryPendingPacketByReceiverListResponse struct {
 	RollappPackets []RollappPacket     `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
-	Pagination     *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination     PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 type RollappPacket struct {

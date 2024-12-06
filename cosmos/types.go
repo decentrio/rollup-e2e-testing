@@ -245,7 +245,6 @@ type QuerySequencersResponse struct {
 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-// // QuerySequencersResponse is response type for the Query/Sequencers RPC method
 type QuerySequencersRollappResponse struct {
 	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -259,15 +258,10 @@ type QueryRewardAddressResponse struct {
 	RewardAddr string `protobuf:"bytes,1,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
 
-type ConsensusMsgUpsertSequencer struct {
-	Operator string `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
-	RewardAddr string `protobuf:"bytes,4,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+type MsgUpdateRewardAddress struct {
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
 }
-
-// type MsgUpdateRewardAddress struct {
-// 	// Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-// 	RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
-// }
 
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).

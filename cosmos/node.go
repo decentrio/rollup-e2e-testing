@@ -1306,6 +1306,60 @@ func (node *Node) QuerySequencerStatus(ctx context.Context, sequencerAddress str
 	}, nil
 }
 
+func (node *Node) QueryOperatorAddress(ctx context.Context) (*QuerySequencersRollappResponse, error) {
+	var command []string
+	command = append(command, "sequencers", "sequencers")
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the response
+	var sequencersResponse QuerySequencersRollappResponse
+	err = json.Unmarshal(stdout, &sequencersResponse)
+	if err != nil {
+		fmt.Println("Error on unmarshal stdout:", err)
+		return nil, err
+	}
+
+	var operatorAddress string
+	if len(sequencersResponse.Sequencers) > 0 {
+		operatorAddress = sequencersResponse.Sequencers[0].OperatorAddress
+	}
+
+	fmt.Printf("Operator Address: %s\n", operatorAddress)
+
+	return &QuerySequencersRollappResponse{
+		Sequencers: sequencersResponse.Sequencers,
+	}, nil
+}
+
+func (node *Node) QuerySequencersRewardAddressResponse(ctx context.Context, rewardAddress string) (*QueryRewardAddressResponse, error) {
+	var command []string
+	command = append(command, "sequencers", "reward-address", rewardAddress)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the response
+	var rewardAddressResponse QueryRewardAddressResponse
+	err = json.Unmarshal(stdout, &rewardAddressResponse)
+	if err != nil {
+		fmt.Println("Error on unmarshal stdout:", err)
+		return nil, err
+	}
+
+	var reward_addr string
+	reward_addr = rewardAddressResponse.RewardAddr
+
+	return &QueryRewardAddressResponse{
+		RewardAddr: reward_addr,
+	}, nil
+}
+
 // StoreContract takes a file path to smart contract and stores it on-chain. Returns the contracts code id.
 func (node *Node) StoreContract(ctx context.Context, keyName string, fileName string, extraExecTxArgs ...string) (string, error) {
 	_, file := filepath.Split(fileName)

@@ -1156,6 +1156,11 @@ func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, am
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) RegisterERC20AsToken(ctx context.Context, keyName, contractAddress string) (string, error) {
+	command := []string{"erc20", "egister-erc20", contractAddress, "--gas", "auto"}
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 func (node *Node) QueryErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
 	command := []string{"erc20", "token-pair", token}
 	stdout, _, err := node.ExecQuery(ctx, command...)

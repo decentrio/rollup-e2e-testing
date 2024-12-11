@@ -1157,7 +1157,7 @@ func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, am
 }
 
 func (node *Node) RegisterERC20AsToken(ctx context.Context, keyName, contractAddress string) (string, error) {
-	command := []string{"erc20", "egister-erc20", contractAddress, "--gas", "auto"}
+	command := []string{"erc20", "register-erc20", contractAddress, "--gas", "auto"}
 	return node.ExecTx(ctx, keyName, command...)
 }
 

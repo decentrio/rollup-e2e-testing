@@ -2320,3 +2320,16 @@ func (node *Node) QueryChecksum(ctx context.Context) string {
 
 	return strings.ReplaceAll(string(stdout), "\n", "")
 }
+
+func (node *Node) UnsafeExportETHKey(ctx context.Context, keyName string) string {
+	var command []string
+	command = append(command, "keys", "unsafe-export-eth-key", keyName, "--keyring-backend", "test", "--home", node.HomeDir())
+
+	stdout, _, err := node.ExecBin(ctx, command...)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return strings.ReplaceAll(string(stdout), "\n", "")
+}

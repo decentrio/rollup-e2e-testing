@@ -479,7 +479,7 @@ func (s *Setup) configureRelayerKeys(ctx context.Context, rep *testreporter.Rela
 			} else {
 				err = c.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletData{
 					Address: wallet.FormattedAddress(),
-					Amount:  math.NewInt(10_000_000_000_000),
+					Amount:  math.NewInt(101_000_000_000_000_000),
 					Denom:   c.Config().Denom,
 				})
 				if err != nil {

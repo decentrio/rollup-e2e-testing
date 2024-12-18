@@ -1156,6 +1156,11 @@ func (node *Node) ConvertErc20(ctx context.Context, keyName, contractAddress, am
 	return node.ExecTx(ctx, keyName, command...)
 }
 
+func (node *Node) RegisterERC20AsToken(ctx context.Context, keyName, contractAddress string) (string, error) {
+	command := []string{"erc20", "register-erc20", contractAddress, "--gas", "auto"}
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 func (node *Node) QueryErc20TokenPair(ctx context.Context, token string) (TokenPair, error) {
 	command := []string{"erc20", "token-pair", token}
 	stdout, _, err := node.ExecQuery(ctx, command...)
@@ -2312,6 +2317,19 @@ func (node *Node) QueryChecksum(ctx context.Context) string {
 		return ""
 	}
 	fmt.Println("Checksum: ", string(stdout))
+
+	return strings.ReplaceAll(string(stdout), "\n", "")
+}
+
+func (node *Node) UnsafeExportETHKey(ctx context.Context, keyName string) string {
+	var command []string
+	command = append(command, "keys", "unsafe-export-eth-key", keyName, "--keyring-backend", "test", "--home", node.HomeDir())
+
+	stdout, _, err := node.ExecBin(ctx, command...)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
 
 	return strings.ReplaceAll(string(stdout), "\n", "")
 }

@@ -338,8 +338,15 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
 
+		var tokenless bool
+		if r.(ibc.Chain).Config().Denom == "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D" {
+			tokenless = true
+		} else {
+			tokenless = false
+		}
+
 		checksum := r.GetChecksum(ctx)
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, checksum, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, checksum, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, tokenless, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -734,9 +741,15 @@ func (c *DymHub) SetupRollAppWithExistHub(ctx context.Context) error {
 		// 	return err
 		// }
 		// metadataFileDir := validator0.HomeDir() + "/denommetadata.json"
+		var tokenless bool
+		if r.(ibc.Chain).Config().Denom == "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D" {
+			tokenless = true
+		} else {
+			tokenless = false
+		}
 
 		checksum := r.GetChecksum(ctx)
-		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, checksum, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, flags); err != nil {
+		if err := c.RegisterRollAppToHub(ctx, sequencerName, bech32, rollAppChainID, checksum, sequencer, r.(ibc.Chain).Config().Bech32Prefix, keyDir, tokenless, flags); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
 
@@ -754,8 +767,8 @@ func (c *DymHub) RegisterSequencerToHub(ctx context.Context, keyName, rollappCha
 }
 
 // RegisterRollAppToHub register rollapp on settlement.
-func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
-	return c.GetNode().RegisterRollAppToHub(ctx, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir, flags)
+func (c *DymHub) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, tokenless bool, flags map[string]string) error {
+	return c.GetNode().RegisterRollAppToHub(ctx, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir, tokenless, flags)
 }
 
 // RegisterRollAppToHub register rollapp on settlement.

@@ -852,7 +852,7 @@ func (node *Node) Gentx(ctx context.Context, name string, genesisSelfDelegation 
 	return err
 }
 
-func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, flags map[string]string) error {
+func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rollappChainID, checksum, sequencerAddr, bech32Prefix, keyDir string, tokenless bool, flags map[string]string) error {
 	var command []string
 	var vmtype string
 	const charset = "abcdefghijklmnopqrstuvwxyz"
@@ -865,7 +865,8 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 	keyPath := keyDir + "/sequencer_keys"
 
 	if lastThree == "EVM" {
-		if node.Chain.Config().Denom == "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D" {
+		if tokenless {
+			// Tokenless
 			vmtype = "EVM"
 			command = append(
 				command, "rollapp", "create-rollapp",

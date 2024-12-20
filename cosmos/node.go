@@ -865,12 +865,21 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 	keyPath := keyDir + "/sequencer_keys"
 
 	if lastThree == "EVM" {
-		vmtype = "EVM"
-		command = append(
-			command, "rollapp", "create-rollapp",
-			rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
-			"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000100000000000000000000",
-			"--broadcast-mode", "async", "--keyring-dir", keyPath)
+		if node.Chain.Config().Denom == "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D" {
+			vmtype = "EVM"
+			command = append(
+				command, "rollapp", "create-rollapp",
+				rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
+				"--initial-supply", "100000010000100000000000000000000",
+				"--broadcast-mode", "async", "--keyring-dir", keyPath)
+		} else {
+			vmtype = "EVM"
+			command = append(
+				command, "rollapp", "create-rollapp",
+				rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
+				"--native-denom", keyDir+"/native_denom.json", "--initial-supply", "100000010000100000000000000000000",
+				"--broadcast-mode", "async", "--keyring-dir", keyPath)
+		}
 	} else {
 		vmtype = "WASM"
 		command = append(

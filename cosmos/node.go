@@ -871,7 +871,7 @@ func (node *Node) RegisterRollAppToHub(ctx context.Context, keyName, bech32, rol
 			command = append(
 				command, "rollapp", "create-rollapp",
 				rollappChainID, string(alias), vmtype, "--bech32-prefix", bech32Prefix, "--init-sequencer", sequencerAddr, "--genesis-checksum", checksum, "--metadata", keyDir+"/metadata.json", "--genesis-accounts", bech32+":"+dymension.GenesisEventAmount.String(),
-				"--initial-supply", "100000010000100000000000000000000",
+				"--native-denom", keyDir+"/native_denom_tokenless.json", "--initial-supply", "100000010000100000000000000000000",
 				"--broadcast-mode", "async", "--keyring-dir", keyPath)
 		} else {
 			vmtype = "EVM"

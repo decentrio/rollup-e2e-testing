@@ -1011,6 +1011,22 @@ func (node *Node) DecreaseBond(ctx context.Context, keyName, keyDir, amount stri
 	return err
 }
 
+func (node *Node) QueryWasmCodes(ctx context.Context, keyName string) (QueryCodesResponse, error) {
+	command := []string{"wasm", "list-code"}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryCodesResponse{}, err
+	}
+
+	var resp QueryCodesResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return QueryCodesResponse{}, err
+	}
+
+	return resp, nil
+}
+
 func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
 	command := []string{"sequencer", "next-proposer", rollappId}
 	stdout, _, err := node.ExecQuery(ctx, command...)

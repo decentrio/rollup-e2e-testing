@@ -3,9 +3,9 @@ package cosmos
 import (
 	"encoding/json"
 	"time"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	github_com_tendermint_tendermint_libs_bytes "github.com/cometbft/cometbft/libs/bytes"
 )
 
 const (
@@ -247,7 +247,7 @@ type QuerySequencersResponse struct {
 }
 
 type QuerySequencersRollappResponse struct {
-	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Sequencers []Validator   `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -373,8 +373,8 @@ type CelestiaBlockHeader struct {
 }
 
 type QueryPendingPacketByReceiverListResponse struct {
-	RollappPackets []RollappPacket     `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
-	Pagination     PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	RollappPackets []RollappPacket `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
+	Pagination     PageResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 type RollappPacket struct {
@@ -435,7 +435,6 @@ type QueryGetProposerByRollappResponse struct {
 	ProposerAddr string `json:"proposerAddr,omitempty"`
 }
 
-
 type QueryGroupPolicyInfoResponse struct {
 	// info is the GroupPolicyInfo of the group policy.
 	Info *GroupPolicyInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
@@ -476,10 +475,10 @@ type QueryCodesResponse struct {
 }
 
 type CodeInfoResponse struct {
-	CodeID                string                                               `protobuf:"varint,1,opt,name=code_id,json=codeId,proto3" json:"id"`
-	Creator               string                                               `protobuf:"bytes,2,opt,name=creator,proto3" json:"creator,omitempty"`
-	DataHash              github_com_tendermint_tendermint_libs_bytes.HexBytes `protobuf:"bytes,3,opt,name=data_hash,json=dataHash,proto3,casttype=github.com/tendermint/tendermint/libs/bytes.HexBytes" json:"data_hash,omitempty"`
-	InstantiatePermission AccessConfig                                         `protobuf:"bytes,6,opt,name=instantiate_permission,json=instantiatePermission,proto3" json:"instantiate_permission"`
+	CodeID                string       `protobuf:"varint,1,opt,name=code_id,json=codeId,proto3" json:"id"`
+	Creator               string       `protobuf:"bytes,2,opt,name=creator,proto3" json:"creator,omitempty"`
+	DataHash              string       `protobuf:"bytes,3,opt,name=data_hash,json=dataHash,proto3,casttype=github.com/tendermint/tendermint/libs/bytes.HexBytes" json:"data_hash,omitempty"`
+	InstantiatePermission AccessConfig `protobuf:"bytes,6,opt,name=instantiate_permission,json=instantiatePermission,proto3" json:"instantiate_permission"`
 }
 
 type AccessConfig struct {

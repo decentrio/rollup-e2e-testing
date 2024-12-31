@@ -1011,6 +1011,14 @@ func (node *Node) DecreaseBond(ctx context.Context, keyName, keyDir, amount stri
 	return err
 }
 
+func (node *Node) WasmStore(ctx context.Context, keyName, path string) error {
+	var command []string
+	command = append(command, "wasm", "store", path)
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 func (node *Node) QueryWasmCodes(ctx context.Context, keyName string) (QueryCodesResponse, error) {
 	command := []string{"wasm", "list-code"}
 	stdout, _, err := node.ExecQuery(ctx, command...)

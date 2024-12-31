@@ -965,6 +965,22 @@ func (node *Node) RegisterEVMValidatorToHub(ctx context.Context, keyName string)
 	return err
 }
 
+func (node *Node) CreateDenomWasm(ctx context.Context, keyName, subDenom string) error {
+	var command []string
+	command = append(command, "tokenfactory", "create-denom", subDenom)
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
+func (node *Node) MintWasm(ctx context.Context, keyName, amount string) error {
+	var command []string
+	command = append(command, "tokenfactory", "mint", amount)
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 func (node *Node) Unbond(ctx context.Context, keyName, keyDir string) error {
 	var command []string
 	if keyDir != "" {

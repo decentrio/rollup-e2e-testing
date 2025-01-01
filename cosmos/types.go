@@ -469,24 +469,24 @@ type QueryGroupPoliciesByAdminResponse struct {
 }
 
 type QueryCodesResponse struct {
-	CodeInfos []CodeInfoResponse `protobuf:"bytes,1,rep,name=code_infos,json=codeInfos,proto3" json:"code_infos"`
+	CodeInfos []CodeInfoResponse `json:"code_infos"`
 	// pagination defines the pagination in the response.
-	Pagination PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination PageResponse `json:"pagination,omitempty"`
 }
 
 type CodeInfoResponse struct {
-	CodeID                string       `protobuf:"varint,1,opt,name=code_id,json=codeId,proto3" json:"id"`
-	Creator               string       `protobuf:"bytes,2,opt,name=creator,proto3" json:"creator,omitempty"`
-	DataHash              string       `protobuf:"bytes,3,opt,name=data_hash,json=dataHash,proto3,casttype=github.com/tendermint/tendermint/libs/bytes.HexBytes" json:"data_hash,omitempty"`
-	InstantiatePermission AccessConfig `protobuf:"bytes,6,opt,name=instantiate_permission,json=instantiatePermission,proto3" json:"instantiate_permission"`
+	CodeID                string       `json:"id"`
+	Creator               string       `json:"creator,omitempty"`
+	DataHash              string       `json:"data_hash,omitempty"`
+	InstantiatePermission AccessConfig `json:"instantiate_permission"`
 }
 
 type AccessConfig struct {
-	Permission AccessType `protobuf:"varint,1,opt,name=permission,proto3,enum=cosmwasm.wasm.v1.AccessType" json:"permission,omitempty" yaml:"permission"`
+	Permission AccessType `json:"permission,omitempty" yaml:"permission"`
 	// Address
 	// Deprecated: replaced by addresses
-	Address   string   `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty" yaml:"address"`
-	Addresses []string `protobuf:"bytes,3,rep,name=addresses,proto3" json:"addresses,omitempty" yaml:"addresses"`
+	Address   string   `json:"address,omitempty" yaml:"address"`
+	Addresses []string `json:"addresses,omitempty" yaml:"addresses"`
 }
 
 type AccessType string

@@ -1041,6 +1041,7 @@ func (node *Node) QueryWasmCodes(ctx context.Context, keyName string) (QueryCode
 	}
 	println("check len codeInfo: ", len(resp.CodeInfos))
 	println("check len codeInfo: ", resp.CodeInfos[0].CodeID)
+	println("check len codeInfo: ", resp.CodeInfos[0].Creator)
 	return resp, nil
 }
 

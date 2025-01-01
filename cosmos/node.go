@@ -1033,13 +1033,14 @@ func (node *Node) QueryWasmCodes(ctx context.Context, keyName string) (QueryCode
 	if err != nil {
 		return QueryCodesResponse{}, err
 	}
-
+	println("check stdout: ", string(stdout))
 	var resp QueryCodesResponse
 	err = json.Unmarshal(stdout, &resp)
 	if err != nil {
 		return QueryCodesResponse{}, err
 	}
-
+	println("check len codeInfo: ", len(resp.CodeInfos))
+	println("check len codeInfo: ", resp.CodeInfos[0].CodeID)
 	return resp, nil
 }
 

@@ -475,7 +475,7 @@ type QueryCodesResponse struct {
 }
 
 type CodeInfoResponse struct {
-	CodeID                string       `json:"id"`
+	CodeID                string       `json:"code_id"`
 	Creator               string       `json:"creator,omitempty"`
 	DataHash              string       `json:"data_hash,omitempty"`
 	InstantiatePermission AccessConfig `json:"instantiate_permission"`

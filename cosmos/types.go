@@ -501,7 +501,7 @@ type QueryContractsByCodeResponse struct {
 
 type QuerySmartContractStateResponse struct {
 	// Data contains the json data returned from the smart contract
-	Data []byte `protobuf:"bytes,1,opt,name=data,proto3,casttype=RawContractMessage" json:"data,omitempty"`
+	Data struct {
+		Balance string `json:"balance"`
+	} `json:"data"`
 }
-
-// type RawContractMessage []byte

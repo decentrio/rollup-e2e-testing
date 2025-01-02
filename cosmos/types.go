@@ -508,7 +508,7 @@ type QuerySmartContractCW20StateResponse struct {
 
 type QuerySmartContractICS20StateResponse struct {
 	// Data contains the json data returned from the smart contract
-	Port struct {
+	Data struct {
 		PortId string `json:"port_id"`
-	} `json:"port"`
+	} `json:"data"`
 }

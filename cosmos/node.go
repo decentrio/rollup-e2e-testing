@@ -1081,7 +1081,7 @@ func (node *Node) QueryWasmContractICS20StateSmart(ctx context.Context, keyName,
 	if err != nil {
 		return QuerySmartContractICS20StateResponse{}, err
 	}
-	println("check stdout: ", string(stdout))
+
 	var resp QuerySmartContractICS20StateResponse
 	err = json.Unmarshal(stdout, &resp)
 	if err != nil {

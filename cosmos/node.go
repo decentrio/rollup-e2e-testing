@@ -1066,6 +1066,7 @@ func (node *Node) QueryWasmContractStateSmart(ctx context.Context, keyName, cw20
 		return QuerySmartContractStateResponse{}, err
 	}
 
+	println("check raw data: ", string(stdout))
 	var resp QuerySmartContractStateResponse
 	err = json.Unmarshal(stdout, &resp)
 	if err != nil {

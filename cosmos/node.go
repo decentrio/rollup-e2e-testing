@@ -1043,6 +1043,22 @@ func (node *Node) QueryWasmCodes(ctx context.Context, keyName string) (QueryCode
 	return resp, nil
 }
 
+func (node *Node) QueryWasmListContract(ctx context.Context, keyName, cw20CodeId string) (QueryContractsByCodeResponse, error) {
+	command := []string{"wasm", "list-contract-by-code", cw20CodeId}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryContractsByCodeResponse{}, err
+	}
+
+	var resp QueryContractsByCodeResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return QueryContractsByCodeResponse{}, err
+	}
+
+	return resp, nil
+}
+
 func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
 	command := []string{"sequencer", "next-proposer", rollappId}
 	stdout, _, err := node.ExecQuery(ctx, command...)

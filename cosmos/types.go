@@ -490,3 +490,10 @@ type AccessConfig struct {
 }
 
 type AccessType string
+
+type QueryContractsByCodeResponse struct {
+	// contracts are a set of contract addresses
+	Contracts []string `protobuf:"bytes,1,rep,name=contracts,proto3" json:"contracts,omitempty"`
+	// pagination defines the pagination in the response.
+	Pagination PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}

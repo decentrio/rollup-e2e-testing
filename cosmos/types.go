@@ -497,3 +497,9 @@ type QueryContractsByCodeResponse struct {
 	// pagination defines the pagination in the response.
 	Pagination PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
+
+
+type QuerySmartContractStateResponse struct {
+	// Data contains the json data returned from the smart contract
+	Data string `protobuf:"bytes,1,opt,name=data,proto3,casttype=RawContractMessage" json:"data,omitempty"`
+}

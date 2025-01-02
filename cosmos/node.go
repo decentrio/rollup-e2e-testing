@@ -1059,6 +1059,22 @@ func (node *Node) QueryWasmListContract(ctx context.Context, keyName, cw20CodeId
 	return resp, nil
 }
 
+func (node *Node) QueryWasmContractStateSmart(ctx context.Context, keyName, cw20Addr, queryMsg string) (QuerySmartContractStateResponse, error) {
+	command := []string{"wasm", "contract-state", "smart", cw20Addr, queryMsg}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QuerySmartContractStateResponse{}, err
+	}
+
+	var resp QuerySmartContractStateResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return QuerySmartContractStateResponse{}, err
+	}
+
+	return resp, nil
+}
+
 func (node *Node) GetNextProposerByRollapp(ctx context.Context, rollappId, keyname string) (QueryGetNextProposerByRollappResponse, error) {
 	command := []string{"sequencer", "next-proposer", rollappId}
 	stdout, _, err := node.ExecQuery(ctx, command...)

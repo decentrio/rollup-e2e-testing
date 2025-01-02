@@ -504,4 +504,4 @@ type QuerySmartContractStateResponse struct {
 	Data RawContractMessage `protobuf:"bytes,1,opt,name=data,proto3,casttype=RawContractMessage" json:"data,omitempty"`
 }
 
-type RawContractMessage string
+type RawContractMessage []byte

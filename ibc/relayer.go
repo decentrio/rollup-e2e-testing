@@ -38,8 +38,14 @@ type Relayer interface {
 	// generate new path between two chains
 	GeneratePath(ctx context.Context, rep RelayerExecReporter, srcChainID, dstChainID, pathName string) error
 
+	// generate new path between two chains for wasm version
+	GeneratePathWasm(ctx context.Context, rep RelayerExecReporter, srcChainID, dstChainID, pathName, rcPort, dstPort, version string) error
+
 	// setup channels, connections, and clients
 	LinkPath(ctx context.Context, rep RelayerExecReporter, pathName string, channelOpts CreateChannelOptions, clientOptions CreateClientOptions) error
+
+	// setup channels, connections, and clients for wasm version
+	LinkPathWasm(ctx context.Context, rep RelayerExecReporter, pathName, srcPort, dstPort, version, homeDir string) error
 
 	// update path channel filter
 	UpdatePath(ctx context.Context, rep RelayerExecReporter, pathName string, filter ChannelFilter) error

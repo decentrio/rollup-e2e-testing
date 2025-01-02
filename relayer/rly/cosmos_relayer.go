@@ -210,6 +210,13 @@ func (commander) GeneratePath(srcChainID, dstChainID, pathName, homeDir string) 
 	}
 }
 
+func (commander) GeneratePathWasm(srcChainID, dstChainID, pathName, srcPort, dstPort, version, homeDir string) []string {
+	return []string{
+		"rly", "paths", "new", srcChainID, dstChainID, pathName, "--src-port", srcPort, "--dst-port", dstPort, "--version", version,
+		"--home", homeDir,
+	}
+}
+
 func (commander) UpdatePath(pathName, homeDir string, filter ibc.ChannelFilter) []string {
 	return []string{
 		"rly", "paths", "update", pathName,
@@ -248,6 +255,18 @@ func (commander) LinkPath(pathName, homeDir string, channelOpts ibc.CreateChanne
 		"--order", channelOpts.Order.String(),
 		"--version", channelOpts.Version,
 		"--client-tp", clientOpt.TrustingPeriod,
+		"--debug",
+
+		"--home", homeDir,
+	}
+}
+
+func (commander) LinkPathWasm(pathName, srcPort, dstPort, version, homeDir string) []string {
+	return []string{
+		"rly", "tx", "link", pathName,
+		"--src-port", srcPort,
+		"--dst-port", dstPort,
+		"--version", version,
 		"--debug",
 
 		"--home", homeDir,

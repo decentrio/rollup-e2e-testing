@@ -232,6 +232,12 @@ func (r *DockerRelayer) GeneratePath(ctx context.Context, rep ibc.RelayerExecRep
 	return res.Err
 }
 
+func (r *DockerRelayer) GeneratePathWasm(ctx context.Context, rep ibc.RelayerExecReporter, srcChainID, dstChainID, pathName, rcPort, dstPort, version string) error {
+	cmd := r.c.GeneratePathWasm(srcChainID, dstChainID, pathName, rcPort, dstPort, version, r.HomeDir())
+	res := r.Exec(ctx, rep, cmd, nil)
+	return res.Err
+}
+
 func (r *DockerRelayer) UpdatePath(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, filter ibc.ChannelFilter) error {
 	cmd := r.c.UpdatePath(pathName, r.HomeDir(), filter)
 	res := r.Exec(ctx, rep, cmd, nil)
@@ -275,6 +281,12 @@ func (r *DockerRelayer) GetClients(ctx context.Context, rep ibc.RelayerExecRepor
 
 func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, channelOpts ibc.CreateChannelOptions, clientOpts ibc.CreateClientOptions) error {
 	cmd := r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
+	res := r.Exec(ctx, rep, cmd, nil)
+	return res.Err
+}
+
+func (r *DockerRelayer) LinkPathWasm(ctx context.Context, rep ibc.RelayerExecReporter, pathName, srcPort, dstPort, version, homeDir string) error {
+	cmd := r.c.LinkPathWasm(pathName, srcPort, dstPort, version, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
 	return res.Err
 }
@@ -530,11 +542,13 @@ type RelayerCommander interface {
 	CreateConnectionsWithNumberOfRetries(pathName, homeDir, retries string) []string
 	Flush(pathName, channelID, homeDir string) []string
 	GeneratePath(srcChainID, dstChainID, pathName, homeDir string) []string
+	GeneratePathWasm(srcChainID, dstChainID, pathName, srcPort, dstPort, version, homeDir string) []string
 	UpdatePath(pathName, homeDir string, filter ibc.ChannelFilter) []string
 	GetChannels(chainID, homeDir string) []string
 	GetConnections(chainID, homeDir string) []string
 	GetClients(chainID, homeDir string) []string
 	LinkPath(pathName, homeDir string, channelOpts ibc.CreateChannelOptions, clientOpts ibc.CreateClientOptions) []string
+	LinkPathWasm(pathName, srcPort, dstPort, version, homeDir string) []string
 	RestoreKey(chainID, keyName, coinType, mnemonic, homeDir string) []string
 	StartRelayer(homeDir string, pathNames ...string) []string
 	UpdateClients(pathName, homeDir string) []string

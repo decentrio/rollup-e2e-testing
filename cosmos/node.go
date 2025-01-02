@@ -1019,9 +1019,9 @@ func (node *Node) WasmStore(ctx context.Context, keyName, path string) error {
 	return err
 }
 
-func (node *Node) WasmInstantiateContract(ctx context.Context, keyName, codeId, initCW20 string) error {
+func (node *Node) WasmInstantiateContract(ctx context.Context, keyName, codeId, initCW20, label string) error {
 	var command []string
-	command = append(command, "wasm", "instantiate", codeId, initCW20, "--label", "test", "--no-admin")
+	command = append(command, "wasm", "instantiate", codeId, initCW20, "--label", label, "--no-admin")
 
 	_, err := node.ExecTx(ctx, keyName, command...)
 	return err

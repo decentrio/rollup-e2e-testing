@@ -499,9 +499,16 @@ type QueryContractsByCodeResponse struct {
 }
 
 
-type QuerySmartContractStateResponse struct {
+type QuerySmartContractCW20StateResponse struct {
 	// Data contains the json data returned from the smart contract
 	Data struct {
 		Balance string `json:"balance"`
+	} `json:"data"`
+}
+
+type QuerySmartContractICS20StateResponse struct {
+	// Data contains the json data returned from the smart contract
+	Data struct {
+		Port string `json:"port"`
 	} `json:"data"`
 }

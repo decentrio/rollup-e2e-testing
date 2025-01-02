@@ -1059,17 +1059,33 @@ func (node *Node) QueryWasmListContract(ctx context.Context, keyName, cw20CodeId
 	return resp, nil
 }
 
-func (node *Node) QueryWasmContractStateSmart(ctx context.Context, keyName, cw20Addr, queryMsg string) (QuerySmartContractStateResponse, error) {
+func (node *Node) QueryWasmContractCW20StateSmart(ctx context.Context, keyName, cw20Addr, queryMsg string) (QuerySmartContractCW20StateResponse, error) {
 	command := []string{"wasm", "contract-state", "smart", cw20Addr, queryMsg}
 	stdout, _, err := node.ExecQuery(ctx, command...)
 	if err != nil {
-		return QuerySmartContractStateResponse{}, err
+		return QuerySmartContractCW20StateResponse{}, err
 	}
 
-	var resp QuerySmartContractStateResponse
+	var resp QuerySmartContractCW20StateResponse
 	err = json.Unmarshal(stdout, &resp)
 	if err != nil {
-		return QuerySmartContractStateResponse{}, err
+		return QuerySmartContractCW20StateResponse{}, err
+	}
+
+	return resp, nil
+}
+
+func (node *Node) QueryWasmContractICS20StateSmart(ctx context.Context, keyName, ics20Addr, queryMsg string) (QuerySmartContractICS20StateResponse, error) {
+	command := []string{"wasm", "contract-state", "smart", ics20Addr, queryMsg}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QuerySmartContractICS20StateResponse{}, err
+	}
+
+	var resp QuerySmartContractICS20StateResponse
+	err = json.Unmarshal(stdout, &resp)
+	if err != nil {
+		return QuerySmartContractICS20StateResponse{}, err
 	}
 
 	return resp, nil

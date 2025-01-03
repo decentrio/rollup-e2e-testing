@@ -1027,6 +1027,14 @@ func (node *Node) WasmInstantiateContract(ctx context.Context, keyName, codeId, 
 	return err
 }
 
+func (node *Node) WasmExecute(ctx context.Context, keyName, cw20Addr, sendMsg string) error {
+	var command []string
+	command = append(command, "wasm", "execute", cw20Addr, sendMsg)
+
+	_, err := node.ExecTx(ctx, keyName, command...)
+	return err
+}
+
 func (node *Node) QueryWasmCodes(ctx context.Context, keyName string) (QueryCodesResponse, error) {
 	command := []string{"wasm", "list-code"}
 	stdout, _, err := node.ExecQuery(ctx, command...)

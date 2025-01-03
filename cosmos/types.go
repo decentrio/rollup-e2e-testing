@@ -498,7 +498,6 @@ type QueryContractsByCodeResponse struct {
 	Pagination PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-
 type QuerySmartContractCW20StateResponse struct {
 	// Data contains the json data returned from the smart contract
 	Data struct {
@@ -509,6 +508,7 @@ type QuerySmartContractCW20StateResponse struct {
 type QuerySmartContractICS20StateResponse struct {
 	// Data contains the json data returned from the smart contract
 	Data struct {
-		PortId string `json:"port_id"`
+		PortId    string `json:"port_id"`
+		ChannelId string `json:"channel_id"`
 	} `json:"data"`
 }

@@ -285,8 +285,8 @@ func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporte
 	return res.Err
 }
 
-func (r *DockerRelayer) LinkPathWasm(ctx context.Context, rep ibc.RelayerExecReporter, pathName, srcPort, dstPort, version, homeDir string) error {
-	cmd := r.c.LinkPathWasm(pathName, srcPort, dstPort, version, r.HomeDir())
+func (r *DockerRelayer) LinkPathWasm(ctx context.Context, rep ibc.RelayerExecReporter, pathName, srcPort, dstPort, version string) error {
+	cmd := r.c.LinkPathWasm(pathName,r.HomeDir(), srcPort, dstPort, version)
 	res := r.Exec(ctx, rep, cmd, nil)
 	return res.Err
 }
@@ -548,7 +548,7 @@ type RelayerCommander interface {
 	GetConnections(chainID, homeDir string) []string
 	GetClients(chainID, homeDir string) []string
 	LinkPath(pathName, homeDir string, channelOpts ibc.CreateChannelOptions, clientOpts ibc.CreateClientOptions) []string
-	LinkPathWasm(pathName, srcPort, dstPort, version, homeDir string) []string
+	LinkPathWasm(pathName, homeDir, srcPort, dstPort, version string) []string
 	RestoreKey(chainID, keyName, coinType, mnemonic, homeDir string) []string
 	StartRelayer(homeDir string, pathNames ...string) []string
 	UpdateClients(pathName, homeDir string) []string

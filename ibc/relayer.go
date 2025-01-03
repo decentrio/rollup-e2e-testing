@@ -45,7 +45,7 @@ type Relayer interface {
 	LinkPath(ctx context.Context, rep RelayerExecReporter, pathName string, channelOpts CreateChannelOptions, clientOptions CreateClientOptions) error
 
 	// setup channels, connections, and clients for wasm version
-	LinkPathWasm(ctx context.Context, rep RelayerExecReporter, pathName, srcPort, dstPort, version, homeDir string) error
+	LinkPathWasm(ctx context.Context, rep RelayerExecReporter, pathName, srcPort, dstPort, version string) error
 
 	// update path channel filter
 	UpdatePath(ctx context.Context, rep RelayerExecReporter, pathName string, filter ChannelFilter) error

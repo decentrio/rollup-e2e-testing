@@ -505,7 +505,14 @@ type QuerySmartContractCW20StateResponse struct {
 	} `json:"data"`
 }
 
-type QuerySmartContractICS20StateResponse struct {
+type QuerySmartContractICS20PortResponse struct {
+	// Data contains the json data returned from the smart contract
+	Data struct {
+		PortId string `json:"port_id"`
+	} `json:"data"`
+}
+
+type QuerySmartContractICS20ChannelsResponse struct {
 	// Data contains the json data returned from the smart contract
 	Data Data `json:"data"`
 }

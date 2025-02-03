@@ -257,9 +257,15 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 	}
 	s.cs = newChainSet(s.log, chains)
 
-	// Initialize the chains (pull docker images, etc.).
-	if err := s.cs.Initialize(ctx, opts.TestName, opts.Client, opts.NetworkID); err != nil {
-		return fmt.Errorf("failed to initialize chains: %w", err)
+	for i := 0; i < 5; i++ {
+		err := s.cs.Initialize(ctx, opts.TestName, opts.Client, opts.NetworkID)
+		if err == nil {
+			break
+		}
+		if i == 4 {
+			return fmt.Errorf("failed to initialize chains: %w", err)
+		}
+		time.Sleep(10 * time.Second)
 	}
 
 	err := s.generateRelayerWallets(ctx) // Build the relayer wallet mapping.

@@ -32,9 +32,18 @@ func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, rela
 			c.extraStartFlags = o.Flags
 		}
 	}
-	dr, err := relayer.NewDockerRelayer(context.TODO(), log, testName, cli, relayerName, networkID, c, options...)
-	if err != nil {
-		panic(err) // TODO: return
+
+	var dr *relayer.DockerRelayer
+	var err error
+	for i := 0; i < 5; i++ {
+		dr, err = relayer.NewDockerRelayer(context.TODO(), log, testName, cli, relayerName, networkID, c, options...)
+		if err == nil {
+			break
+		}
+		if i == 4 {
+			panic(err)
+		}
+		time.Sleep(10 * time.Second)
 	}
 
 	r := &CosmosRelayer{

@@ -43,7 +43,7 @@ func NewCosmosRelayer(log *zap.Logger, testName string, cli *client.Client, rela
 		if i == 4 {
 			panic(err)
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 
 	r := &CosmosRelayer{

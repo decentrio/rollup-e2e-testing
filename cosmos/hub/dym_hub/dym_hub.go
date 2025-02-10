@@ -355,14 +355,6 @@ func (c *DymHub) Start(testName string, ctx context.Context, additionalGenesisWa
 		}
 	}
 
-	if err = c.Validators[0].CopyFile(ctx, "data/members.json", "members.json"); err != nil {
-		return err
-	}
-
-	if err = c.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json"); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -651,14 +643,6 @@ func (c *DymHub) StartWithoutGenesisAccount(testName string, ctx context.Context
 		if err := c.RegisterSequencerToHub(ctx, sequencerName, rollAppChainID, seq, keyDir); err != nil {
 			return fmt.Errorf("failed to start chain %s: %w", c.Config().Name, err)
 		}
-	}
-
-	if err = c.Validators[0].CopyFile(ctx, "data/members.json", "members.json"); err != nil {
-		return err
-	}
-
-	if err = c.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json"); err != nil {
-		return err
 	}
 
 	return nil

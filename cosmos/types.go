@@ -99,7 +99,6 @@ type ProposalResponse struct {
 
 type ProposalInfo struct {
 	ID               string                   `json:"id"`
-	Messages         []string                 `json:"messages"`
 	Status           string                   `json:"status"`
 	FinalTallyResult ProposalFinalTallyResult `json:"final_tally_result"`
 	SubmitTime       string                   `json:"submit_time"`

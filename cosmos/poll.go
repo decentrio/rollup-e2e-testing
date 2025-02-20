@@ -18,8 +18,8 @@ func PollForProposalStatus(ctx context.Context, chain *CosmosChain, startHeight,
 		if err != nil {
 			return zero, err
 		}
-		if p.Status != status {
-			return zero, fmt.Errorf("proposal status (%s) does not match expected: (%s)", p.Status, status)
+		if p.ProposalInfo.Status != status {
+			return zero, fmt.Errorf("proposal status (%s) does not match expected: (%s)", p.ProposalInfo.Status, status)
 		}
 		return *p, nil
 	}

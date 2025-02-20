@@ -1514,7 +1514,7 @@ func (node *Node) QueryLatestHeight(ctx context.Context, rollappChainID string) 
 }
 
 // QueryDenomMetadata returns denom metadata of a given denom
-func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomMetadata, error) {
+func (node *Node) QueryDenomMetadataHub(ctx context.Context, denom string) (*DenomMetadata, error) {
 	var command []string
 	command = append(command, "bank", "denom-metadata", denom)
 
@@ -1531,10 +1531,44 @@ func (node *Node) QueryDenomMetadata(ctx context.Context, denom string) (*DenomM
 	return &denomMetadata.Metadata, nil
 }
 
+func (node *Node) QueryDenomMetadataRA(ctx context.Context, denom string) (*DenomMetadata, error) {
+	var command []string
+	command = append(command, "bank", "denom-metadata", "--denom", denom)
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var denomMetadata DenomMetadataResponse
+	err = json.Unmarshal(stdout, &denomMetadata)
+	if err != nil {
+		return nil, err
+	}
+	return &denomMetadata.Metadata, nil
+}
+
 // QueryAllDenomMetadata returns denom metadata of a given denom
-func (node *Node) QueryAllDenomMetadata(ctx context.Context) (*QueryDenomsMetadataResponse, error) {
+func (node *Node) QueryAllDenomMetadataHub(ctx context.Context) (*QueryDenomsMetadataResponse, error) {
 	var command []string
 	command = append(command, "bank", "denoms-metadata")
+
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return nil, err
+	}
+
+	var denomMetadata QueryDenomsMetadataResponse
+	err = json.Unmarshal(stdout, &denomMetadata)
+	if err != nil {
+		return nil, err
+	}
+	return &denomMetadata, nil
+}
+
+func (node *Node) QueryAllDenomMetadataRA(ctx context.Context) (*QueryDenomsMetadataResponse, error) {
+	var command []string
+	command = append(command, "bank", "denom-metadata")
 
 	stdout, _, err := node.ExecQuery(ctx, command...)
 	if err != nil {

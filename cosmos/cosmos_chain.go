@@ -21,7 +21,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	chanTypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
@@ -503,16 +502,6 @@ func (c *CosmosChain) TextProposal(ctx context.Context, keyName string, prop Tex
 	return c.txProposal(txHash)
 }
 
-// ParamChangeProposal submits a param change proposal to the chain, signed by keyName.
-func (c *CosmosChain) ParamChangeProposal(ctx context.Context, keyName string, prop *paramsutils.ParamChangeProposalJSON) (tx TxProposal, _ error) {
-	txHash, err := c.getValNode().ParamChangeProposal(ctx, keyName, prop)
-	if err != nil {
-		return tx, fmt.Errorf("failed to submit param change proposal: %w", err)
-	}
-
-	return c.txProposal(txHash)
-}
-
 // SubmitFraudProposal submit a fraud proposal.
 func (c *CosmosChain) SubmitFraudProposal(ctx context.Context, keyName string, prop TxFraudProposal) (tx TxProposal, _ error) {
 	txHash, err := c.getValNode().SubmitFraudProposal(ctx, keyName, prop)
@@ -567,7 +556,7 @@ func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, met
 }
 
 // QueryParam returns the param state of a given key.
-func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
+func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*ParamChanges, error) {
 	return c.getValNode().QueryParam(ctx, subspace, key)
 }
 

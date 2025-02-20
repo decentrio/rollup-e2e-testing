@@ -3,6 +3,7 @@ package cosmos
 import (
 	"encoding/json"
 	"time"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 )
@@ -120,6 +121,10 @@ type ProposalFinalTallyResult struct {
 type ProposalDeposit struct {
 	Denom  string `json:"denom"`
 	Amount string `json:"amount"`
+}
+
+type ParamChanges struct {
+	Param ParamChange `json:"param"`
 }
 
 type ParamChange struct {
@@ -246,7 +251,7 @@ type QuerySequencersResponse struct {
 }
 
 type QuerySequencersRollappResponse struct {
-	Sequencers []Validator `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Sequencers []Validator   `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
 	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -372,8 +377,8 @@ type CelestiaBlockHeader struct {
 }
 
 type QueryPendingPacketByReceiverListResponse struct {
-	RollappPackets []RollappPacket     `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
-	Pagination     PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	RollappPackets []RollappPacket `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
+	Pagination     PageResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 type RollappPacket struct {
@@ -433,7 +438,6 @@ type QueryGetNextProposerByRollappResponse struct {
 type QueryGetProposerByRollappResponse struct {
 	ProposerAddr string `json:"proposerAddr,omitempty"`
 }
-
 
 type QueryGroupPolicyInfoResponse struct {
 	// info is the GroupPolicyInfo of the group policy.

@@ -432,6 +432,10 @@ func (c *CosmosChain) SendIBCTransferAfterHardFork(
 }
 
 // QueryProposal returns the state and details of a governance proposal.
+func (c *CosmosChain) QueryProposalV50(ctx context.Context, proposalID string) (*ProposalResponseV50, error) {
+	return c.getValNode().QueryProposalV50(ctx, proposalID)
+}
+
 func (c *CosmosChain) QueryProposal(ctx context.Context, proposalID string) (*ProposalResponse, error) {
 	return c.getValNode().QueryProposal(ctx, proposalID)
 }

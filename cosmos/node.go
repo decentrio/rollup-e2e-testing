@@ -1597,6 +1597,19 @@ func (node *Node) QueryProposal(ctx context.Context, proposalID string) (*Propos
 	return &proposal, nil
 }
 
+func (node *Node) QueryProposalV50(ctx context.Context, proposalID string) (*ProposalResponseV50, error) {
+	stdout, _, err := node.ExecQuery(ctx, "gov", "proposal", proposalID)
+	if err != nil {
+		return nil, err
+	}
+	var proposal ProposalResponseV50
+	err = json.Unmarshal(stdout, &proposal)
+	if err != nil {
+		return nil, err
+	}
+	return &proposal, nil
+}
+
 // QueryModuleAccount returns the information about a module account
 func (node *Node) QueryModuleAccount(ctx context.Context, moduleName string) (*ModuleAccountResponse, error) {
 	stdout, _, err := node.ExecQuery(ctx, "auth", "module-account", moduleName, "--output=json")

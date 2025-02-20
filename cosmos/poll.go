@@ -11,6 +11,22 @@ import (
 )
 
 // PollForProposalStatus attempts to find a proposal with matching ID and status.
+func PollForProposalStatusV50(ctx context.Context, chain *CosmosChain, startHeight, maxHeight int64, proposalID string, status string) (ProposalResponseV50, error) {
+	var zero ProposalResponseV50
+	doPoll := func(ctx context.Context, height int64) (ProposalResponseV50, error) {
+		p, err := chain.QueryProposalV50(ctx, proposalID)
+		if err != nil {
+			return zero, err
+		}
+		if p.ProposalInfo.Status != status {
+			return zero, fmt.Errorf("proposal status (%s) does not match expected: (%s)", p.ProposalInfo.Status, status)
+		}
+		return *p, nil
+	}
+	bp := testutil.BlockPoller[ProposalResponseV50]{CurrentHeight: chain.Height, PollFunc: doPoll}
+	return bp.DoPoll(ctx, startHeight, maxHeight)
+}
+
 func PollForProposalStatus(ctx context.Context, chain *CosmosChain, startHeight, maxHeight int64, proposalID string, status string) (ProposalResponse, error) {
 	var zero ProposalResponse
 	doPoll := func(ctx context.Context, height int64) (ProposalResponse, error) {
@@ -18,8 +34,8 @@ func PollForProposalStatus(ctx context.Context, chain *CosmosChain, startHeight,
 		if err != nil {
 			return zero, err
 		}
-		if p.ProposalInfo.Status != status {
-			return zero, fmt.Errorf("proposal status (%s) does not match expected: (%s)", p.ProposalInfo.Status, status)
+		if p.Status != status {
+			return zero, fmt.Errorf("proposal status (%s) does not match expected: (%s)", p.Status, status)
 		}
 		return *p, nil
 	}

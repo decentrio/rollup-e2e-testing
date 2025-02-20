@@ -93,12 +93,23 @@ type SoftwareUpgradeProposal struct {
 }
 
 // ProposalResponse is the proposal query response.
-type ProposalResponse struct {
+type ProposalResponseV50 struct {
 	ProposalInfo ProposalInfo `json:"proposal"`
 }
 
 type ProposalInfo struct {
 	ID               string                   `json:"id"`
+	Status           string                   `json:"status"`
+	FinalTallyResult ProposalFinalTallyResult `json:"final_tally_result"`
+	SubmitTime       string                   `json:"submit_time"`
+	DepositEndTime   string                   `json:"deposit_end_time"`
+	TotalDeposit     []ProposalDeposit        `json:"total_deposit"`
+	VotingStartTime  string                   `json:"voting_start_time"`
+	VotingEndTime    string                   `json:"voting_end_time"`
+}
+
+type ProposalResponse struct {
+	ID               string                   `json:"proposal_id"`
 	Status           string                   `json:"status"`
 	FinalTallyResult ProposalFinalTallyResult `json:"final_tally_result"`
 	SubmitTime       string                   `json:"submit_time"`

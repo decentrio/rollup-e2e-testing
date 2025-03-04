@@ -571,7 +571,11 @@ func (c *CosmosChain) BuildProposal(messages []ProtoMessage, title, summary, met
 }
 
 // QueryParam returns the param state of a given key.
-func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*ParamChanges, error) {
+func (c *CosmosChain) QueryParamV50(ctx context.Context, subspace, key string) (*ParamChanges, error) {
+	return c.getValNode().QueryParamV50(ctx, subspace, key)
+}
+
+func (c *CosmosChain) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
 	return c.getValNode().QueryParam(ctx, subspace, key)
 }
 

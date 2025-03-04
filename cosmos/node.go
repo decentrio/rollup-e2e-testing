@@ -1874,12 +1874,25 @@ func (node *Node) KickProposer(ctx context.Context, kicker, keyDir string) error
 }
 
 // QueryParam returns the state and details of a subspace param.
-func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamChanges, error) {
+func (node *Node) QueryParamV50(ctx context.Context, subspace, key string) (*ParamChanges, error) {
 	stdout, _, err := node.ExecQuery(ctx, "params", "subspace", subspace, key)
 	if err != nil {
 		return nil, err
 	}
 	var param ParamChanges
+	err = json.Unmarshal(stdout, &param)
+	if err != nil {
+		return nil, err
+	}
+	return &param, nil
+}
+
+func (node *Node) QueryParam(ctx context.Context, subspace, key string) (*ParamChange, error) {
+	stdout, _, err := node.ExecQuery(ctx, "params", "subspace", subspace, key)
+	if err != nil {
+		return nil, err
+	}
+	var param ParamChange
 	err = json.Unmarshal(stdout, &param)
 	if err != nil {
 		return nil, err

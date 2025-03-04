@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
@@ -1750,6 +1751,32 @@ func (node *Node) SubmitProposal(ctx context.Context, keyName string, prop TxPro
 		"gov", "submit-proposal",
 		path.Join(node.HomeDir(), file), "--gas", "auto",
 		// "--deposit", "500000000000urax",
+	}
+
+	return node.ExecTx(ctx, keyName, command...)
+}
+
+// ParamChangeProposal submits a param change proposal to the chain, signed by keyName.
+func (node *Node) ParamChangeProposal(ctx context.Context, keyName string, prop *paramsutils.ParamChangeProposalJSON) (string, error) {
+	content, err := json.Marshal(prop)
+	if err != nil {
+		return "", err
+	}
+
+	hash := sha256.Sum256(content)
+	proposalFilename := fmt.Sprintf("%x.json", hash)
+	err = node.WriteFile(ctx, content, proposalFilename)
+	if err != nil {
+		return "", fmt.Errorf("writing param change proposal: %w", err)
+	}
+
+	proposalPath := filepath.Join(node.HomeDir(), proposalFilename)
+
+	command := []string{
+		"gov", "submit-legacy-proposal",
+		"param-change",
+		proposalPath,
+		"--gas=auto",
 	}
 
 	return node.ExecTx(ctx, keyName, command...)

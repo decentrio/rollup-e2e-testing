@@ -1,6 +1,6 @@
-FROM ghcr.io/celestiaorg/celestia-app:v3.0.0-mocha AS celestia-app
+FROM ghcr.io/celestiaorg/celestia-app:v3.4.0-mocha AS celestia-app
 
-FROM ghcr.io/celestiaorg/celestia-node:v0.20.1-mocha
+FROM ghcr.io/celestiaorg/celestia-node:v0.21.7-mocha
 
 USER root
 

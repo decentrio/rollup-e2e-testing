@@ -1213,6 +1213,14 @@ func (node *Node) QueryErc20TokenPair(ctx context.Context, token string) (TokenP
 	return tokenPair.TokenPair, nil
 }
 
+func (node *Node) Delegate(ctx context.Context, keyName, valAddr, amount string) (string, error) {
+	var command []string
+	command = append(command, "staking", "delegate", valAddr, "1000urax")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
 func (node *Node) GetIbcTxFromTxHash(ctx context.Context, txHash string) (tx ibc.Tx, _ error) {
 	txResp, err := node.getTransaction(node.CliContext(), txHash)
 	if err != nil {
@@ -2359,7 +2367,7 @@ func (node *Node) QueryChecksum(ctx context.Context) string {
 
 func (node *Node) UnsafeExportETHKey(ctx context.Context, keyName string) string {
 	var command []string
-	command = append(command, "keys", "unsafe-export-eth-key", keyName, "--keyring-backend", "test", "--home", node.HomeDir())
+	command = append(command, "keys", "unsafe-export-eth-key", keyName, "--keyring-backend", "test")
 
 	stdout, _, err := node.ExecBin(ctx, command...)
 	if err != nil {

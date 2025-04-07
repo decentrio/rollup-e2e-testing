@@ -485,3 +485,10 @@ type QueryGroupPoliciesByAdminResponse struct {
 	// pagination defines the pagination in the response.
 	Pagination PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
+
+type QueryGetDelegationResponse struct {
+	Balance struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	} `json:"balance"`
+}

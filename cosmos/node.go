@@ -2437,3 +2437,27 @@ func (node *Node) Delegate(ctx context.Context, keyName, valAddr, amount string)
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err
 }
+
+func (node *Node) Undelegate(ctx context.Context, keyName, valAddr, amount string) (string, error) {
+	var command []string
+	command = append(command, "staking", "unbond", valAddr, "1000urax")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) GetDelegation(ctx context.Context, delegator, valAddr string) (QueryGetDelegationResponse, error) {
+	command := []string{"staking", "delegation", delegator, valAddr}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return QueryGetDelegationResponse{}, err
+	}
+
+	var delegation QueryGetDelegationResponse
+	err = json.Unmarshal(stdout, &delegation)
+	if err != nil {
+		return QueryGetDelegationResponse{}, err
+	}
+
+	return delegation, nil
+}

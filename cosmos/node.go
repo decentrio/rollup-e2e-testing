@@ -2432,7 +2432,7 @@ func (node *Node) UnsafeExportETHKey(ctx context.Context, keyName string) string
 
 func (node *Node) Delegate(ctx context.Context, keyName, valAddr, amount string) (string, error) {
 	var command []string
-	command = append(command, "staking", "delegate", valAddr, "1000urax")
+	command = append(command, "staking", "delegate", valAddr, amount)
 
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err
@@ -2440,7 +2440,7 @@ func (node *Node) Delegate(ctx context.Context, keyName, valAddr, amount string)
 
 func (node *Node) Undelegate(ctx context.Context, keyName, valAddr, amount string) (string, error) {
 	var command []string
-	command = append(command, "staking", "unbond", valAddr, "1000urax")
+	command = append(command, "staking", "unbond", valAddr, amount)
 
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err

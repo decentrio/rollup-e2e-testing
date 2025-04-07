@@ -2429,3 +2429,11 @@ func (node *Node) UnsafeExportETHKey(ctx context.Context, keyName string) string
 
 	return strings.ReplaceAll(string(stdout), "\n", "")
 }
+
+func (node *Node) Delegate(ctx context.Context, keyName, valAddr, amount string) (string, error) {
+	var command []string
+	command = append(command, "staking", "delegate", valAddr, "1000urax")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}

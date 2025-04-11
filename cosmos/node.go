@@ -2446,6 +2446,14 @@ func (node *Node) Undelegate(ctx context.Context, keyName, valAddr, amount strin
 	return hash, err
 }
 
+func (node *Node) WithdrawAllRewards(ctx context.Context, keyName, valAddr, amount string) (string, error) {
+	var command []string
+	command = append(command, "distribution", "withdraw-all-rewards")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
 func (node *Node) GetDelegation(ctx context.Context, delegator, valAddr string) (QueryGetDelegationResponse, error) {
 	command := []string{"staking", "delegation", delegator, valAddr}
 	stdout, _, err := node.ExecQuery(ctx, command...)

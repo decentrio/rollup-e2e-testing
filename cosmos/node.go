@@ -2446,7 +2446,7 @@ func (node *Node) Undelegate(ctx context.Context, keyName, valAddr, amount strin
 	return hash, err
 }
 
-func (node *Node) WithdrawAllRewards(ctx context.Context, keyName, valAddr, amount string) (string, error) {
+func (node *Node) WithdrawAllRewards(ctx context.Context, keyName string) (string, error) {
 	var command []string
 	command = append(command, "distribution", "withdraw-all-rewards")
 

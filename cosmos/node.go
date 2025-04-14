@@ -2462,6 +2462,14 @@ func (node *Node) WithdrawCommission(ctx context.Context, keyName, valAddr strin
 	return hash, err
 }
 
+func (node *Node) CreateVestingAccount(ctx context.Context, keyName, toAddr, amount string) (string, error) {
+	var command []string
+	command = append(command, "vesting", "create-vesting-account", toAddr, amount)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
 func (node *Node) GetDelegation(ctx context.Context, delegator, valAddr string) (QueryGetDelegationResponse, error) {
 	command := []string{"staking", "delegation", delegator, valAddr}
 	stdout, _, err := node.ExecQuery(ctx, command...)

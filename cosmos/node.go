@@ -2462,9 +2462,9 @@ func (node *Node) WithdrawCommission(ctx context.Context, keyName, valAddr strin
 	return hash, err
 }
 
-func (node *Node) CreateVestingAccount(ctx context.Context, keyName, toAddr, amount string) (string, error) {
+func (node *Node) CreateVestingAccount(ctx context.Context, keyName, toAddr, amount, endtime string) (string, error) {
 	var command []string
-	command = append(command, "vesting", "create-vesting-account", toAddr, amount)
+	command = append(command, "vesting", "create-vesting-account", toAddr, amount, endtime)
 
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err

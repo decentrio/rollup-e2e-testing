@@ -389,3 +389,10 @@ func (commander) Init(homeDir string) []string {
 func (c commander) CreateWallet(keyName, address, mnemonic string) ibc.Wallet {
 	return NewWallet(keyName, address, mnemonic)
 }
+
+func (commander) GenesisBridge(homeDir string) []string {
+	return []string{
+		"rly", "tx", "rollapp-send-genesis-transfer", "hub-rollapp",
+		"--home", homeDir,
+	}
+}

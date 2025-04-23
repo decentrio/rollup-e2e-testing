@@ -75,6 +75,7 @@ type Relayer interface {
 	// between the src and dst chains.
 	CreateConnections(ctx context.Context, rep RelayerExecReporter, pathName string) error
 
+	GenesisBridge(ctx context.Context, rep RelayerExecReporter, pathName string) error
 	// CreateConnectionsWithNumberOfRetries performs the connection handshake steps necessary for creating a connection with number of retries
 	// between the src and dst chains.
 	CreateConnectionsWithNumberOfRetries(ctx context.Context, rep RelayerExecReporter, pathName, retries string) error

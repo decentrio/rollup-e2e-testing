@@ -221,7 +221,7 @@ func (r *DockerRelayer) CreateConnectionsWithNumberOfRetries(ctx context.Context
 }
 
 func (r *DockerRelayer) GenesisBridge(ctx context.Context, rep ibc.RelayerExecReporter, pathName string) error {
-	cmd := r.c.GenesisBridge(r.HomeDir())
+	cmd := r.c.GenesisBridge(pathName, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
 	return res.Err
 }
@@ -545,5 +545,5 @@ type RelayerCommander interface {
 	StartRelayer(homeDir string, pathNames ...string) []string
 	UpdateClients(pathName, homeDir string) []string
 	CreateWallet(keyName, address, mnemonic string) ibc.Wallet
-	GenesisBridge(homeDir string) []string
+	GenesisBridge(pathName, homeDir string) []string
 }

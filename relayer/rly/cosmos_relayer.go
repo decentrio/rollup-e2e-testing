@@ -390,9 +390,9 @@ func (c commander) CreateWallet(keyName, address, mnemonic string) ibc.Wallet {
 	return NewWallet(keyName, address, mnemonic)
 }
 
-func (commander) GenesisBridge(homeDir string) []string {
+func (commander) GenesisBridge(pathName, homeDir string) []string {
 	return []string{
-		"rly", "tx", "rollapp-send-genesis-transfer", "hub-rollapp",
+		"rly", "tx", "rollapp-send-genesis-transfer", pathName,
 		"--home", homeDir,
 	}
 }

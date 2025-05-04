@@ -2493,11 +2493,5 @@ func (node *Node) GetMemo(ctx context.Context, eibcFee, channel, recipient, time
 		return "", err
 	}
 
-	var memo string
-	err = json.Unmarshal(stdout, &memo)
-	if err != nil {
-		return "", err
-	}
-
-	return memo, nil
+	return string(stdout), nil
 }

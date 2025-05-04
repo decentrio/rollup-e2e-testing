@@ -2485,3 +2485,19 @@ func (node *Node) GetDelegation(ctx context.Context, delegator, valAddr string) 
 
 	return delegation, nil
 }
+
+func (node *Node) GetMemo(ctx context.Context, eibcFee, channel, recipient, timeout string) (string, error) {
+	command := []string{"forward", "memo-eibc-to-ibc", eibcFee, channel, recipient, timeout}
+	stdout, _, err := node.ExecQuery(ctx, command...)
+	if err != nil {
+		return "", err
+	}
+
+	var memo string
+	err = json.Unmarshal(stdout, &memo)
+	if err != nil {
+		return "", err
+	}
+
+	return memo, nil
+}

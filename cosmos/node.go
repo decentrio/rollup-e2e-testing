@@ -2487,8 +2487,8 @@ func (node *Node) GetDelegation(ctx context.Context, delegator, valAddr string) 
 }
 
 func (node *Node) GetMemo(ctx context.Context, eibcFee, channel, recipient, timeout string) (string, error) {
-	command := []string{"forward", "memo-eibc-to-ibc", eibcFee, channel, recipient, timeout}
-	stdout, _, err := node.ExecQuery(ctx, command...)
+	command := []string{"dymd", "q", "forward", "memo-eibc-to-ibc", eibcFee, channel, recipient, timeout}
+	stdout, _, err := node.Exec(ctx, command, nil)
 	if err != nil {
 		return "", err
 	}

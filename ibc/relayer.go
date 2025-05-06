@@ -83,6 +83,7 @@ type Relayer interface {
 	// CreateChannel creates a channel on the given path with the provided options.
 	CreateChannel(ctx context.Context, rep RelayerExecReporter, pathName string, opts CreateChannelOptions) error
 
+	CreateChannelOverride(ctx context.Context, rep RelayerExecReporter, pathName string, opts CreateChannelOptions) error
 	// UseDockerNetwork reports whether the relayer is run in the same docker network as the other chains.
 	//
 	// If false, the relayer will connect to the localhost-exposed ports instead of the docker hosts.

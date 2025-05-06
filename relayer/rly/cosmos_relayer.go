@@ -171,6 +171,18 @@ func (commander) CreateChannel(pathName string, opts ibc.CreateChannelOptions, h
 	}
 }
 
+func (commander) CreateChannelOverride(pathName string, opts ibc.CreateChannelOptions, homeDir string) []string {
+	return []string{
+		"rly", "tx", "channel", pathName,
+		"--src-port", opts.SourcePortName,
+		"--dst-port", opts.DestPortName,
+		"--order", opts.Order.String(),
+		"--version", opts.Version,
+		"--max-retries", "30", "--timeout", "40s", "--debug",
+		"--home", homeDir, "--override",
+	}
+}
+
 func (commander) CreateClients(pathName string, opts ibc.CreateClientOptions, homeDir string) []string {
 	return []string{
 		"rly", "tx", "clients", pathName, "--max-clock-drift", "70m", "--debug",

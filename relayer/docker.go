@@ -202,6 +202,12 @@ func (r *DockerRelayer) CreateChannel(ctx context.Context, rep ibc.RelayerExecRe
 	return res.Err
 }
 
+func (r *DockerRelayer) CreateChannelOverride(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, opts ibc.CreateChannelOptions) error {
+	cmd := r.c.CreateChannelOverride(pathName, opts, r.HomeDir())
+	res := r.Exec(ctx, rep, cmd, nil)
+	return res.Err
+}
+
 func (r *DockerRelayer) CreateClients(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, opts ibc.CreateClientOptions) error {
 	cmd := r.c.CreateClients(pathName, opts, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
@@ -531,6 +537,7 @@ type RelayerCommander interface {
 	AddChainConfiguration(containerFilePath, homeDir string) []string
 	AddKey(chainID, keyName, coinType, homeDir string) []string
 	CreateChannel(pathName string, opts ibc.CreateChannelOptions, homeDir string) []string
+	CreateChannelOverride(pathName string, opts ibc.CreateChannelOptions, homeDir string) []string
 	CreateClients(pathName string, opts ibc.CreateClientOptions, homeDir string) []string
 	CreateConnections(pathName, homeDir string) []string
 	CreateConnectionsWithNumberOfRetries(pathName, homeDir, retries string) []string

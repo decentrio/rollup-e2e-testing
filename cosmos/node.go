@@ -2495,3 +2495,43 @@ func (node *Node) GetMemo(ctx context.Context, eibcFee, channel, recipient, time
 
 	return string(stdout), nil
 }
+
+func (node *Node) CreateNoop(ctx context.Context, keyName string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane", "ism", "create-noop")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) CreateHookNoop(ctx context.Context, keyName string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane", "hooks", "noop", "create")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) CreateMailBox(ctx context.Context, keyName, ism, hub_domain string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane", "mailbox", "create", ism, hub_domain)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) CreateMerkleHook(ctx context.Context, keyName, mailbox string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane", "hooks", "merkle", "create", mailbox)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}
+
+func (node *Node) UpdateMailbox(ctx context.Context, keyName, mailbox, noop_hook, merkle_hook string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane", "mailbox", "set", mailbox, "--default-hook", noop_hook, "--required-hook", merkle_hook)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}

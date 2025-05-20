@@ -2535,3 +2535,11 @@ func (node *Node) UpdateMailbox(ctx context.Context, keyName, mailbox, noop_hook
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err
 }
+
+func (node *Node) CreateSyntheticToken(ctx context.Context, keyName, mailbox string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane-transfer", "dym-create-synthetic-token", mailbox)
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}

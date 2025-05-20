@@ -43,6 +43,7 @@ var _ ibc.Chain = (*CosmosChain)(nil)
 // CosmosChain is a local docker testnet for a Cosmos SDK chain.
 // Implements the ibc.Chain interface.
 type CosmosChain struct {
+	mu            sync.Mutex
 	testName      string
 	cfg           ibc.ChainConfig
 	numValidators int
@@ -1232,6 +1233,8 @@ func (c *CosmosChain) NewSidecarProcess(
 	ports []string,
 	startCmd []string,
 ) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	// Construct the SidecarProcess first so we can access its name.
 	// The SidecarProcess's VolumeName cannot be set until after we create the volume.
 	s := NewSidecar(c.log, false, preStart, c, cli, networkID, processName, testName, image, homeDir, index, ports, startCmd)

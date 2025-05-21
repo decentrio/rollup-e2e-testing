@@ -2543,3 +2543,11 @@ func (node *Node) CreateSyntheticToken(ctx context.Context, keyName, mailbox str
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err
 }
+
+func (node *Node) EnrollRemoteRouter(ctx context.Context, keyName, tokenID, eth_domain, eth_contract string) (string, error) {
+	var command []string
+	command = append(command, "hyperlane-transfer", "enroll-remote-router", tokenID, eth_domain, eth_contract, "0")
+
+	hash, err := node.ExecTx(ctx, keyName, command...)
+	return hash, err
+}

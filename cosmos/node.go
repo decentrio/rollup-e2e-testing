@@ -2551,3 +2551,13 @@ func (node *Node) EnrollRemoteRouter(ctx context.Context, keyName, tokenID, eth_
 	hash, err := node.ExecTx(ctx, keyName, command...)
 	return hash, err
 }
+
+func (node *Node) QueryHyperlaneEthRecipient(ctx context.Context, address string) (string, error) {
+	command := []string{"dymd", "q", "forward", "hl-eth-recipient", address}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdout), nil
+}

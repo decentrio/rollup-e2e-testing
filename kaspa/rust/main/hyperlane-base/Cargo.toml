@@ -1,0 +1,101 @@
+[package]
+name = "hyperlane-base"
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license-file.workspace = true
+publish.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait.workspace = true
+axum.workspace = true
+aws-config.workspace = true
+aws-sdk-s3.workspace = true
+bs58.workspace = true
+color-eyre = { workspace = true, optional = true }
+config.workspace = true
+console-subscriber.workspace = true
+convert_case.workspace = true
+dashmap.workspace = true
+derive-new.workspace = true
+derive_builder.workspace = true
+ed25519-dalek.workspace = true
+ethers.workspace = true
+eyre.workspace = true
+fuels.workspace = true
+futures.workspace = true
+futures-util.workspace = true
+itertools.workspace = true
+maplit.workspace = true
+mockall.workspace = true
+paste.workspace = true
+prometheus.workspace = true
+rocksdb.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+solana-sdk.workspace = true
+static_assertions.workspace = true
+tempfile = { workspace = true, optional = true }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt", "macros", "parking_lot"] }
+tokio-metrics.workspace = true
+tracing-error.workspace = true
+tracing-futures.workspace = true
+tracing-subscriber = { workspace = true, features = ["json", "ansi"] }
+tracing.workspace = true
+url.workspace = true
+warp.workspace = true
+ya-gcp.workspace = true
+moka = { workspace = true, features = ["future"] }
+chrono = { workspace = true, features = ["serde"] }
+
+backtrace = { workspace = true, optional = true }
+backtrace-oneline = { path = "../utils/backtrace-oneline", optional = true }
+
+ethers-prometheus = { path = "../ethers-prometheus", features = ["serde"] }
+hyperlane-core = { path = "../hyperlane-core", features = ["agent", "float"] }
+hyperlane-metric = { path = "../hyperlane-metric" }
+hyperlane-operation-verifier = { path = "../applications/hyperlane-operation-verifier" }
+hyperlane-test = { path = "../hyperlane-test" }
+
+hyperlane-ethereum = { path = "../chains/hyperlane-ethereum" }
+hyperlane-fuel = { path = "../chains/hyperlane-fuel" }
+hyperlane-cosmos = { path = "../chains/hyperlane-cosmos" }
+hyperlane-starknet = { path = "../chains/hyperlane-starknet" }
+hyperlane-cosmos-native = { path = "../chains/hyperlane-cosmos-native" }
+dymension-kaspa = { path = "../chains/dymension-kaspa" }
+hyperlane-sealevel = { path = "../chains/hyperlane-sealevel" }
+dym_kas_core = { path = "../../../dymension/libs/kaspa/lib/core" , package="core"}
+api-rs = { path = "../../../dymension/libs/kaspa/lib/api", package = "openapi" }
+dym_kas_relayer = { path = "../../../dymension/libs/kaspa/lib/relayer" , package="relayer"}
+dym_kas_validator = { path = "../../../dymension/libs/kaspa/lib/validator" , package="validator"}
+hyperlane-cosmos-rs = { package = "hyperlane-cosmos-dymension-rs", git = "https://github.com/dymensionxyz/hyperlane-cosmos-rs", branch = "main" }
+
+kaspa-consensus-core = { git = "https://github.com/dymensionxyz/rusty-kaspa", rev = "a443c3f" }
+kaspa-hashes ={ git = "https://github.com/dymensionxyz/rusty-kaspa", rev = "a443c3f" }
+kaspa-core = { git = "https://github.com/kaspanet/rusty-kaspa", rev = "a443c3f" }
+
+
+# dependency version is determined by etheres
+rusoto_core = "*"
+rusoto_kms = "*"
+rusoto_sts = "*"
+
+[dev-dependencies]
+color-eyre.workspace = true
+reqwest.workspace = true
+tempfile.workspace = true
+tracing-test.workspace = true
+walkdir.workspace = true
+
+[build-dependencies]
+anyhow = { workspace = true }
+vergen = { version = "8.3.2", features = ["build", "git", "gitcl"] }
+
+[features]
+default = ["oneline-errors", "color-eyre"]
+oneline-eyre = ["backtrace-oneline", "backtrace"]
+oneline-errors = ["oneline-eyre"]
+test-utils = ["dep:tempfile"]

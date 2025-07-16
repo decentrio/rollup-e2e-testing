@@ -1,0 +1,156 @@
+{{- if .Values.hyperlane.relayer.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "agent-common.fullname" . }}-relayer
+  labels:
+    {{- include "agent-common.labels" . | nindent 4 }}
+    app.kubernetes.io/component: relayer
+spec:
+  selector:
+    matchLabels:
+      {{- include "agent-common.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: relayer
+  replicas: 1
+  serviceName: {{ include "agent-common.fullname" . }}-relayer
+  template:
+    metadata:
+      annotations:
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/external-secret: {{ include (print $.Template.BasePath "/external-secret.yaml") . | sha256sum }}
+        checksum/relayer-configmap: {{ include (print $.Template.BasePath "/relayer-configmap.yaml") . | sha256sum }}
+        checksum/relayer-external-secret: {{ include (print $.Template.BasePath "/relayer-external-secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.hyperlane.relayer.podAnnotations }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "agent-common.labels" . | nindent 8 }}
+        app.kubernetes.io/component: relayer
+        {{- with .Values.podCommonLabels }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.hyperlane.relayer.podLabels }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      {{- if .Values.hyperlane.relayer.dbBootstrap.enabled }}
+      initContainers:
+      - name: db-bootstrap
+        image: google/cloud-sdk:alpine
+        command:
+          - sh
+          - -c
+          - |
+            if find {{ .Values.hyperlane.dbPath }} -type f | grep -q .; then
+              echo "Files already exist in {{ .Values.hyperlane.dbPath }} — skipping bootstrap"
+            else
+              echo "No data found in {{ .Values.hyperlane.dbPath }} — bootstrapping from GCS"
+              gsutil cp gs://{{ .Values.hyperlane.relayer.dbBootstrap.bucket }}/{{ .Values.hyperlane.relayer.dbBootstrap.object_targz }} /tmp/seed.tar.gz
+              # GNU tar has more options than busybox tar
+              echo "Installing GNU tar..."
+              apk add tar
+              echo "Extracting data to {{ .Values.hyperlane.dbPath }}"
+              tar --no-overwrite-dir --no-same-owner -xzf /tmp/seed.tar.gz -C {{ .Values.hyperlane.dbPath }}
+              chown -R 1000:2000 {{ .Values.hyperlane.dbPath }}
+            fi
+        env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "agent-common.fullname" . }}-relayer-secret
+                key: DB_BOOTSTRAP_SERVICE_ACCOUNT_KEY
+        volumeMounts:
+        - name: {{ .Values.hyperlane.relayer.storage.name | default "state" }}
+          mountPath: {{ .Values.hyperlane.dbPath }}
+      {{- end }}
+      containers:
+      - name: agent
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["./relayer"]
+        envFrom:
+        - configMapRef:
+            name: {{ include "agent-common.fullname" . }}
+        - secretRef:
+            name: {{ include "agent-common.fullname" . }}-secret
+        - secretRef:
+            name: {{ include "agent-common.fullname" . }}-relayer-secret
+        env:
+          {{- include "agent-common.config-env-vars" (dict "config" .Values.hyperlane.relayer.envConfig) | nindent 10 }}
+          - name: CONFIG_FILES
+            value: "/relayer-configmap/relayer-config.json"
+          {{- with .Values.hyperlane.relayer.cacheDefaultExpirationSeconds }}
+          - name: HYP_CACHEDEFAULTEXPIRATIONSECONDS
+            value: {{ . | quote }}
+          {{- end }}
+          {{- with .Values.hyperlane.relayer.mixing }}
+          {{- if .enabled }}
+          - name: HYPERLANE_RELAYER_MIXING_ENABLED
+            value: "true"
+          - name: HYPERLANE_RELAYER_MIXING_SALT
+            value: {{ .salt | quote }}
+          {{- end }}
+          {{- end }}
+          {{- with .Values.hyperlane.relayer.environmentVariableEndpointEnabled }}
+          - name: HYPERLANE_RELAYER_ENVIRONMENT_VARIABLE_ENDPOINT_ENABLED
+            value: {{ . | quote }}
+          {{- end }}
+          {{- with .Values.hyperlane.relayer.maxSubmitQueueLength }}
+          - name: HYP_MAXSUBMITQUEUELENGTH
+            value: {{ . | quote }}
+          {{- end }}
+        resources:
+          {{- toYaml .Values.hyperlane.relayer.resources | nindent 10 }}
+        volumeMounts:
+        - name: {{ .Values.hyperlane.relayer.storage.name | default "state" }}
+          mountPath: {{ .Values.hyperlane.dbPath }}
+        - name: relayer-configmap
+          mountPath: /relayer-configmap
+        ports:
+        - name: metrics
+          containerPort: {{ .Values.hyperlane.metrics.port }}
+      volumes:
+      - name: relayer-configmap
+        configMap:
+          name: {{ include "agent-common.fullname" . }}-relayer-configmap
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.hyperlane.relayer.storage.name | default "state" }}
+    spec:
+      storageClassName: {{ .Values.hyperlane.relayer.storage.storageClass | default .Values.storage.storageClass }}
+      accessModes: [ {{ .Values.storage.accessModes }} ]
+      {{- if .Values.hyperlane.relayer.storage.snapshot.enabled }}
+      dataSource:
+        name: {{ .Values.hyperlane.relayer.storage.snapshot.name }}
+        kind: VolumeSnapshot
+        apiGroup: snapshot.storage.k8s.io
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.hyperlane.relayer.storage.size }}
+{{- end }}

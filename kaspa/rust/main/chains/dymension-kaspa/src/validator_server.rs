@@ -1,3 +1,4 @@
+use super::conf::ValidatorStuff;
 use super::endpoints::*;
 use super::providers::KaspaProvider;
 use axum::{
@@ -8,21 +9,21 @@ use axum::{
     routing::post,
     Router,
 };
+use dym_kas_core::api::client::HttpClient;
 use dym_kas_core::deposit::DepositFXG;
 use dym_kas_core::escrow::EscrowPublic;
-use dym_kas_core::payload::MessageIDs;
 use dym_kas_core::wallet::EasyKaspaWallet;
 use dym_kas_core::{confirmation::ConfirmationFXG, withdraw::WithdrawFXG};
 use dym_kas_validator::confirmation::validate_confirmed_withdrawals;
 use dym_kas_validator::deposit::validate_new_deposit;
-use dym_kas_validator::withdraw::validate_withdrawals;
-use dym_kas_validator::withdraw::{sign_withdrawal_fxg, validate_withdrawal_batch};
+use dym_kas_validator::withdraw::{sign_withdrawal_fxg, validate_withdrawal_batch, MustMatch};
 pub use dym_kas_validator::KaspaSecpKeypair;
-use eyre::{eyre, Report};
+use eyre::Report;
 use hyperlane_core::{
     Checkpoint, CheckpointWithMessageId, HyperlaneSignerExt, Signable,
     SignedCheckpointWithMessageId, SignedType, H256,
 };
+use hyperlane_core::{HyperlaneChain, HyperlaneDomain, Signature as HLCoreSignature};
 use hyperlane_cosmos_native::GrpcProvider as CosmosGrpcClient;
 use hyperlane_cosmos_rs::dymensionxyz::dymension::kas::ProgressIndication;
 use hyperlane_cosmos_rs::prost::Message;
@@ -78,23 +79,11 @@ impl<S: HyperlaneSignerExt + Send + Sync + 'static> ValidatorServerResources<S> 
         self.kas_provider.as_ref().unwrap().must_kas_key()
     }
     fn must_api(&self) -> Arc<DynRpcApi> {
-        self.kas_provider.as_ref().unwrap().wallet().api()
+        self.must_wallet().api()
     }
 
     fn must_escrow(&self) -> EscrowPublic {
         self.kas_provider.as_ref().unwrap().escrow()
-    }
-
-    fn must_escrow_address(&self) -> String {
-        self.kas_provider
-            .as_ref()
-            .unwrap()
-            .escrow_address()
-            .to_string()
-    }
-
-    fn must_network_params(&self) -> &NetworkParams {
-        NetworkParams::from(self.kas_provider.as_ref().unwrap().wallet().network_id())
     }
 
     fn must_wallet(&self) -> &EasyKaspaWallet {
@@ -105,8 +94,16 @@ impl<S: HyperlaneSignerExt + Send + Sync + 'static> ValidatorServerResources<S> 
         self.kas_provider.as_ref().unwrap().hub_rpc()
     }
 
-    pub fn must_hub_mailbox_id(&self) -> String {
-        self.kas_provider.as_ref().unwrap().hub_mailbox_id()
+    pub fn must_kas_domain(&self) -> &HyperlaneDomain {
+        self.kas_provider.as_ref().unwrap().domain()
+    }
+
+    fn must_rest_client(&self) -> &HttpClient {
+        &self.kas_provider.as_ref().unwrap().rest().client.client
+    }
+
+    fn must_val_stuff(&self) -> &ValidatorStuff {
+        self.kas_provider.as_ref().unwrap().must_validator_stuff()
     }
 
     pub fn default() -> Self {
@@ -124,22 +121,28 @@ async fn respond_validate_new_deposits<S: HyperlaneSignerExt + Send + Sync + 'st
     info!("Validator: checking new kaspa deposit");
     let deposits: DepositFXG = body.try_into().map_err(|e: eyre::Report| AppError(e))?;
     // Call to validator.G()
-    if !validate_new_deposit(
-        &resources.must_api(),
-        &deposits,
-        &resources.must_escrow_address(),
-        &resources.must_network_params(),
-    )
-    .await
-    .map_err(|e| AppError(e))?
+    if resources.must_val_stuff().toggles.deposit_enabled
+        && !validate_new_deposit(
+            &resources.must_api(),
+            &resources.must_rest_client(),
+            &deposits,
+            &resources.must_wallet().net,
+            &resources.must_escrow().addr,
+            resources.must_hub_rpc(),
+        )
+        .await
+        .map_err(|e| AppError(e))?
     {
         // TODO: return reasons and use them
         return Err(AppError(eyre::eyre!("Validator G() function rejected")));
     }
-    info!("Validator: deposit is valid: id = {:?}", deposits.msg_id);
+    info!(
+        "Validator: deposit is valid: id = {:?}",
+        deposits.hl_message.id()
+    );
 
-    let message_id = deposits.msg_id;
-    let domain = deposits.payload.origin;
+    let message_id = deposits.hl_message.id();
+    let domain = deposits.hl_message.origin;
 
     let zero_array = [0u8; 32];
     let to_sign: CheckpointWithMessageId = CheckpointWithMessageId {
@@ -165,19 +168,22 @@ async fn respond_validate_new_deposits<S: HyperlaneSignerExt + Send + Sync + 'st
 async fn respond_validate_confirmed_withdrawals<S: HyperlaneSignerExt + Send + Sync + 'static>(
     State(resources): State<Arc<ValidatorServerResources<S>>>,
     body: Bytes,
-) -> HandlerResult<Json<SignedType<SignableProgressIndication>>> {
+) -> HandlerResult<Json<HLCoreSignature>> {
     info!("Validator: checking confirmed kaspa withdrawal");
     let confirmation_fxg: ConfirmationFXG =
         body.try_into().map_err(|e: eyre::Report| AppError(e))?;
 
-    // Call to validator.G()
-    if !validate_confirmed_withdrawals(&confirmation_fxg)
-        .await
-        .map_err(|e| AppError(e))?
+    // Call to validator
+    if resources
+        .must_val_stuff()
+        .toggles
+        .withdrawal_confirmation_enabled
     {
-        return Err(AppError(eyre::eyre!("Invalid confirmation")));
+        validate_confirmed_withdrawals(&confirmation_fxg, resources.must_rest_client())
+            .await
+            .map_err(|e| AppError(Report::from(e)))?;
+        info!("Validator: confirmed withdrawal is valid");
     }
-    info!("Validator: confirmed withdrawal is valid");
 
     let progress_indication = &confirmation_fxg.progress_indication;
 
@@ -191,7 +197,7 @@ async fn respond_validate_confirmed_withdrawals<S: HyperlaneSignerExt + Send + S
 
     info!("Validator: signed confirmed withdrawal");
 
-    Ok(Json(sig))
+    Ok(Json(sig.signature))
 }
 
 async fn respond_sign_pskts<S: HyperlaneSignerExt + Send + Sync + 'static>(
@@ -202,24 +208,31 @@ async fn respond_sign_pskts<S: HyperlaneSignerExt + Send + Sync + 'static>(
     let fxg: WithdrawFXG = body.try_into().map_err(|e: eyre::Report| AppError(e))?;
 
     // Call to validator.G()
-    validate_withdrawal_batch(
-        &fxg,
-        resources.must_hub_rpc(),
-        resources.must_hub_mailbox_id(),
-        &resources.must_wallet().network_info,
-        resources.must_escrow(),
-    )
-    .await
-    .map_err(|e| AppError(Report::from(e)))?;
-
-    info!("Validator: pskts are valid");
+    if resources.must_val_stuff().toggles.withdrawal_enabled {
+        validate_withdrawal_batch(
+            &fxg,
+            resources.must_hub_rpc(),
+            MustMatch::new(
+                resources.must_wallet().net.address_prefix,
+                resources.must_escrow(),
+                resources.must_val_stuff().hub_domain,
+                resources.must_val_stuff().hub_token_id,
+                resources.must_val_stuff().kas_domain,
+                resources.must_val_stuff().kas_token_placeholder,
+                resources.must_val_stuff().hub_mailbox_id.clone(),
+            ),
+        )
+        .await
+        .map_err(|e| AppError(Report::from(e)))?;
+        info!("Validator: pskts are valid");
+    }
 
     let bundle = sign_withdrawal_fxg(&fxg, &resources.must_kas_key()).map_err(|e| AppError(e))?;
 
     Ok(Json(bundle))
 }
 
-struct SignableProgressIndication {
+pub struct SignableProgressIndication {
     progress_indication: ProgressIndication,
 }
 

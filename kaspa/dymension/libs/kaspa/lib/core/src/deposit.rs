@@ -1,6 +1,7 @@
 use super::escrow::*;
-
 use bytes::Bytes;
+use hyperlane_cosmos_rs::dymensionxyz::dymension::forward::HlMetadata;
+use hyperlane_warp_route::TokenMessage;
 
 use std::sync::Arc;
 
@@ -13,29 +14,51 @@ use kaspa_wallet_core::prelude::*;
 
 use workflow_core::abortable::Abortable;
 
+use eyre::Result;
 use hyperlane_core::{HyperlaneMessage, H256, U256};
+use kaspa_rpc_core::RpcHash;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DepositFXG {
-    pub msg_id: H256,
     pub amount: U256,
     pub tx_id: String,
     pub utxo_index: usize,
-    pub block_id: String,
-    pub payload: HyperlaneMessage,
+    pub accepting_block_hash: String,
+    pub hl_message: HyperlaneMessage,
+    pub containing_block_hash: String,
 }
 
 impl Default for DepositFXG {
     fn default() -> Self {
         Self {
-            msg_id: H256::random(),
             amount: U256::from(0),
             tx_id: String::new(),
             utxo_index: 0,
-            block_id: String::new(),
-            payload: HyperlaneMessage::default(),
+            accepting_block_hash: String::new(),
+            hl_message: HyperlaneMessage::default(),
+            containing_block_hash: String::new(),
         }
+    }
+}
+
+impl DepositFXG {
+    pub fn accepting_block_hash_rpc(&self) -> Result<RpcHash> {
+        RpcHash::from_str(&self.accepting_block_hash).map_err(|e| {
+            eyre::Report::new(e).wrap_err("Failed to convert accepting block hash to RpcHash")
+        })
+    }
+
+    pub fn tx_hash_rpc(&self) -> Result<RpcHash> {
+        RpcHash::from_str(&self.tx_id)
+            .map_err(|e| eyre::Report::new(e).wrap_err("Failed to convert tx hash to RpcHash"))
+    }
+
+    pub fn containing_block_hash_rpc(&self) -> Result<RpcHash> {
+        RpcHash::from_str(&self.containing_block_hash).map_err(|e| {
+            eyre::Report::new(e).wrap_err("Failed to convert containing block hash to RpcHash")
+        })
     }
 }
 
@@ -72,12 +95,12 @@ mod tests {
     async fn test_deposit_fxg_serialization_deserialization_roundtrip() {
         // Arrange: Create a sample DepositFXG instance
         let original_deposit = DepositFXG {
-            msg_id: H256::random(),
             tx_id: "test_transaction_id_123".to_string(),
             utxo_index: 5,
             amount: U256::from(100_000_000),
-            block_id: "test_block_id_abc".to_string(),
-            payload: HyperlaneMessage::default(),
+            accepting_block_hash: "test_block_id_abc".to_string(),
+            containing_block_hash: "test_block_id_def".to_string(),
+            hl_message: HyperlaneMessage::default(),
         };
 
         // Act: Serialize to Bytes, then deserialize back
@@ -129,12 +152,12 @@ mod tests {
     async fn test_deposit_fxg_serialization_determinism() {
         // Arrange: Create two identical DepositFXG instances
         let deposit1 = DepositFXG {
-            msg_id: H256([1; 32]),
             tx_id: "deterministic_tx".to_string(),
             utxo_index: 10,
-            block_id: "deterministic_block".to_string(),
+            containing_block_hash: "deterministic_block".to_string(),
+            accepting_block_hash: "deterministic_block".to_string(),
             amount: U256::from(100_000_000),
-            payload: HyperlaneMessage {
+            hl_message: HyperlaneMessage {
                 version: 1,
                 nonce: 100,
                 origin: 1,
@@ -146,12 +169,12 @@ mod tests {
         };
 
         let deposit2 = DepositFXG {
-            msg_id: H256([1; 32]),
             tx_id: "deterministic_tx".to_string(),
             utxo_index: 10,
-            block_id: "deterministic_block".to_string(),
+            containing_block_hash: "deterministic_block".to_string(),
+            accepting_block_hash: "deterministic_block".to_string(),
             amount: U256::from(100_000_000),
-            payload: HyperlaneMessage {
+            hl_message: HyperlaneMessage {
                 version: 1,
                 nonce: 100,
                 origin: 1,

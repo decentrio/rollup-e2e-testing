@@ -2571,3 +2571,23 @@ func (node *Node) SetupKaspaBridge(ctx context.Context, ism, remote_router strin
 
 	return string(stdout), nil
 }
+
+func (node *Node) QueryIsms(ctx context.Context, ism, remote_router string) (string, error) {
+	command := []string{"dymd", "q", "hyperlane", "ism", "isms", "-o", "json"}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdout), nil
+}
+
+func (node *Node) QueryMailboxes(ctx context.Context, ism, remote_router string) (string, error) {
+	command := []string{"dymd", "q", "hyperlane", "mailboxes", "-o", "json"}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdout), nil
+}

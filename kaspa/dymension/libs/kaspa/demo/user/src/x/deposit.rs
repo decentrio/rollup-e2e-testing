@@ -20,7 +20,11 @@ pub async fn do_deposit(args: DepositArgs) -> Result<()> {
     let a = Address::try_from(args.escrow_address)?;
     let amt = args.amount.parse::<u64>().unwrap();
     // TODO: check amt and payload
-    let payload = hex::decode(&args.payload)?;
+
+    let payload = match args.payload.is_empty() {
+        true => vec![],
+        false => hex::decode(&args.payload)?,
+    };
 
     let res = deposit_with_payload(&w, &s, a, amt, payload);
 

@@ -24,12 +24,21 @@ pub enum Commands {
     /// Get the escrow address for some secp256k1 pub keys (like kaspatest:pzlq49spp6...66ne90v7e6pyrfr)
     Escrow(EscrowCli),
     /// Generate all the info needed for a validator (without escrow address)
-    Validator,
+    Validator(ValidatorCli),
     /// Generate all the info needed for a validator with a 1 of 1 multisig escrow
     #[clap(name = "validator-with-escrow")]
     ValidatorAndEscrow,
     /// Make a user deposit (to escrow)
     Deposit(DepositCli),
+    /// Relayer
+    Relayer,
+}
+
+#[derive(Args, Debug)]
+pub struct ValidatorCli {
+    /// Generate more than one validator at a time
+    #[arg(required = false, index = 1, default_value = "1")]
+    pub n: u32,
 }
 
 #[derive(Args, Debug)]
@@ -57,7 +66,7 @@ pub struct DepositCli {
     pub amount: String,
 
     /// The payload to deposit (hex without 0x prefix)
-    #[arg(long, required = true)]
+    #[arg(long, required = false, default_value = "")]
     pub payload: String,
 
     /// The wRPC url (like localhost:17210)

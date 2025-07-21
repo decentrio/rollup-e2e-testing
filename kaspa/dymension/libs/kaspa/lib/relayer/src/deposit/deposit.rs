@@ -1,5 +1,5 @@
-use corelib::api::client::Deposit;
 use corelib::deposit::DepositFXG;
+use corelib::{api::client::Deposit, message::add_kaspa_metadata_hl_messsage};
 use eyre::Result;
 
 use tracing::info;
@@ -8,106 +8,51 @@ use tracing::info;
 use hyperlane_cosmos_rs::dymensionxyz::dymension::forward::HlMetadata;
 use prost::Message;
 
-use corelib::message::{parse_hyperlane_message, parse_hyperlane_metadata};
+use corelib::message::{parse_hyperlane_message, parse_hyperlane_metadata, ParsedHL};
 use hyperlane_core::{Encode, HyperlaneMessage, RawHyperlaneMessage, U256};
 use hyperlane_warp_route::TokenMessage;
 use kaspa_consensus_core::tx::TransactionOutpoint;
 pub use secp256k1::PublicKey;
 use std::error::Error;
 
-struct ParsedHL {
-    hl_message: HyperlaneMessage,
-    token_message: TokenMessage,
-}
-
-impl ParsedHL {
-    fn parse(payload: &str) -> Result<Self> {
-        let raw = hex::decode(payload)?;
-        let hl_message = parse_hyperlane_message(&raw)?;
-        let token_message = parse_hyperlane_metadata(&hl_message)?;
-        Ok(ParsedHL {
-            hl_message,
-            token_message,
-        })
-    }
-}
-
-pub async fn handle_new_deposit(escrow_address: &str, deposit: &Deposit) -> Result<DepositFXG> {
+pub async fn on_new_deposit(escrow_address: &str, deposit: &Deposit) -> Result<Option<DepositFXG>> {
     // decode payload into Hyperlane message
 
     let payload = deposit.payload.clone().unwrap();
-    let parsed = ParsedHL::parse(&payload)?;
+    let parsed_hl = ParsedHL::parse_string(&payload)?;
     info!(
         "Dymension, parsed new deposit HL message: {:?}",
-        parsed.hl_message
+        parsed_hl.hl_message
     );
 
-    let hl_message = parsed.hl_message;
-    let token_message = parsed.token_message;
-
+    let amt_hl = parsed_hl.token_message.amount();
     // find the index of the utxo that satisfies the transfer amount in hl message
     let utxo_index = deposit
         .outputs
         .iter()
         .position(|utxo: &api_rs::models::TxOutput| {
-            U256::from(utxo.amount) >= token_message.amount()
+            U256::from(utxo.amount) >= amt_hl
                 && utxo.script_public_key_address.as_ref().unwrap() == escrow_address
         })
         .ok_or(eyre::eyre!("kaspa deposit had insufficient sompi amount"))?;
 
-    let output = TransactionOutpoint {
-        transaction_id: deposit.id,
-        index: utxo_index as u32,
-    };
-    let output_bytes = bincode::serialize(&output)?;
+    let hl_message_new = add_kaspa_metadata_hl_messsage(parsed_hl, deposit.id, utxo_index)?;
 
-    let mut metadata: HlMetadata;
-    if token_message.metadata().is_empty() {
-        metadata = HlMetadata {
-            hook_forward_to_ibc: Vec::new(),
-            kaspa: output_bytes,
-        };
-    } else {
-        metadata = HlMetadata::decode(token_message.metadata())?;
-        // replace kaspa value and reencode message
-        metadata.kaspa = output_bytes;
+    if deposit.block_hashes.len() == 0 {
+        return Err(eyre::eyre!("kaspa deposit had no block hashes"));
     }
-    let token_message_new = TokenMessage::new(
-        token_message.recipient(),
-        token_message.amount(),
-        metadata.encode_to_vec(),
-    );
-    // create message with new body
-    let mut hl_message_new = hl_message.clone();
-    hl_message_new.body = token_message_new.to_vec();
 
     // build response for validator
     let tx = DepositFXG {
-        msg_id: hl_message_new.id(),
         tx_id: deposit.id.to_string(),
         utxo_index: utxo_index,
-        amount: token_message.amount(),
-        block_id: deposit.block_hash[0].clone(), // used by validator to find tx by block
-        payload: hl_message_new,
+        amount: amt_hl,
+        accepting_block_hash: deposit.accepting_block_hash.clone(),
+        containing_block_hash: deposit.block_hashes[0].clone(), // used by validator to find tx by block
+
+        hl_message: hl_message_new,
     };
-    Ok(tx)
-}
-
-pub async fn handle_new_deposits(
-    deposits: Vec<&Deposit>,
-    escrow_address: &str,
-) -> Result<Vec<DepositFXG>, Box<dyn Error>> {
-    let mut txs = Vec::new();
-
-    for deposit in deposits {
-        if deposit.payload.is_none() {
-            continue;
-        }
-        let tx = handle_new_deposit(escrow_address, deposit).await?;
-        txs.push(tx);
-    }
-
-    Ok(txs)
+    Ok(Some(tx))
 }
 
 #[cfg(test)]
@@ -120,7 +65,7 @@ mod tests {
             "030000000004d10892ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff804b267ca0726f757465725f6170700000000000000000000000000002000000000000000000000000000000000000000089760f514dcfcccf1e4c5edc6bf6041931c4c18300000000000000000000000000000000000000000000000000000000000003e8",
         ];
         for input in inputs {
-            let parsed = ParsedHL::parse(input);
+            let parsed = ParsedHL::parse_string(input);
             match parsed {
                 Ok(parsed) => {
                     println!("hl_message: {:?}", parsed.hl_message);
@@ -132,9 +77,4 @@ mod tests {
             }
         }
     }
-}
-
-pub async fn on_new_deposit(escrow_address: &str, deposit: &Deposit) -> Result<Option<DepositFXG>> {
-    let deposit_tx_result = handle_new_deposit(escrow_address, deposit).await?;
-    Ok(Some(deposit_tx_result))
 }

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 hardcode = { path = "../hardcode" }
-hex = "0.4"
+hex = { workspace = true }
 kaspa-addresses = { workspace = true }
 kaspa-consensus-core = { workspace = true }
 kaspa-grpc-client = { workspace = true }
@@ -44,3 +44,4 @@ governor = "0.10"
 serde = { version = "^1.0", features = ["derive"] }
 borsh = { version = "1.5.1", features = ["derive", "rc"] }
 postcard = { version = "1.0", features = ["alloc"] }
+prost = { version = "0.13", default-features = false }

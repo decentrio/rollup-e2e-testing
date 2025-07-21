@@ -19,6 +19,7 @@ use hyperlane_cosmos_native::mailbox::CosmosNativeMailbox;
 use kaspa_core::time::unix_now;
 
 use api_rs::apis::configuration::Configuration;
+use dym_kas_hardcode::tx::FINALITY_APPROX_WAIT_TIME;
 use dym_kas_relayer::confirm::expensive_trace_transactions;
 use kaspa_consensus_core::tx::{TransactionId, TransactionOutpoint};
 
@@ -93,17 +94,23 @@ where
     // https://github.com/dymensionxyz/hyperlane-monorepo/blob/20b9e669afcfb7728e66b5932e85c0f7fcbd50c1/dymension/libs/kaspa/lib/relayer/note.md#L102-L119
     async fn deposit_loop(&self) {
         info!("Dymension, starting deposit loop");
-        let lower_bound_unix_time: Option<i64> =
-            match self.provider.rest().conf.deposit_look_back_mins {
-                Some(offset) => {
-                    let secs = offset * 60;
-                    let d = Duration::new(secs, 0);
-                    Some(unix_now() as i64 - d.as_millis() as i64)
-                }
-                None => None, // unbounded
-            };
+        let lower_bound_unix_time: Option<i64> = match self
+            .provider
+            .rest()
+            .conf
+            .relayer_stuff
+            .as_ref()
+            .unwrap()
+            .deposit_look_back_mins
+        {
+            Some(offset) => {
+                let secs = offset * 60;
+                let d = Duration::new(secs, 0);
+                Some(unix_now() as i64 - d.as_millis() as i64)
+            }
+            None => None, // unbounded
+        };
         loop {
-            time::sleep(Duration::from_secs(20)).await;
             let deposits_res = self
                 .provider
                 .rest()
@@ -113,45 +120,49 @@ where
                 Ok(deposits) => deposits,
                 Err(e) => {
                     error!("Query new Kaspa deposits: {:?}", e);
+                    time::sleep(Duration::from_secs(10)).await; // TODO: should use proper retry library and check if error is transient
                     continue;
                 }
             };
-
             info!("Dymension, queried kaspa deposits, n: {:?}", deposits.len());
+            time::sleep(FINALITY_APPROX_WAIT_TIME).await;
+            self.handle_new_deposits(deposits).await;
+        }
+    }
 
-            let mut deposits_new = Vec::new();
-            for d in deposits.into_iter() {
-                if !self.deposit_cache.has_seen(&d).await {
-                    info!("Dymension, new deposit seen: {:?}", d.clone());
-                    self.deposit_cache.mark_as_seen(d.clone()).await;
-                    deposits_new.push(d);
-                }
+    async fn handle_new_deposits(&self, deposits: Vec<Deposit>) {
+        let mut deposits_new = Vec::new();
+        for d in deposits.into_iter() {
+            if !self.deposit_cache.has_seen(&d).await {
+                info!("Dymension, new deposit seen: {:?}", d.clone());
+                self.deposit_cache.mark_as_seen(d.clone()).await;
+                deposits_new.push(d);
             }
+        }
 
-            for d in &deposits_new {
-                // Call to relayer.F()
-                let new_deposit_res =
-                    relayer_on_new_deposit(&self.provider.escrow_address().to_string(), d).await;
-                info!("Dymension, built new deposit FXG: {:?}", new_deposit_res);
-                match new_deposit_res {
-                    Ok(Some(fxg)) => {
-                        let res = self.get_deposit_validator_sigs_and_send_to_hub(&fxg).await;
-                        match res {
-                            Ok(_) => {
-                                info!("Dymension, got sigs and sent new deposit to hub: {:?}", fxg);
-                            }
-                            Err(e) => {
-                                error!("Dymension, gather sigs and send deposit to hub: {:?}", e);
-                                // TODO: should have a retry flow
-                            }
+        for d in &deposits_new {
+            // Call to relayer.F()
+            let new_deposit_res =
+                relayer_on_new_deposit(&self.provider.escrow_address().to_string(), d).await;
+            info!("Dymension, built new deposit FXG: {:?}", new_deposit_res);
+            match new_deposit_res {
+                Ok(Some(fxg)) => {
+                    let res = self.get_deposit_validator_sigs_and_send_to_hub(&fxg).await;
+                    match res {
+                        Ok(_) => {
+                            info!("Dymension, got sigs and sent new deposit to hub: {:?}", fxg);
+                        }
+                        Err(e) => {
+                            error!("Dymension, gather sigs and send deposit to hub: {:?}", e);
+                            // TODO: should have a retry flow
                         }
                     }
-                    Ok(None) => {
-                        error!("Dymension, F() new deposit returned none, dropping deposit.");
-                    }
-                    Err(e) => {
-                        error!("Dymension, F() new deposit: {:?}, dropping deposit.", e);
-                    }
+                }
+                Ok(None) => {
+                    error!("Dymension, F() new deposit returned none, dropping deposit.");
+                }
+                Err(e) => {
+                    error!("Dymension, F() new deposit: {:?}, dropping deposit.", e);
                 }
             }
         }
@@ -182,6 +193,7 @@ where
 
             match confirmation {
                 Some(confirmation) => {
+                    time::sleep(FINALITY_APPROX_WAIT_TIME).await;
                     let res = self.confirm_withdrawal_on_hub(confirmation.clone()).await;
                     match res {
                         Ok(_) => {
@@ -192,10 +204,10 @@ where
                         }
                     }
                 }
-                None => {}
+                None => {
+                    time::sleep(Duration::from_secs(10)).await;
+                }
             }
-
-            time::sleep(Duration::from_secs(10)).await;
         }
     }
 
@@ -216,7 +228,7 @@ where
         )?;
 
         self.hub_mailbox
-            .process(&fxg.payload, &formatted_sigs, None)
+            .process(&fxg.hl_message, &formatted_sigs, None)
             .await
     }
 
@@ -278,7 +290,7 @@ where
         let all_escrow_utxos = self
             .provider
             .rpc()
-            .get_utxos_by_addresses(vec![escrow_address])
+            .get_utxos_by_addresses(vec![escrow_address.clone()])
             .await?;
 
         // check if the anchor utxo is in the utxos.
@@ -300,18 +312,24 @@ where
                 let candidate_new_anchor = TransactionOutpoint::from(utxo.outpoint);
                 let fxg = expensive_trace_transactions(
                     &self.provider.rest().client.client,
-                    candidate_new_anchor,
+                    &escrow_address.to_string(),
+                    candidate_new_anchor.clone(),
                     old_anchor,
                 )
                 .await;
                 if !fxg.is_ok() {
                     error!(
-                        "Dymension, error tracing sequence of kaspa withdrawals for syncing: {:?}",
-                        fxg.err()
+                        "Dymension, invalid confirmation candidate: error tracing sequence of kaspa withdrawals for syncing: {:?}, candidate: {:?}",
+                        fxg.err(),
+                        candidate_new_anchor,
                     );
                     continue;
                 }
                 info!("Traced sequence of kaspa withdrawals for syncing");
+
+                /*
+                TODO: need to try again here if validators are not unavailable etc, rather than just returning an error and thus a crash
+                  */
                 self.confirm_withdrawal_on_hub(fxg.unwrap()).await?;
                 good = true;
                 break;

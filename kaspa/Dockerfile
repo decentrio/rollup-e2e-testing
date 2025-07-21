@@ -7,4 +7,4 @@ RUN apt-get install -y protobuf-compiler libclang-dev
 WORKDIR /home
 COPY . .
 
-WORKDIR /home/dymension/libs/demo/user/
+WORKDIR /home/dymension/libs/kaspa/demo/user/

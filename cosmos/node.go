@@ -2562,14 +2562,11 @@ func (node *Node) QueryHyperlaneEthRecipient(ctx context.Context, address string
 	return string(stdout), nil
 }
 
-func (node *Node) SetupKaspaBridge(ctx context.Context, ism, remote_router string) (string, error) {
-	command := []string{"dymd", "q", "kas", "setup-bridge", "--validators", ism, "--threshold", "1", "--remote-router-address", remote_router}
-	stdout, _, err := node.Exec(ctx, command, nil)
-	if err != nil {
-		return "", err
-	}
+func (node *Node) SetupKaspaBridge(ctx context.Context, keyName, ism, remote_router string) (string, error) {
+	command := []string{"kas", "setup-bridge", "--validators", ism, "--threshold", "1", "--remote-router-address", remote_router}
+	hash, err := node.ExecTx(ctx, keyName, command...)
 
-	return string(stdout), nil
+	return hash, err
 }
 
 func (node *Node) QueryIsms(ctx context.Context, ism, remote_router string) (string, error) {

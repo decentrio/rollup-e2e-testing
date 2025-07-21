@@ -2580,7 +2580,8 @@ func (node *Node) QueryIsms(ctx context.Context, ism, remote_router string) (str
 }
 
 func (node *Node) QueryMailboxes(ctx context.Context, ism, remote_router string) (string, error) {
-	command := []string{"dymd", "q", "hyperlane", "mailboxes", "-o", "json"}
+	command := []string{"dymd", "q", "hyperlane", "mailboxes", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
 	stdout, _, err := node.Exec(ctx, command, nil)
 	if err != nil {
 		return "", err

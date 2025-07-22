@@ -2590,3 +2590,14 @@ func (node *Node) QueryMailboxes(ctx context.Context, ism, remote_router string)
 
 	return string(stdout), nil
 }
+
+func (node *Node) QueryTokenID(ctx context.Context) (string, error) {
+	command := []string{"dymd", "q", "warp", "tokens", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdout), nil
+}

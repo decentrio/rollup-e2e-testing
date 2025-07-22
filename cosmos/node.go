@@ -2570,7 +2570,8 @@ func (node *Node) SetupKaspaBridge(ctx context.Context, keyName, ism, remote_rou
 }
 
 func (node *Node) QueryIsms(ctx context.Context, ism, remote_router string) (string, error) {
-	command := []string{"dymd", "q", "hyperlane", "ism", "isms", "-o", "json"}
+	command := []string{"dymd", "q", "hyperlane", "ism", "isms", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
 	stdout, _, err := node.Exec(ctx, command, nil)
 	if err != nil {
 		return "", err

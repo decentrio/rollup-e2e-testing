@@ -2601,3 +2601,14 @@ func (node *Node) QueryTokenID(ctx context.Context) (string, error) {
 
 	return string(stdout), nil
 }
+
+func (node *Node) QueryHyperlaneMessageKaspa(ctx context.Context, tokenID, address, amount string) (string, error) {
+	command := []string{"dymd", "q", "forward", "hl-message-kaspa", tokenID, address, amount, "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdout), nil
+}

@@ -2562,12 +2562,250 @@ func (node *Node) QueryHyperlaneEthRecipient(ctx context.Context, address string
 	return string(stdout), nil
 }
 
-func (node *Node) SetupKaspaBridge(ctx context.Context, keyName, ism, remote_router string) (string, error) {
-	command := []string{"kas", "setup-bridge", "--validators", ism, "--threshold", "1", "--remote-router-address", remote_router}
-	hash, err := node.ExecTx(ctx, keyName, command...)
+func (node *Node) SetupKaspaBridge(ctx context.Context, keyName, ism, remoteRouter string) (string, error) {
+	const (
+		hubDomain          = 1260813472
+		counterpartyDomain = 1001001001
+		remoteRouterGas    = 200000
+	)
 
-	return hash, err
+	ismId, err := node.CreateMessageIdMultisigIsm(ctx, keyName, ism, 1)
+	if err != nil {
+		return "", fmt.Errorf("create ism: %w", err)
+	}
+
+	mailboxId, err := node.CreateMailbox(ctx, keyName, ismId, hubDomain)
+	if err != nil {
+		return "", fmt.Errorf("create mailbox: %w", err)
+	}
+
+	if _, err := node.CreateSyntheticToken(ctx, keyName, mailboxId); err != nil {
+		return "", fmt.Errorf("create synthetic token: %w", err)
+	}
+	time.Sleep(6 * time.Second)
+
+	tokensJson, err := node.QueryTokenID(ctx)
+	if err != nil {
+		return "", fmt.Errorf("query tokens: %w", err)
+	}
+	var tokensResp struct {
+		Tokens []struct {
+			ID string `json:"id"`
+		} `json:"tokens"`
+	}
+	if err := json.Unmarshal([]byte(tokensJson), &tokensResp); err != nil {
+		return "", fmt.Errorf("unmarshal tokens: %w", err)
+	}
+	if len(tokensResp.Tokens) == 0 {
+		return "", fmt.Errorf("no tokens found after creation")
+	}
+	tokenId := tokensResp.Tokens[0].ID
+
+	merkleHookId, err := node.CreateMerkleTreeHook(ctx, keyName, mailboxId)
+	if err != nil {
+		return "", fmt.Errorf("create merkle hook: %w", err)
+	}
+
+	feeHookId, err := node.CreateBridgingFeeHook(ctx, keyName, tokenId)
+	if err != nil {
+		return "", fmt.Errorf("create bridging fee hook: %w", err)
+	}
+
+	aggregationHookId, err := node.CreateAggregationHook(ctx, keyName, feeHookId, merkleHookId)
+	if err != nil {
+		return "", fmt.Errorf("create aggregation hook: %w", err)
+	}
+
+	noopHookId, err := node.CreateNoopHook(ctx, keyName)
+	if err != nil {
+		return "", fmt.Errorf("create noop hook: %w", err)
+	}
+
+	if _, err := node.SetMailbox(ctx, keyName, mailboxId, noopHookId, aggregationHookId); err != nil {
+		return "", fmt.Errorf("set mailbox: %w", err)
+	}
+
+	hash, err := node.EnrollRemoteRouter(ctx, keyName, tokenId, fmt.Sprint(counterpartyDomain), remoteRouter)
+	if err != nil {
+		return "", fmt.Errorf("enroll remote router: %w", err)
+	}
+
+	return hash, nil
 }
+
+func (node *Node) CreateMessageIdMultisigIsm(ctx context.Context, keyName, validators string, threshold uint32) (string, error) {
+	command := []string{"dymd", "tx", "hyperlane", "ism", "create-message-id-multisig-ism-raw",
+		"--validators", validators,
+		"--threshold", fmt.Sprint(threshold)}
+	if _, err := node.ExecTx(ctx, keyName, command...); err != nil {
+		return "", err
+	}
+	time.Sleep(6 * time.Second)
+
+	ismsJson, err := node.QueryIsms(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		Isms []struct {
+			ID string `json:"id"`
+		} `json:"isms"`
+	}
+	if err := json.Unmarshal([]byte(ismsJson), &resp); err != nil {
+		return "", err
+	}
+	if len(resp.Isms) == 0 {
+		return "", fmt.Errorf("no isms found after creation")
+	}
+	return resp.Isms[0].ID, nil
+}
+
+func (node *Node) CreateMailbox(ctx context.Context, keyName, ismId string, localDomain uint32) (string, error) {
+	command := []string{"dymd", "tx", "hyperlane", "mailbox", "create",
+		"--default-ism", ismId,
+		"--local-domain", fmt.Sprint(localDomain)}
+	if _, err := node.ExecTx(ctx, keyName, command...); err != nil {
+		return "", err
+	}
+	time.Sleep(6 * time.Second)
+
+	mailboxesJson, err := node.QueryMailboxes(ctx, "", "")
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		Mailboxes []struct {
+			ID string `json:"id"`
+		} `json:"mailboxes"`
+	}
+	if err := json.Unmarshal([]byte(mailboxesJson), &resp); err != nil {
+		return "", err
+	}
+	if len(resp.Mailboxes) == 0 {
+		return "", fmt.Errorf("no mailboxes found after creation")
+	}
+	return resp.Mailboxes[0].ID, nil
+}
+
+
+func (node *Node) CreateMerkleTreeHook(ctx context.Context, keyName, mailboxId string) (string, error) {
+	command := []string{"dymd", "tx", "hyperlane", "post-dispatch", "create-merkle-tree-hook",
+		"--mailbox-id", mailboxId}
+	if _, err := node.ExecTx(ctx, keyName, command...); err != nil {
+		return "", err
+	}
+	time.Sleep(6 * time.Second)
+
+	hooksJson, err := node.QueryMerkleTreeHooks(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		MerkleTreeHooks []struct {
+			ID string `json:"id"`
+		} `json:"merkle_tree_hooks"`
+	}
+	if err := json.Unmarshal([]byte(hooksJson), &resp); err != nil {
+		return "", err
+	}
+	if len(resp.MerkleTreeHooks) == 0 {
+		return "", fmt.Errorf("no merkle tree hooks found after creation")
+	}
+	return resp.MerkleTreeHooks[0].ID, nil
+}
+
+func (node *Node) CreateBridgingFeeHook(ctx context.Context, keyName, tokenId string) (string, error) {
+	command := []string{"dymd", "tx", "bridgingfee", "create-fee-hook",
+		"--token-id", tokenId,
+		"--inbound-fee", "0.0",
+		"--outbound-fee", "0.01"}
+	if _, err := node.ExecTx(ctx, keyName, command...); err != nil {
+		return "", err
+	}
+	time.Sleep(6 * time.Second)
+
+	hooksJson, err := node.QueryFeeHooks(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		FeeHooks []struct {
+			ID string `json:"id"`
+		} `json:"fee_hooks"`
+	}
+	if err := json.Unmarshal([]byte(hooksJson), &resp); err != nil {
+		return "", err
+	}
+	if len(resp.FeeHooks) == 0 {
+		return "", fmt.Errorf("no fee hooks found after creation")
+	}
+	return resp.FeeHooks[0].ID, nil
+}
+
+func (node *Node) CreateAggregationHook(ctx context.Context, keyName, hookId1, hookId2 string) (string, error) {
+	command := []string{"dymd", "tx", "bridgingfee", "create-aggregation-hook",
+		"--hook-ids", fmt.Sprintf("%s,%s", hookId1, hookId2)}
+	if _, err := node.ExecTx(ctx, keyName, command...); err != nil {
+		return "", err
+	}
+	time.Sleep(6 * time.Second)
+
+	hooksJson, err := node.QueryAggregationHooks(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		AggregationHooks []struct {
+			ID string `json:"id"`
+		} `json:"aggregation_hooks"`
+	}
+	if err := json.Unmarshal([]byte(hooksJson), &resp); err != nil {
+		return "", err
+	}
+	if len(resp.AggregationHooks) == 0 {
+		return "", fmt.Errorf("no aggregation hooks found after creation")
+	}
+	return resp.AggregationHooks[0].ID, nil
+}
+
+func (node *Node) CreateNoopHook(ctx context.Context, keyName string) (string, error) {
+	command := []string{"dymd", "tx", "hyperlane", "post-dispatch", "create-noop-hook"}
+	if _, err := node.ExecTx(ctx, keyName, command...); err != nil {
+		return "", err
+	}
+	time.Sleep(6 * time.Second)
+
+	hooksJson, err := node.QueryNoopHooks(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		NoopHooks []struct {
+			ID string `json:"id"`
+		} `json:"noop_hooks"`
+	}
+	if err := json.Unmarshal([]byte(hooksJson), &resp); err != nil {
+		return "", err
+	}
+	if len(resp.NoopHooks) == 0 {
+		return "", fmt.Errorf("no noop hooks found after creation")
+	}
+	return resp.NoopHooks[0].ID, nil
+}
+
+func (node *Node) SetMailbox(ctx context.Context, keyName, mailboxId, defaultHookId, requiredHookId string) (string, error) {
+	command := []string{"dymd", "tx", "hyperlane", "mailbox", "set", mailboxId,
+		"--default-hook", defaultHookId,
+		"--required-hook", requiredHookId}
+	return node.ExecTx(ctx, keyName, command...)
+}
+
 
 func (node *Node) QueryIsms(ctx context.Context) (string, error) {
 	command := []string{"dymd", "q", "hyperlane", "ism", "isms", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
@@ -2609,5 +2847,45 @@ func (node *Node) QueryHyperlaneMessageKaspa(ctx context.Context, tokenID, addre
 		return "", err
 	}
 
+	return string(stdout), nil
+}
+
+func (node *Node) QueryMerkleTreeHooks(ctx context.Context) (string, error) {
+	command := []string{"dymd", "q", "hyperlane", "post-dispatch", "merkle-tree-hooks", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
+}
+
+func (node *Node) QueryFeeHooks(ctx context.Context) (string, error) {
+	command := []string{"dymd", "q", "bridgingfee", "fee-hooks", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
+}
+
+func (node *Node) QueryAggregationHooks(ctx context.Context) (string, error) {
+	command := []string{"dymd", "q", "bridgingfee", "aggregation-hooks", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
+}
+
+func (node *Node) QueryNoopHooks(ctx context.Context) (string, error) {
+	command := []string{"dymd", "q", "hyperlane", "post-dispatch", "noop-hooks", "-o", "json", "--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
+		"--chain-id", node.Chain.Config().ChainID}
+	stdout, _, err := node.Exec(ctx, command, nil)
+	if err != nil {
+		return "", err
+	}
 	return string(stdout), nil
 }
